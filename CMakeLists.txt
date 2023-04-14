@@ -1,17 +1,19 @@
 ##
 #  CMake script for the step-20 tutorial program:
 ##
+#project(ion-propulsion)
+#add_executable(ion-propulsion CompleteCode.cc main.cpp Mesh.cc)
 
 # Set the name of the project and target:
-set(TARGET "Mesh")
+set(TARGET "src/Mesh")
 
 # Declare all source files the target consists of. Here, this is only
 # the one step-X.cc file, but as you expand your project you may wish
 # to add other source files as well. If your project becomes much larger,
 # you may want to either replace the following statement by something like
-#  file(GLOB_RECURSE TARGET_SRC  "source/*.cc")
-#  file(GLOB_RECURSE TARGET_INC  "include/*.h")
-#  set(TARGET_SRC ${TARGET_SRC}  ${TARGET_INC})
+file(GLOB_RECURSE TARGET_SRC  "src/*.cc")
+file(GLOB_RECURSE TARGET_INC  "include/*.h")
+set(TARGET_SRC ${TARGET_SRC}  ${TARGET_INC})
 # or switch altogether to the large project CMakeLists.txt file discussed
 # in the "CMake in user projects" page accessible from the "User info"
 # page of the documentation.
