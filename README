@@ -1,42 +1,41 @@
+Novità !!!!
+Ho riordinato tutta la struttura del codice!
+Ora è facilissimo!
 
-Istruzioni per utilizzare il codice condiviso:
+---------------------------------------------------------------------
+!!!! ---- !!!    Si fa tutto nella cartella /build	!!!! ---- !!!
+---------------------------------------------------------------------
 
-1) Installare deal.ii 
-   (seguendo i passi su: https://www.dealii.org/developer/readme.html)
+COMPILARE & ESEGUIRE:
+>> make run
 
-2) Scaricare il codice e il CMakelists.txt associato in una cartella
+CANCELLARE I RISULTATI
+>> make cleanres
 
-3) Assicurarsi che il "target" riportato nel file .txt corrisponda al
-  nome del codice di interesse e che la directory per i file deal.ii 
-  sia corretta
-  
-4) Aprire un terminale e spostarsi nella cartella creata in 2)
-
-5) Digitare sulla linea di comando "cmake ."
-
-6) Digitare sulla linea di comando "make"
-
-7) Il programma è ora compilato. Per farlo girare, digitare sulla 
-   linea di comando "make run"
+---------------------------------------------------------------------
 
 
-
-Consiglio di installare anche ParaView o Visit per la visualizzazione
-dei file .vtu e .vtk (I file .svg possono essere visualizzati 
-rapidamente con il comando "firefox nome_file.svg")
-Mini-tutorial su Visit: https://youtu.be/3ChnUxqtt08
-Paraview: https://www.paraview.org/
+Gli output (.vtu, .svg) sono in		/results
+I .cpp sono in 				/src
+Gli header sono in 			/include
 
 
-Consiglio di utilizzare un IDE per scrivere o modificare il programma,
- personalmente mi trovo bene con Eclipse
-Mini-tutorial: https://youtu.be/J5xiYSP9T4c
+NON
+NON DIGITARE MAI 
+>> cmake .
+MAI
+MAI
+MAI
+MAI
 
 
 
-Per qualunque dubbio non esitate a contattarmi, ma ricordate che,
- in molti casi, la libreria di deal.ii è la Bibbia:
-https://www.dealii.org/current/doxygen/deal.II/Tutorial.html
+---------------------------------------------------------------------
+Link utili:
+Mini-tutorial su Visit: 
+	https://youtu.be/3ChnUxqtt08
+Wiki dealii:
+	https://www.dealii.org/current/doxygen/deal.II/Tutorial.html
 
 
 
