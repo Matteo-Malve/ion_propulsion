@@ -8,6 +8,8 @@ void CreateGrid( Triangulation<dim> &mesh, const double mesh_height,
 
     const Point<2> top_left(-electrode_distance-wire_radius, mesh_height); // Coordinate angolo in alto a sinistra
     const Point<2> bottom_right(electrode_distance+wire_radius, 0.); // Coordinate angolo in basso a destra
+    //cout<<"Angolo alto a sinistra: ("<<top_left[0]<<","<<top_left[1]<<")"<<endl;
+    //cout<<"Angolo basso a destra: ("<<bottom_right[0]<<","<<bottom_right[1]<<")"<<endl;
 
     unsigned int a = (int) std::ceil( (bottom_right(0) - top_left(0))/wire_radius ); // Numero di suddivisioni lungo x
     unsigned int b = (int) std::ceil( (top_left(1) - bottom_right(1))/wire_radius/2 ); // Numero di suddivisioni lungo y

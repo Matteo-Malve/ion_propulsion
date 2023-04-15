@@ -1,21 +1,23 @@
 #include "../include/Problem.h"
-//#include "Problem.h"
-
+//#include "../include/GetPot"
 
 // Public:
 
 template <int dim>
 void Problem<dim>::run()
 {
+    //GetPot datafile("../data_setup");
     // Variabili mesh
-    const double mesh_height = 4.; // mm
-    const double electrode_distance = 2.; // mm
-    const double wire_radius = 0.025; // mm
-    const double collector_height = 1.2; // mm
+    const double mesh_height = datafile("Mesh/mesh_height", 4.0); // mm
+    cout<<"Mesh height = "<<mesh_height<<" mm"<<endl;
+    const double electrode_distance = datafile("Mesh/electrode_distance",2.); // mm
+    const double wire_radius = datafile("Mesh/wire_radius",0.025); // mm
+    const double collector_height = datafile("Mesh/collector_height",1.2); // mm
 
     // Raffinamento griglia massimo e minimo
-    const unsigned int max_refinement = 20;
-    const unsigned int min_refinement = 0;
+    const unsigned int max_refinement = datafile("Mesh/Mesh_Refinement/max_refinement",20);
+    const unsigned int min_refinement = datafile("Mesh/Mesh_Refinement/min_refinement",0);
+    cout<<"Min Refinemente = "<<min_refinement<<endl;
 
     std::cout << "Simulating for WIRE of radius: " << wire_radius
               << " mm in " << dim << "D" << std::endl

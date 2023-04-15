@@ -2555,8 +2555,11 @@
   /usr/local/include/deal.II/numerics/matrix_tools.h \
   /usr/local/include/deal.II/numerics/matrix_creator.h \
   /home/dealii/shared-folder/ion_propulsion/include/HelperFunctions.h \
-  /home/dealii/shared-folder/ion_propulsion/include/GridForge.h
+  /home/dealii/shared-folder/ion_propulsion/include/GridForge.h \
+  /home/dealii/shared-folder/ion_propulsion/include/GetPot
 
+
+/home/dealii/shared-folder/ion_propulsion/include/GetPot:
 
 /home/dealii/shared-folder/ion_propulsion/include/GridForge.h:
 

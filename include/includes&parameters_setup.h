@@ -1,4 +1,4 @@
-#ifndef MESH_CC_INCLUDES_PARAMETERS_SETUP_H
+#ifndef MESH_CC_ICLUDES_PARAMETERS_SETUP_H
 #define MESH_CC_INCLUDES_PARAMETERS_SETUP_H
 
 #include <deal.II/base/quadrature_lib.h>
@@ -34,10 +34,11 @@
 #include <deal.II/numerics/matrix_tools.h>
 
 #include <fstream>
-
+#include <iostream>
 
 using namespace dealii;
-
+using std::cout;
+using std::endl;
 
 // Class: Problem
 // Ora su Problem.h

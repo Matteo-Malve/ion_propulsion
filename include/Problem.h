@@ -4,6 +4,8 @@
 #include "includes&parameters_setup.h"
 #include "HelperFunctions.h"
 #include "GridForge.h"
+#include <GetPot>
+static GetPot datafile("../data_setup");
 
 template <int dim>
 class Problem
@@ -50,10 +52,10 @@ private:
     Timer timer;
 
     unsigned int cycle = 0;
-    const unsigned int Nmax = 0; // massimo numero di cicli
+    const unsigned int Nmax = datafile("Numerics/FEM_cycles/Nmax",10); // massimo numero di cicli
 
     Vector<float> values;
-    const float conv_tol = 1e-4; // tolleranza globale
+    const float conv_tol = datafile("Numerics/FEM_cycles/global_tolerane",1e-4); // tolleranza globale
 };
 
 

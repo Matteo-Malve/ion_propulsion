@@ -1,16 +1,12 @@
 #include <iostream>
 #include "../include/Problem.h"
-//#include "Problem.h"
+
 int main()
 {
     try
     {
-        // Il numero in <> indica la dimensione del problema
-
         Problem<2> wire_poisson_2d; // Definisco il tipo di problema...
         wire_poisson_2d.run(); // ... e lo simulo
-
-        // Non preoccupatevi del caso 3D: non funziona...
     }
     catch (std::exception &exc)
     {

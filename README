@@ -7,31 +7,36 @@ Ora è facilissimo!
 ---------------------------------------------------------------------
 
 COMPILARE & ESEGUIRE:
->> make run
+>> make		# Fare solo 1 volta, ignora warning GetPot
+>> make run	# Tutte le volte che vuoi eseguire
 
 CANCELLARE I RISULTATI
 >> make cleanres
 
 ---------------------------------------------------------------------
-
-
-Gli output (.vtu, .svg) sono in		/results
-I .cpp sono in 				/src
-Gli header sono in 			/include
-
-
-NON
-NON DIGITARE MAI 
->> cmake .
-MAI
-MAI
-MAI
-MAI
-
-
-
+!!!! ---- !!!    Nuovo setting dei parametri	!!!! ---- !!!
 ---------------------------------------------------------------------
+Tutti i parametri vanno messi nel .txt: "data_setup"
+Ci penserà GetPot a farli leggere al programma. Easy no?
+
+
+
+
+Organizzazione cartelle:
+---------------------------
+- Gli output (.vtu, .svg) sono in		/results
+- I .cpp sono in 				/src
+- Gli header sono in 			/include
+
+
+Avvertenze:
+---------------------------
+NON DIGITARE MAI 		# IMPORTANTE !!!!!!!!!!!!!!!!!!!!!!!!!
+>> cmake .
+
+
 Link utili:
+---------------------------
 Mini-tutorial su Visit: 
 	https://youtu.be/3ChnUxqtt08
 Wiki dealii:

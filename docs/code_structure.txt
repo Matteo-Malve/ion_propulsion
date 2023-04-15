@@ -1,0 +1,40 @@
+Code structure:
+
+Problem.h
+	Class Problem:
+	- triangulation
+	- fe
+	- dof_handler
+	- constraints
+	- system_matrix
+	- sparsity pattern
+	- laplace_matrix
+	- solution
+	- system_rhs
+	- timer
+	- cycle
+	- Nmax
+	- values
+	- conv_tol
+	-------------------
+	+ Problem()
+	+ void run()
+	- void create_mesh(...)
+	- void setup_system()
+	- void solve()
+	- void refine_grid(...)
+	- void output_reults(...)
+
+HelperFunctions.h
+	void print_mesh_info(...)
+	double L2Norm(...)
+	class GradientPostprocessor : public DataPostprocessorVector
+		+ GradientPostprocessor()
+		+ void evaluate_scalar_field(...) override
+
+GridForge.h
+	void CreateGrid(...)
+	void SetManifoldsAndBoundaries(...)
+
+includes&parameters_setup.h
+	//

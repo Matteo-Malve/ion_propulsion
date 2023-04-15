@@ -1,0 +1,13 @@
+[Mesh]
+	mesh_height = 3.0
+	electrode_distance = 2.0
+	wire_radius = 0.025
+	collector_height = 1.2
+	[./Mesh_Refinement]
+		max_refinement = 20
+		min_refinement = 0
+[Numerics]
+	[./FEM_cycles]
+		Nmax = 1;
+		global_tolerance = 1e-4;
+		
