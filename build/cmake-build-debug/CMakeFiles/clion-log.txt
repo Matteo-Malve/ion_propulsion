@@ -1,0 +1,4 @@
+Cannot generate into /Users/matteom/shared-folder/ion_propulsion/build
+It is already used for project /home/dealii/shared-folder/ion_propulsion/build
+
+Please either delete it manually or select another generation directory

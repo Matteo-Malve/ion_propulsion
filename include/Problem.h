@@ -35,7 +35,7 @@ private:
                      const unsigned int max_grid_level); // massimo livello di raffinemento griglia
     void output_results(const double wire_radius);
 
-    Triangulation<dim> triangulation;
+    Triangulation<dim> triangulation;   // step-1
 
     FE_Q<dim>       fe;
     DoFHandler<dim> dof_handler;
