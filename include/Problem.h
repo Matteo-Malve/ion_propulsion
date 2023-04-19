@@ -20,6 +20,7 @@ public:
 private:
     // Creazione della griglia computazionale
     // Tutorial griglie: step-49 su deal.ii
+
     void create_mesh(const double mesh_height, const double electrode_distance,
                      const double wire_radius, const double collector_height);
 
@@ -34,6 +35,7 @@ private:
     void refine_grid(const unsigned int min_grid_level, // minimo livello di raffinamento griglia
                      const unsigned int max_grid_level); // massimo livello di raffinemento griglia
     void output_results(const double wire_radius);
+
 
     Triangulation<dim> triangulation;   // step-1
 

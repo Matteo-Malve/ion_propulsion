@@ -1,41 +1,49 @@
 #include "../include/GridForge.h"
 //#include "GridForge.h"
+
 template <int dim>
-void CreateGrid( Triangulation<dim> &mesh, const double mesh_height,
+void CreateInitialGrid( Triangulation<dim> &mesh, const double mesh_height,
                  const double electrode_distance, const double wire_radius)
 {
     Assert(dim == 2, ExcNotImplemented()); // Serve solo per dare errore se si prova con dim = 3
 
-    const Point<2> top_left(-electrode_distance-wire_radius, mesh_height); // Coordinate angolo in alto a sinistra
+    const Point<2> top_left(0, mesh_height); // Coordinate angolo in alto a sinistra
     const Point<2> bottom_right(electrode_distance+wire_radius, 0.); // Coordinate angolo in basso a destra
-    //cout<<"Angolo alto a sinistra: ("<<top_left[0]<<","<<top_left[1]<<")"<<endl;
-    //cout<<"Angolo basso a destra: ("<<bottom_right[0]<<","<<bottom_right[1]<<")"<<endl;
 
-    unsigned int a = (int) std::ceil( (bottom_right(0) - top_left(0))/wire_radius ); // Numero di suddivisioni lungo x
-    unsigned int b = (int) std::ceil( (top_left(1) - bottom_right(1))/wire_radius/2 ); // Numero di suddivisioni lungo y
+    unsigned int a = (int) std::ceil( abs(top_left(0) - bottom_right(0))/wire_radius ); // Numero di suddivisioni lungo x
+    unsigned int b = (int) std::ceil( abs(top_left(1) - bottom_right(1))/wire_radius ); // Numero di suddivisioni lungo y
 
     // Griglia rettangolare:
     GridGenerator::subdivided_hyper_rectangle( mesh, {a,b}, top_left, bottom_right);
 
-
-    // Ciclo su tutte le facce per spostare quelle dove si trova l'elettrodo
-    for (auto &face : mesh.active_face_iterators())
+    const Point<2> center(0, 0);
+    for (unsigned int step = 0; step < 5; ++step)
     {
-        if (face->at_boundary()) // Se la faccia è sul bordo ...
+        for (auto &cell : mesh.active_cell_iterators())
         {
-            const Point<2> c = face->center();
-            if ( std::fabs(c[0]) <= wire_radius && c[1] < wire_radius*1e-3 ) // ... e il centro dista da 0,0 meno del raggio dell'emettitore
-            {
-                for (const auto i : face->vertex_indices()) // Ciclo sui vertici della cella
-                {
-                    Point<2> &v = face->vertex(i);
-                    v(1) = std::max(0. , std::sqrt(pow(wire_radius,2) - pow(v(0),2) ) ); // impongo y = sqrt(r^2 - x^2)
-                }
+            const double distance_from_center = center.distance(cell->center());
+            if(distance_from_center<0.5)
+                cell->set_refine_flag();
+            else if(step<4 && distance_from_center<0.75)
+                cell->set_refine_flag();
+            else if(step<3 && distance_from_center<1)
+                cell->set_refine_flag();
+            else if(step<2 && distance_from_center<1.25)
+                cell->set_refine_flag();
             }
-        }
+        mesh.execute_coarsening_and_refinement();
     }
+    std::ofstream out("../mesh_storage/initial_mesh.vtu");
+    GridOut       grid_out;
+    grid_out.write_vtu(mesh, out);
+    std::cout<<"Mesh written to vtu"<<std::endl;
+}
 
-
+template <int dim>
+void CreateGrid( Triangulation<dim> &mesh, const double mesh_height,
+                 const double electrode_distance, const double wire_radius){
+    CreateInitialGrid<dim>(mesh,mesh_height,electrode_distance,wire_radius);
+    std::cout<<"Tutto bene"<<std::endl;
 }
 
 

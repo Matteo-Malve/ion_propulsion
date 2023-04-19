@@ -1,6 +1,6 @@
 [Mesh]
-	mesh_height = 3.0
-	electrode_distance = 2.0
+	mesh_height = 4.0
+	electrode_distance = 4.0
 	wire_radius = 0.025
 	collector_height = 1.2
 	[./Mesh_Refinement]
