@@ -40,33 +40,14 @@ using namespace dealii;
 using std::cout;
 using std::endl;
 
-// Class: Problem
-// Ora su Problem.h
+#include <sys/stat.h>   // stat
+#include <stdbool.h>    // bool type
 
-// print_mesh_info
-// Ora su HelperFunctions.h
-
-
-// L2Norm
-// Ora su HelperFunctions.h
-
-
-// GradientPostprocessor
-// Ora su HelperFunctions.h
-
-//  CreateGrid
-// Ora su GridForge.h
-
-
-// SetManifoldsAndBoundaries
-// Ora su GridForge.h
-
-
-// Scelta degli elementi finiti: lineari o quadratici
-// Constructor Problem class
-
-
-// Ciclo main
-// Ora su file a parte
+/*
+bool file_exists (char *filename) {
+    struct stat   buffer;
+    return (stat (filename, &buffer) == 0);
+}
+ */
 
 #endif //MESH_CC_INCLUDES_PARAMETERS_SETUP_H

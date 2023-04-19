@@ -2553,8 +2553,31 @@
   /usr/local/include/deal.II/numerics/error_estimator.h \
   /usr/local/include/deal.II/numerics/solution_transfer.h \
   /usr/local/include/deal.II/numerics/matrix_tools.h \
-  /usr/local/include/deal.II/numerics/matrix_creator.h
+  /usr/local/include/deal.II/numerics/matrix_creator.h \
+  /usr/include/x86_64-linux-gnu/sys/stat.h \
+  /usr/include/x86_64-linux-gnu/bits/stat.h \
+  /usr/include/x86_64-linux-gnu/bits/struct_stat.h \
+  /usr/include/x86_64-linux-gnu/bits/statx.h \
+  /usr/include/linux/stat.h \
+  /usr/include/x86_64-linux-gnu/bits/statx-generic.h \
+  /usr/include/x86_64-linux-gnu/bits/types/struct_statx_timestamp.h \
+  /usr/include/x86_64-linux-gnu/bits/types/struct_statx.h \
+  /usr/lib/gcc/x86_64-linux-gnu/11/include/stdbool.h
 
+
+/usr/lib/gcc/x86_64-linux-gnu/11/include/stdbool.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_statx.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_statx_timestamp.h:
+
+/usr/include/x86_64-linux-gnu/bits/statx-generic.h:
+
+/usr/include/linux/stat.h:
+
+/usr/include/x86_64-linux-gnu/bits/statx.h:
+
+/usr/include/x86_64-linux-gnu/sys/stat.h:
 
 /usr/local/include/deal.II/numerics/matrix_creator.h:
 
@@ -6912,6 +6935,8 @@
 
 /usr/include/boost/container/detail/variadic_templates_tools.hpp:
 
+/usr/include/x86_64-linux-gnu/bits/struct_stat.h:
+
 /usr/include/boost/container/detail/version_type.hpp:
 
 /usr/include/trilinos/impl/Kokkos_Serial_WorkGraphPolicy.hpp:
@@ -7189,6 +7214,8 @@
 /usr/include/petsc/petscversion.h:
 
 /usr/include/boost/predef/compiler/greenhills.h:
+
+/usr/include/x86_64-linux-gnu/bits/stat.h:
 
 /usr/include/boost/predef/compiler/palm.h:
 

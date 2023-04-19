@@ -2353,4 +2353,12 @@
  /usr/local/include/deal.II/numerics/error_estimator.h \
  /usr/local/include/deal.II/numerics/solution_transfer.h \
  /usr/local/include/deal.II/numerics/matrix_tools.h \
- /usr/local/include/deal.II/numerics/matrix_creator.h
+ /usr/local/include/deal.II/numerics/matrix_creator.h \
+ /usr/include/x86_64-linux-gnu/sys/stat.h \
+ /usr/include/x86_64-linux-gnu/bits/stat.h \
+ /usr/include/x86_64-linux-gnu/bits/struct_stat.h \
+ /usr/include/x86_64-linux-gnu/bits/statx.h /usr/include/linux/stat.h \
+ /usr/include/x86_64-linux-gnu/bits/statx-generic.h \
+ /usr/include/x86_64-linux-gnu/bits/types/struct_statx_timestamp.h \
+ /usr/include/x86_64-linux-gnu/bits/types/struct_statx.h \
+ /usr/lib/gcc/x86_64-linux-gnu/11/include/stdbool.h

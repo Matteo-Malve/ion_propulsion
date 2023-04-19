@@ -35,8 +35,8 @@ void print_mesh_info(const Triangulation<dim> &triangulation,
         }
         std::cout << std::endl;
     }
-    //std::ofstream out("../../results/"+filename);
-    std::ofstream out("../mesh_storage/"+filename);
+
+    std::ofstream out(filename);
     GridOut       grid_out;
     grid_out.write_svg(triangulation, out);
     std::cout << " written to " << filename << std::endl << std::endl;

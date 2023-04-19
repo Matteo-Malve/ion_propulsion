@@ -35,15 +35,38 @@ void CreateInitialGrid( Triangulation<dim> &mesh, const double mesh_height,
     }
     std::ofstream out("../mesh_storage/initial_mesh.vtu");
     GridOut       grid_out;
+    //GridOutFlags::Vtu::serialize_triangulation = true;
+    // void 	set_flags (const GridOutFlags::Vtu &flags)
+    GridOutFlags::Vtu flags(true);
+    grid_out.set_flags(flags);
+    if(flags.serialize_triangulation==true)
+        std::cout<<"GridOutFlags::Vtu::serialize_triangulation  IS  true"<<std::endl;
+    else
+        std::cout<<"GridOutFlags::Vtu::serialize_triangulation  IS  false"<<std::endl;
     grid_out.write_vtu(mesh, out);
     std::cout<<"Mesh written to vtu"<<std::endl;
 }
 
+#include <sys/stat.h>
 template <int dim>
 void CreateGrid( Triangulation<dim> &mesh, const double mesh_height,
                  const double electrode_distance, const double wire_radius){
-    CreateInitialGrid<dim>(mesh,mesh_height,electrode_distance,wire_radius);
-    std::cout<<"Tutto bene"<<std::endl;
+    struct stat sb;
+    int is_present = stat("../mesh_storage/initial_mesh.vtu",&sb);
+    if(is_present==-1) {
+        std::cout << "File NOT found: proceed to generate initial mesh" << std::endl;
+        CreateInitialGrid<dim>(mesh, mesh_height, electrode_distance, wire_radius);
+    }
+    else if(is_present==0){
+        std::cout<<"File found"<<std::endl;
+        std::ifstream input_file("../mesh_storage/initial_mesh.vtu");
+        GridIn<dim>       grid_in;
+        grid_in.attach_triangulation(mesh);
+        grid_in.read_vtu(input_file);
+        std::cout<<"Grid imported"<<std::endl;
+    } else
+        std::cout<<"File not found nor not found. Anomaly.";
+
 }
 
 
