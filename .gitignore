@@ -1,2 +1,4 @@
 mesh_storage/
 results/
+build/
+src/cmake-build-debug/
