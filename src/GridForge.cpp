@@ -1,6 +1,15 @@
 #include "../include/GridForge.h"
 //#include "GridForge.h"
 
+// Grounbd mesh settings
+// No 3,7,10,
+// 1,2,4,5,12,13,14 unstructured
+// 6,8 squadrata
+// 9 Bordi
+// 11 Vortici strani
+
+
+
 template <int dim>
 void CreateInitialGrid( Triangulation<dim> &mesh, const double mesh_height,
                  const double electrode_distance, const double wire_radius)
@@ -67,8 +76,32 @@ void CreateGrid( Triangulation<dim> &mesh, const double mesh_height,
     } else
         std::cout<<"File not found nor not found. Anomaly.";
 
+    // Curve cells around emitter wire
+    CurveCells<dim>(mesh, mesh_height, electrode_distance, wire_radius);
 }
 
+template <int dim>
+void CurveCells( Triangulation<dim> &mesh, const double mesh_height,
+                 const double electrode_distance, const double wire_radius){
+    for (auto &face : mesh.active_face_iterators())
+    {
+        if (face->at_boundary()) // Se la faccia è sul bordo ...
+        {
+            const Point<2> c = face->center();
+            if ( std::fabs(c[0]) <= wire_radius && c[1] < wire_radius*1e-3 ) // ... e il centro dista da 0,0 meno del raggio dell'emettitore
+            {
+                for (const auto i : face->vertex_indices()) // Ciclo sui vertici della cella
+                {
+                    Point<2> &v = face->vertex(i);
+                    v(1) = std::max(0. , std::sqrt(pow(wire_radius,2) - pow(v(0),2) ) ); // impongo y = sqrt(r^2 - x^2)
+                }
+            }
+        }
+    }
+
+
+
+}
 
 template <int dim>
 void SetManifoldsAndBoundaries(Triangulation<dim> &mesh, const double collector_height,

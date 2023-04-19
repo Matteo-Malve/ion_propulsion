@@ -43,11 +43,6 @@ using std::endl;
 #include <sys/stat.h>   // stat
 #include <stdbool.h>    // bool type
 
-/*
-bool file_exists (char *filename) {
-    struct stat   buffer;
-    return (stat (filename, &buffer) == 0);
-}
- */
+
 
 #endif //MESH_CC_INCLUDES_PARAMETERS_SETUP_H
