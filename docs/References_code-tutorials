@@ -1,0 +1,14 @@
+Here I'll write tutorial by tutorial which functions of ours are involved.
+
+step-1
+	Problem.h
+		[Object] triangulation: __Declare triangulation__
+		[Method] run(): __Refine grid__
+	GridForge.h
+		CreateGrid()
+			GridGenerator::subdivided_hyper_rectangle(...)
+	HelperFunctions.h
+		print_mesh_info(): __print mesh in svg format__
+	[everywhere]
+		__Loop over cells__
+	
