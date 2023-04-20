@@ -15,7 +15,7 @@ void CreateInitialGrid( Triangulation<dim> &mesh, const double mesh_height,
                  const double electrode_distance, const double wire_radius)
 {
     Assert(dim == 2, ExcNotImplemented()); // Serve solo per dare errore se si prova con dim = 3
-
+    /*
     const Point<2> top_left(0, mesh_height); // Coordinate angolo in alto a sinistra
     const Point<2> bottom_right(electrode_distance+wire_radius, 0.); // Coordinate angolo in basso a destra
 
@@ -24,6 +24,23 @@ void CreateInitialGrid( Triangulation<dim> &mesh, const double mesh_height,
 
     // Griglia rettangolare:
     GridGenerator::subdivided_hyper_rectangle( mesh, {a,b}, top_left, bottom_right);
+    */
+    struct stat sb;
+    int is_present = stat("../gmsh_grids/custom_ground_mesh.msh",&sb);
+    //assert(is_present==0,ExcNotImplemented());
+    if(is_present==-1) {
+        std::cerr << "Custom ground mesh NOT found!" << std::endl;
+    }
+    else if(is_present==0){
+        std::cerr<<"Custom ground mesh found"<<std::endl;
+        std::ifstream input_file("../gmsh_grids/custom_ground_mesh.msh");
+        GridIn<dim>       grid_in;
+        grid_in.attach_triangulation(mesh);
+        grid_in.read_msh(input_file);
+        std::cerr<<"Grid imported"<<std::endl;
+    } else
+        std::cerr<<"File not found nor not found. Anomaly.";
+
 
     const Point<2> center(0, 0);
     for (unsigned int step = 0; step < 5; ++step)
