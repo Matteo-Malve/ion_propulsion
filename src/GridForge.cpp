@@ -25,9 +25,10 @@ void CreateInitialGrid( Triangulation<dim> &mesh, const double mesh_height,
     // Griglia rettangolare:
     GridGenerator::subdivided_hyper_rectangle( mesh, {a,b}, top_left, bottom_right);
     */
+
+    // Check if ground mesh file is present and retrieve it
     struct stat sb;
     int is_present = stat("../gmsh_grids/custom_ground_mesh.msh",&sb);
-    //assert(is_present==0,ExcNotImplemented());
     if(is_present==-1) {
         std::cerr << "Custom ground mesh NOT found!" << std::endl;
     }
@@ -41,7 +42,7 @@ void CreateInitialGrid( Triangulation<dim> &mesh, const double mesh_height,
     } else
         std::cerr<<"File not found nor not found. Anomaly.";
 
-
+    // Initial refinement
     const Point<2> center(0, 0);
     for (unsigned int step = 0; step < 5; ++step)
     {
@@ -59,6 +60,8 @@ void CreateInitialGrid( Triangulation<dim> &mesh, const double mesh_height,
             }
         mesh.execute_coarsening_and_refinement();
     }
+
+    // Save initial mesh to file
     std::ofstream out("../mesh_storage/initial_mesh.vtu");
     GridOut       grid_out;
     //GridOutFlags::Vtu::serialize_triangulation = true;
@@ -92,33 +95,8 @@ void CreateGrid( Triangulation<dim> &mesh, const double mesh_height,
         std::cout<<"Grid imported"<<std::endl;
     } else
         std::cout<<"File not found nor not found. Anomaly.";
-
-    // Curve cells around emitter wire
-    CurveCells<dim>(mesh, mesh_height, electrode_distance, wire_radius);
 }
 
-template <int dim>
-void CurveCells( Triangulation<dim> &mesh, const double mesh_height,
-                 const double electrode_distance, const double wire_radius){
-    for (auto &face : mesh.active_face_iterators())
-    {
-        if (face->at_boundary()) // Se la faccia è sul bordo ...
-        {
-            const Point<2> c = face->center();
-            if ( std::fabs(c[0]) <= wire_radius && c[1] < wire_radius*1e-3 ) // ... e il centro dista da 0,0 meno del raggio dell'emettitore
-            {
-                for (const auto i : face->vertex_indices()) // Ciclo sui vertici della cella
-                {
-                    Point<2> &v = face->vertex(i);
-                    v(1) = std::max(0. , std::sqrt(pow(wire_radius,2) - pow(v(0),2) ) ); // impongo y = sqrt(r^2 - x^2)
-                }
-            }
-        }
-    }
-
-
-
-}
 
 template <int dim>
 void SetManifoldsAndBoundaries(Triangulation<dim> &mesh, const double collector_height,

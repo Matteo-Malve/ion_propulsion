@@ -17,3 +17,8 @@ add_custom_target(cleanres
   COMMAND rm *.svg *.vtu
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/../results
   )
+
+add_custom_target(cleanmesh
+  COMMAND rm *.svg *.vtu
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/../mesh_storage
+  )
