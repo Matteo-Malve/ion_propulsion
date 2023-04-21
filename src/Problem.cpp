@@ -57,7 +57,7 @@ void Problem<dim>::run()
 
             VectorTools::interpolate_boundary_values(dof_handler,
                                                      2,  // Boundary corrispondente al collettore, definito sopra
-                                                     Functions::ZeroFunction<dim>(), // Valore di potenziale al collettore (0 V)
+                                                     Functions::ConstantFunction<dim>(1.6e+4), // Valore di potenziale al collettore (0 V)
                                                      collector_boundary_values);
 
             /* Le condizioni sopra sono condizioni di Dirichlet

@@ -121,12 +121,10 @@ void SetManifoldsAndBoundaries(Triangulation<dim> &mesh, const double collector_
         {
             const Point<dim> c = face->center();
 
-            if ( (c[1] > 0) && (c[1] <= collector_height) && (c[0] > electrode_distance) )
+            if ( (c[1] >= 0) && (c[0] >= electrode_distance) )  // !!! NOTA !!! electrode distance = mesh height
                 face->set_boundary_id(collector_id);
-            else if ( (c[1] > 0) && (std::fabs(c[0]) < 2*wire_radius) && (c[1] <= wire_radius*2)) {
+            else if ( (c[1] >= 0) && (c[0] <= wire_radius) && (c[1] <= wire_radius) && (c[0] >= 0) ) {
                 face->set_boundary_id(emitter_id);
-                face->set_manifold_id(wire_id);
-                //std::cout << " Set wire manifold in: " << c << std::endl;
             }
         }
     }

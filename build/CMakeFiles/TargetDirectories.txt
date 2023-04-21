@@ -1,4 +1,5 @@
 /home/dealii/shared-folder/ion_propulsion/build/CMakeFiles/cleanres.dir
+/home/dealii/shared-folder/ion_propulsion/build/CMakeFiles/cleanmesh.dir
 /home/dealii/shared-folder/ion_propulsion/build/CMakeFiles/edit_cache.dir
 /home/dealii/shared-folder/ion_propulsion/build/CMakeFiles/rebuild_cache.dir
 /home/dealii/shared-folder/ion_propulsion/src/build/CMakeFiles/Problem.dir

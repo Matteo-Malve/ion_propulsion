@@ -72,6 +72,7 @@ preinstall: /home/dealii/shared-folder/ion_propulsion/src/build/preinstall
 
 # The main recursive "clean" target.
 clean: CMakeFiles/cleanres.dir/clean
+clean: CMakeFiles/cleanmesh.dir/clean
 clean: /home/dealii/shared-folder/ion_propulsion/src/build/clean
 .PHONY : clean
 
@@ -122,6 +123,32 @@ cleanres: CMakeFiles/cleanres.dir/rule
 CMakeFiles/cleanres.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cleanres.dir/build.make CMakeFiles/cleanres.dir/clean
 .PHONY : CMakeFiles/cleanres.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/cleanmesh.dir
+
+# All Build rule for target.
+CMakeFiles/cleanmesh.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cleanmesh.dir/build.make CMakeFiles/cleanmesh.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cleanmesh.dir/build.make CMakeFiles/cleanmesh.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/dealii/shared-folder/ion_propulsion/build/CMakeFiles --progress-num= "Built target cleanmesh"
+.PHONY : CMakeFiles/cleanmesh.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/cleanmesh.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/dealii/shared-folder/ion_propulsion/build/CMakeFiles 0
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/cleanmesh.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/dealii/shared-folder/ion_propulsion/build/CMakeFiles 0
+.PHONY : CMakeFiles/cleanmesh.dir/rule
+
+# Convenience name for target.
+cleanmesh: CMakeFiles/cleanmesh.dir/rule
+.PHONY : cleanmesh
+
+# clean rule for target.
+CMakeFiles/cleanmesh.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cleanmesh.dir/build.make CMakeFiles/cleanmesh.dir/clean
+.PHONY : CMakeFiles/cleanmesh.dir/clean
 
 #=============================================================================
 # Target rules for target /home/dealii/shared-folder/ion_propulsion/src/build/CMakeFiles/Problem.dir

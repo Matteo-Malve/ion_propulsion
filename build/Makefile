@@ -130,6 +130,19 @@ cleanres/fast:
 .PHONY : cleanres/fast
 
 #=============================================================================
+# Target rules for targets named cleanmesh
+
+# Build rule for target.
+cleanmesh: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 cleanmesh
+.PHONY : cleanmesh
+
+# fast build rule for target.
+cleanmesh/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cleanmesh.dir/build.make CMakeFiles/cleanmesh.dir/build
+.PHONY : cleanmesh/fast
+
+#=============================================================================
 # Target rules for targets named Problem
 
 # Build rule for target.
@@ -202,6 +215,7 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... cleanmesh"
 	@echo "... cleanres"
 	@echo "... run"
 	@echo "... GridForge"
