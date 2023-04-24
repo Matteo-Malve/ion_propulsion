@@ -5,7 +5,7 @@ template <int dim>
 void print_mesh_info(const Triangulation<dim> &triangulation,
                      const std::string &       filename)
 {
-    std::cout << "Mesh info:" << std::endl // Comando per stampare a schermo, utilissimo per il debugging
+    std::cout << "\nMesh info:" << std::endl // Comando per stampare a schermo, utilissimo per il debugging
               << " dimension: " << dim << std::endl
               << " no. of cells: " << triangulation.n_active_cells() << std::endl;
     {

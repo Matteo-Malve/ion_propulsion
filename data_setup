@@ -8,6 +8,6 @@
 		min_refinement = 0
 [Numerics]
 	[./FEM_cycles]
-		Nmax = 1;
+		Nmax = 0;
 		global_tolerance = 1e-4;
 		

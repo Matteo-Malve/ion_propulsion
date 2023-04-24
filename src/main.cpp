@@ -7,6 +7,7 @@ int main()
     {
         Problem<2> wire_poisson_2d; // Definisco il tipo di problema...
         wire_poisson_2d.run(); // ... e lo simulo
+        cout<<endl;
     }
     catch (std::exception &exc)
     {

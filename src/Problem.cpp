@@ -9,7 +9,6 @@ void Problem<dim>::run()
     //GetPot datafile("../data_setup");
     // Variabili mesh
     const double mesh_height = datafile("Mesh/mesh_height", 4.0); // mm
-    cout<<"Mesh height = "<<mesh_height<<" mm"<<endl;
     const double electrode_distance = datafile("Mesh/electrode_distance",2.); // mm
     const double wire_radius = datafile("Mesh/wire_radius",0.025); // mm
     const double collector_height = datafile("Mesh/collector_height",1.2); // mm
@@ -17,12 +16,14 @@ void Problem<dim>::run()
     // Raffinamento griglia massimo e minimo
     const unsigned int max_refinement = datafile("Mesh/Mesh_Refinement/max_refinement",20);
     const unsigned int min_refinement = datafile("Mesh/Mesh_Refinement/min_refinement",0);
-    cout<<"Min Refinemente = "<<min_refinement<<endl;
+    cout<<"\nSettings: "<<endl;
+    cout<<" Min Refinemente = "<<min_refinement<<endl;
 
-    std::cout << "Simulating for WIRE of radius: " << wire_radius
+    std::cout << " Simulating for WIRE of radius: " << wire_radius
               << " mm in " << dim << "D" << std::endl
-              << "Mesh: " << 2*electrode_distance << " mm x " << mesh_height << " mm"
-              << std::endl;
+              << " Mesh: " << "4 x 4 mm"<<endl
+              << " # refinements: "<<Nmax
+              << endl;
 
     while (cycle <= Nmax)
     {
@@ -103,9 +104,9 @@ void Problem<dim>::create_mesh(const double mesh_height, const double electrode_
 
     print_mesh_info(triangulation, "grid.svg");
 
-    triangulation.refine_global(1);
+    //triangulation.refine_global(1);
 
-    print_mesh_info(triangulation, "refined_grid.svg");
+    //print_mesh_info(triangulation, "refined_grid.svg");
 
 }
 
@@ -284,9 +285,7 @@ void Problem<dim>::output_results(const double wire_radius)
 
         Point<dim> sample(wire_radius, 0.);
         Tensor<1,dim>  E = VectorTools::point_gradient(dof_handler, solution, sample);
-        std::cout << "Electric field in ("<< sample[0] << "," << sample[1] << "): " << -E << ", magnitude: " << L2Norm(E) << std::endl;
-
-        std::cout << std::endl;
+        std::cout << "   Electric field in ("<< sample[0] << "," << sample[1] << "): " << -E << ", magnitude: " << L2Norm(E) << std::endl;
     }
 }
 
