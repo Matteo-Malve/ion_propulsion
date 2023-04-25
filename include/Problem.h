@@ -4,7 +4,6 @@
 #include "includes&parameters_setup.h"
 #include "HelperFunctions.h"
 #include "GridForge.h"
-#include <GetPot>
 static GetPot datafile("../data_setup");
 
 template <int dim>

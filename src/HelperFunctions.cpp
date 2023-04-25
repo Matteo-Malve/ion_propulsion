@@ -52,6 +52,27 @@ double L2Norm(const Tensor<1,dim> &input)
     return std::sqrt(magnitude);
 }
 
+template <int dim>
+void ckeck_boundary_ids(const Triangulation<dim> &triangulation) {
+    cout<<"Starting check on Boundary ids..."<<endl;
+    DataPostprocessors::BoundaryIds <dim> boundary_ids;
+    DataOutFaces<dim> data_out_faces; // requires: #include <deal.II/numerics/data_out_faces.h>
+    FE_Q <dim> dummy_fe(1);
+
+    DoFHandler <dim> dummy_dof_handler(triangulation);
+    dummy_dof_handler.distribute_dofs(dummy_fe);
+
+    Vector<double> dummy_solution(dummy_dof_handler.n_dofs());
+
+    data_out_faces.attach_dof_handler(dummy_dof_handler);
+    data_out_faces.add_data_vector(dummy_solution, boundary_ids);
+    data_out_faces.build_patches();
+
+    std::ofstream out("boundary_ids.vtu");
+    data_out_faces.write_vtu(out);
+    cout<<"   Boundary ids written to boundary_ids.vtu"<<endl
+        <<"   Check the file\n\n";
+}
 
 // #######################################
 // Template initialization
@@ -59,3 +80,4 @@ double L2Norm(const Tensor<1,dim> &input)
 template void print_mesh_info(const Triangulation<2> &triangulation,
                               const std::string &       filename);
 template double L2Norm(const Tensor<1,2> &input);
+template void ckeck_boundary_ids(const Triangulation<2> &triangulation);

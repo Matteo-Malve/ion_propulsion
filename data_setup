@@ -10,4 +10,7 @@
 	[./FEM_cycles]
 		Nmax = 0;
 		global_tolerance = 1e-4;
+
+[Load]
+	custom_mesh_to_be_loaded = ../gmsh_grids/custom_ground_mesh.msh
 		

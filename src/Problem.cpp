@@ -1,5 +1,4 @@
 #include "../include/Problem.h"
-//#include "../include/GetPot"
 
 // Public:
 
@@ -101,6 +100,8 @@ void Problem<dim>::create_mesh(const double mesh_height, const double electrode_
     CreateGrid(triangulation, mesh_height, electrode_distance, wire_radius);
 
     SetManifoldsAndBoundaries(triangulation, std::min(mesh_height,collector_height), electrode_distance, wire_radius);
+
+    ckeck_boundary_ids(triangulation);
 
     print_mesh_info(triangulation, "grid.svg");
 

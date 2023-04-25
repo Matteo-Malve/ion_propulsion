@@ -32,6 +32,7 @@
 #include <deal.II/numerics/error_estimator.h>
 #include <deal.II/numerics/solution_transfer.h>
 #include <deal.II/numerics/matrix_tools.h>
+#include <deal.II/numerics/data_out_faces.h>
 
 #include <fstream>
 #include <iostream>
@@ -43,6 +44,8 @@ using std::endl;
 #include <sys/stat.h>   // stat
 #include <stdbool.h>    // bool type
 
-
+//#include <memory>
+#include "GetPot"
+//static std::unique_ptr<GetPot> make_unique(datafile("../data_setup"));
 
 #endif //MESH_CC_INCLUDES_PARAMETERS_SETUP_H

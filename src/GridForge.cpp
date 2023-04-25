@@ -11,8 +11,7 @@
 
 
 template <int dim>
-void CreateInitialGrid( Triangulation<dim> &mesh, const double mesh_height,
-                 const double electrode_distance, const double wire_radius)
+void CreateInitialGrid( Triangulation<dim> &mesh)
 {
     Assert(dim == 2, ExcNotImplemented()); // Serve solo per dare errore se si prova con dim = 3
     /*
@@ -29,13 +28,16 @@ void CreateInitialGrid( Triangulation<dim> &mesh, const double mesh_height,
     // Check if ground mesh file is present and retrieve it
     cout<<"Looking for Custom Ground Mesh built with Gmsh"<<endl;
     struct stat sb;
-    int is_present = stat("../gmsh_grids/custom_ground_mesh.msh",&sb);
+    GetPot redefined_datafile("../data_setup");
+    int is_present = stat(redefined_datafile("Load/custom_mesh_to_be_loaded","file inesistente"),&sb);
+    //int is_present = stat("../gmsh_grids/custom_ground_mesh.msh",&sb);
     if(is_present==-1) {
         std::cerr << " Mesh NOT found!" << std::endl;
     }
     else if(is_present==0){
         std::cerr<<" Mesh found"<<std::endl<<" Prepare import"<<endl;
-        std::ifstream input_file("../gmsh_grids/custom_ground_mesh.msh");
+        std::ifstream input_file(redefined_datafile("Load/custom_mesh_to_be_loaded","file inesistente"));
+        //std::ifstream input_file("../gmsh_grids/custom_ground_mesh.msh");
         GridIn<dim>       grid_in;
         grid_in.attach_triangulation(mesh);
         grid_in.read_msh(input_file);
@@ -87,7 +89,7 @@ void CreateGrid( Triangulation<dim> &mesh, const double mesh_height,
     cout<<endl<<"Looking for an already existent mesh:"<<endl;
     if(is_present==-1) {
         std::cout << " File NOT found: proceed to generate initial mesh" << std::endl;
-        CreateInitialGrid<dim>(mesh, mesh_height, electrode_distance, wire_radius);
+        CreateInitialGrid<dim>(mesh);
     }
     else if(is_present==0){
         std::cout<<" File found"<<std::endl;
