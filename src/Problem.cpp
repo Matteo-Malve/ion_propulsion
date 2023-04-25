@@ -5,12 +5,13 @@
 template <int dim>
 void Problem<dim>::run()
 {
-    //GetPot datafile("../data_setup");
+    /*
     // Variabili mesh
     const double mesh_height = datafile("Mesh/mesh_height", 4.0); // mm
     const double electrode_distance = datafile("Mesh/electrode_distance",2.); // mm
     const double wire_radius = datafile("Mesh/wire_radius",0.025); // mm
     const double collector_height = datafile("Mesh/collector_height",1.2); // mm
+    */
 
     // Raffinamento griglia massimo e minimo
     const unsigned int max_refinement = datafile("Mesh/Mesh_Refinement/max_refinement",20);
@@ -28,7 +29,7 @@ void Problem<dim>::run()
     {
 
         if (cycle == 0)
-            create_mesh(mesh_height, electrode_distance, wire_radius, collector_height);
+            create_mesh();
         else
             refine_grid(min_refinement, std::min(cycle + 1,max_refinement) );
 
@@ -47,33 +48,7 @@ void Problem<dim>::run()
         constraints.condense(system_matrix, system_rhs);
 
         // Condizioni al contorno
-        {
-            std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
-
-            VectorTools::interpolate_boundary_values(dof_handler,
-                                                     1, // Boundary corrispondente all'emettitore, definito sopra
-                                                     Functions::ConstantFunction<dim>(2.e+4), // Valore di potenziale all'emettitore (20 kV)
-                                                     emitter_boundary_values);
-
-            VectorTools::interpolate_boundary_values(dof_handler,
-                                                     2,  // Boundary corrispondente al collettore, definito sopra
-                                                     Functions::ConstantFunction<dim>(1.6e+4), // Valore di potenziale al collettore (0 V)
-                                                     collector_boundary_values);
-
-            /* Le condizioni sopra sono condizioni di Dirichlet
-            Su il restante bordo del dominio, dove non è imposta esplicitamente nessuna condizione,
-            viene imposta automaticamente da deal.II una condizione di Neumann: gradiente nullo */
-
-            MatrixTools::apply_boundary_values(emitter_boundary_values,
-                                               system_matrix,
-                                               solution,
-                                               system_rhs);
-
-            MatrixTools::apply_boundary_values(collector_boundary_values,
-                                               system_matrix,
-                                               solution,
-                                               system_rhs);
-        }
+        apply_boundary_conditions();
 
 
         std::cout << std::endl
@@ -93,13 +68,43 @@ void Problem<dim>::run()
 
 // Private:
 
-template <int dim>
-void Problem<dim>::create_mesh(const double mesh_height, const double electrode_distance,
-                               const double wire_radius, const double collector_height)
-{
-    CreateGrid(triangulation, mesh_height, electrode_distance, wire_radius);
+template<int dim>
+void Problem<dim>::apply_boundary_conditions() {
+    std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
 
-    SetManifoldsAndBoundaries(triangulation, std::min(mesh_height,collector_height), electrode_distance, wire_radius);
+    VectorTools::interpolate_boundary_values(dof_handler,
+                                             1, // Boundary corrispondente all'emettitore, definito sopra
+                                             //Functions::ConstantFunction<dim>(2.e+4), // Valore di potenziale all'emettitore (20 kV)
+                                             DirichletBoundaryValuesDX<dim>(),
+                                             emitter_boundary_values);
+
+    VectorTools::interpolate_boundary_values(dof_handler,
+                                             2,  // Boundary corrispondente al collettore, definito sopra
+                                             Functions::ConstantFunction<dim>(1.6e+4), // Valore di potenziale al collettore (0 V)
+                                             collector_boundary_values);
+
+    /* Le condizioni sopra sono condizioni di Dirichlet
+    Su il restante bordo del dominio, dove non è imposta esplicitamente nessuna condizione,
+    viene imposta automaticamente da deal.II una condizione di Neumann: gradiente nullo */
+
+    MatrixTools::apply_boundary_values(emitter_boundary_values,
+                                       system_matrix,
+                                       solution,
+                                       system_rhs);
+
+    MatrixTools::apply_boundary_values(collector_boundary_values,
+                                       system_matrix,
+                                       solution,
+                                       system_rhs);
+}
+
+template <int dim>
+void Problem<dim>::create_mesh()
+{
+    CreateGrid(triangulation);
+
+    // ----- Useless now that we fix boundary ids in gmsh
+    // SetManifoldsAndBoundaries(triangulation, std::min(mesh_height,collector_height), electrode_distance, wire_radius);
 
     ckeck_boundary_ids(triangulation);
 
@@ -276,7 +281,6 @@ void Problem<dim>::output_results(const double wire_radius)
     data_out.add_data_vector (solution, gradient_postprocessor);
     data_out.build_patches();
 
-    //std::ofstream output("../../results/solution-" + std::to_string(cycle) + ".vtu");
     std::ofstream output("solution-" + std::to_string(cycle) + ".vtu");
     data_out.write_vtu(output);
 
@@ -289,6 +293,10 @@ void Problem<dim>::output_results(const double wire_radius)
         std::cout << "   Electric field in ("<< sample[0] << "," << sample[1] << "): " << -E << ", magnitude: " << L2Norm(E) << std::endl;
     }
 }
+
+
+
+
 
 // #######################################
 // Template initialization

@@ -48,4 +48,7 @@ using std::endl;
 #include "GetPot"
 //static std::unique_ptr<GetPot> make_unique(datafile("../data_setup"));
 
+#include <cmath>
+
+
 #endif //MESH_CC_INCLUDES_PARAMETERS_SETUP_H

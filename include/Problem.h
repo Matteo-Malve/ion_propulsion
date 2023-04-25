@@ -20,13 +20,14 @@ private:
     // Creazione della griglia computazionale
     // Tutorial griglie: step-49 su deal.ii
 
-    void create_mesh(const double mesh_height, const double electrode_distance,
-                     const double wire_radius, const double collector_height);
+    void create_mesh();
 
     // Definizione delle matrici e dei vettori per la soluzione
     // Chiamata dopo ogni raffinimento della griglia per adeguare
     // la dimensione
     void setup_system();
+
+    void apply_boundary_conditions();
 
     // Solver
     void solve();

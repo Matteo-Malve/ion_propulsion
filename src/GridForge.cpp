@@ -80,8 +80,7 @@ void CreateInitialGrid( Triangulation<dim> &mesh)
 
 #include <sys/stat.h>
 template <int dim>
-void CreateGrid( Triangulation<dim> &mesh, const double mesh_height,
-                 const double electrode_distance, const double wire_radius){
+void CreateGrid(Triangulation<dim> &mesh){
     struct stat sb;
     int is_present = stat("../mesh_storage/initial_mesh.vtu",&sb);
     cout<<endl<<"Looking for an already existent mesh:"<<endl;
@@ -101,7 +100,7 @@ void CreateGrid( Triangulation<dim> &mesh, const double mesh_height,
         std::cout<<" File not found nor not found. Anomaly."<<endl;
 }
 
-
+/* ----- Useless now that we fix boundary ids in gmsh
 template <int dim>
 void SetManifoldsAndBoundaries(Triangulation<dim> &mesh, const double collector_height,
                                const double electrode_distance, const double wire_radius)
@@ -133,11 +132,13 @@ void SetManifoldsAndBoundaries(Triangulation<dim> &mesh, const double collector_
         }
     }
 }
+*/
+
 
 // #######################################
 // Template initialization
 // #######################################
-template void CreateGrid( Triangulation<2> &mesh, const double mesh_height,
-                          const double electrode_distance, const double wire_radius);
+template void CreateGrid( Triangulation<2> &mesh);
+/*
 template void SetManifoldsAndBoundaries(Triangulation<2> &mesh, const double collector_height,
-                                    const double electrode_distance, const double wire_radius);
+                                    const double electrode_distance, const double wire_radius);*/
