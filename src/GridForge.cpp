@@ -67,8 +67,6 @@ void CreateInitialGrid( Triangulation<dim> &mesh)
     // Save initial mesh to file
     std::ofstream out("../mesh_storage/initial_mesh.vtu");
     GridOut       grid_out;
-    //GridOutFlags::Vtu::serialize_triangulation = true;
-    // void 	set_flags (const GridOutFlags::Vtu &flags)
     GridOutFlags::Vtu flags(true);
     grid_out.set_flags(flags);
     cout<<endl<<"Saving constructed mesh to file:"<<endl;
