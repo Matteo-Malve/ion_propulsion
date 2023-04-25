@@ -5,13 +5,13 @@
 template <int dim>
 void Problem<dim>::run()
 {
-    /*
+
     // Variabili mesh
-    const double mesh_height = datafile("Mesh/mesh_height", 4.0); // mm
-    const double electrode_distance = datafile("Mesh/electrode_distance",2.); // mm
+    //const double mesh_height = datafile("Mesh/mesh_height", 4.0); // mm
+    //const double electrode_distance = datafile("Mesh/electrode_distance",2.); // mm
     const double wire_radius = datafile("Mesh/wire_radius",0.025); // mm
-    const double collector_height = datafile("Mesh/collector_height",1.2); // mm
-    */
+    //const double collector_height = datafile("Mesh/collector_height",1.2); // mm
+
 
     // Raffinamento griglia massimo e minimo
     const unsigned int max_refinement = datafile("Mesh/Mesh_Refinement/max_refinement",20);
@@ -74,13 +74,13 @@ void Problem<dim>::apply_boundary_conditions() {
 
     VectorTools::interpolate_boundary_values(dof_handler,
                                              1, // Boundary corrispondente all'emettitore, definito sopra
-                                             //Functions::ConstantFunction<dim>(2.e+4), // Valore di potenziale all'emettitore (20 kV)
-                                             DirichletBoundaryValuesDX<dim>(),
+                                             Functions::ConstantFunction<dim>(2.e+4), // Valore di potenziale all'emettitore (20 kV)
                                              emitter_boundary_values);
 
     VectorTools::interpolate_boundary_values(dof_handler,
                                              2,  // Boundary corrispondente al collettore, definito sopra
                                              Functions::ConstantFunction<dim>(1.6e+4), // Valore di potenziale al collettore (0 V)
+                                             //DirichletBoundaryValuesDX<dim>(),
                                              collector_boundary_values);
 
     /* Le condizioni sopra sono condizioni di Dirichlet

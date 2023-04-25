@@ -2566,8 +2566,11 @@
   /usr/lib/gcc/x86_64-linux-gnu/11/include/stdbool.h \
   /home/dealii/shared-folder/ion_propulsion/include/GetPot \
   /home/dealii/shared-folder/ion_propulsion/include/HelperFunctions.h \
-  /home/dealii/shared-folder/ion_propulsion/include/GridForge.h
+  /home/dealii/shared-folder/ion_propulsion/include/GridForge.h \
+  /home/dealii/shared-folder/ion_propulsion/include/DirichletBoundaryValuesDX.h
 
+
+/home/dealii/shared-folder/ion_propulsion/include/DirichletBoundaryValuesDX.h:
 
 /home/dealii/shared-folder/ion_propulsion/include/GridForge.h:
 

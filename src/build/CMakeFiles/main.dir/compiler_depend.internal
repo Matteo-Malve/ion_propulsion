@@ -2568,4 +2568,5 @@
  /home/dealii/shared-folder/ion_propulsion/include/GetPot
  /home/dealii/shared-folder/ion_propulsion/include/HelperFunctions.h
  /home/dealii/shared-folder/ion_propulsion/include/GridForge.h
+ /home/dealii/shared-folder/ion_propulsion/include/DirichletBoundaryValuesDX.h
 
