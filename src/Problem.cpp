@@ -106,7 +106,7 @@ void Problem<dim>::create_mesh()
     // ----- Useless now that we fix boundary ids in gmsh
     // SetManifoldsAndBoundaries(triangulation, std::min(mesh_height,collector_height), electrode_distance, wire_radius);
 
-    ckeck_boundary_ids(triangulation);
+    // ckeck_boundary_ids(triangulation);
 
     print_mesh_info(triangulation, "grid.svg");
 

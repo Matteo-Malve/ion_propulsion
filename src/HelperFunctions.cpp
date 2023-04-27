@@ -52,7 +52,7 @@ double L2Norm(const Tensor<1,dim> &input)
     return std::sqrt(magnitude);
 }
 
-template <int dim>
+/*/ template <int dim>
 void ckeck_boundary_ids(const Triangulation<dim> &triangulation) {
     cout<<"Starting check on Boundary ids..."<<endl;
     DataPostprocessors::BoundaryIds <dim> boundary_ids;
@@ -71,8 +71,8 @@ void ckeck_boundary_ids(const Triangulation<dim> &triangulation) {
     std::ofstream out("boundary_ids.vtu");
     data_out_faces.write_vtu(out);
     cout<<"   Boundary ids written to boundary_ids.vtu"<<endl
-        <<"   Check the file\n\n";
-}
+        <<"   Check the file\n\n";   
+}   */
 
 // #######################################
 // Template initialization
@@ -80,4 +80,4 @@ void ckeck_boundary_ids(const Triangulation<dim> &triangulation) {
 template void print_mesh_info(const Triangulation<2> &triangulation,
                               const std::string &       filename);
 template double L2Norm(const Tensor<1,2> &input);
-template void ckeck_boundary_ids(const Triangulation<2> &triangulation);
+// template void ckeck_boundary_ids(const Triangulation<2> &triangulation);
