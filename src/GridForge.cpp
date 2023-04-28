@@ -45,8 +45,31 @@ void CreateInitialGrid( Triangulation<dim> &mesh)
     } else
         std::cerr<<" File not found nor not found. Anomaly."<<endl;
 
+    // Set manifolds
+
+    // Manifolds:
+    const types::manifold_id     wire_id = 1;
+    const Point<2>       center(0., 0.);
+    SphericalManifold<dim> circle(center);
+    mesh.set_manifold(wire_id, circle);
+
+    for (auto &cell : mesh.active_cell_iterators())
+        if (cell->at_boundary())
+        {
+            const Point<dim> c = cell->center();
+            if ( std::sqrt(c.square()) < 0.5) {
+                cell->set_all_manifold_ids(wire_id);
+                cout<<"manifold id set at "<<c<<endl;
+            }
+        }
+
+
+
+
+
+
     // Initial refinement
-    const Point<2> center(0, 0);
+    //const Point<2> center(0, 0);
     for (unsigned int step = 0; step < 5; ++step)
     {
         for (auto &cell : mesh.active_cell_iterators())
@@ -98,6 +121,11 @@ void CreateGrid(Triangulation<dim> &mesh){
         std::cout<<" Grid imported"<<std::endl;
     } else
         std::cout<<" File not found nor not found. Anomaly."<<endl;
+}
+
+template<int dim>
+void FirstRefineGrid(Triangulation<dim> &mesh){
+
 }
 
 /* ----- Useless now that we fix boundary ids in gmsh
