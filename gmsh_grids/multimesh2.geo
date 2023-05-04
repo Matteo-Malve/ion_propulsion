@@ -87,19 +87,13 @@ Transfinite Line {401} = 12 Using Progression 1.2;
 Transfinite Line {3} = 20 Using Progression 1;
 Recombine Surface {3};
 
-Mesh.Algorithm = 6;
+Mesh.Algorithm = 4;
 Mesh.RecombineAll = 1;
-Mesh.CharacteristicLengthFactor = 10;
+Mesh.CharacteristicLengthFactor = 8;
 Mesh.SubdivisionAlgorithm = 1;
 Mesh.Smoothing = 20;
 Show "*";
 Mesh 2;
-
-//+
-Physical Curve("emettitor", 1) = {1};
-//+
-Physical Curve("collector", 2) = {3};
-
 
 
 //+
@@ -108,3 +102,10 @@ Physical Surface("outer", 704) = {1};
 Physical Surface("middle", 705) = {3};
 //+
 Physical Surface("inner", 706) = {2};
+
+//+
+Physical Curve("emettitor", 1) = {1};
+//+
+Physical Curve("collector", 2) = {3};
+//+
+Physical Curve("Neumann", 0) = {701, 6, 5, 402, 401, 202, 702, 201, 703};
