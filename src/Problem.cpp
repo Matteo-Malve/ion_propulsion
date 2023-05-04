@@ -108,7 +108,7 @@ void Problem<dim>::create_mesh()
 
 
 
-    // ckeck_boundary_ids(triangulation);
+    ckeck_boundary_ids(triangulation);
 
     print_mesh_info(triangulation, "grid.svg");
 

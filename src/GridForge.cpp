@@ -47,6 +47,7 @@ void CreateInitialGrid( Triangulation<dim> &mesh)
 
     // Set manifolds
 
+    /*
     // Manifolds:
     const types::manifold_id     wire_id = 1;
     const Point<2>       center(0., 0.);
@@ -63,11 +64,11 @@ void CreateInitialGrid( Triangulation<dim> &mesh)
             }
         }
 
+*/
 
 
 
-
-
+    /*
     // Initial refinement
     //const Point<2> center(0, 0);
     for (unsigned int step = 0; step < 5; ++step)
@@ -86,6 +87,7 @@ void CreateInitialGrid( Triangulation<dim> &mesh)
             }
         mesh.execute_coarsening_and_refinement();
     }
+    */
 
     // Save initial mesh to file
     std::ofstream out("../mesh_storage/initial_mesh.vtu");
