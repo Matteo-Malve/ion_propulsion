@@ -1,3 +1,5 @@
+Include "Functions.geo";
+
 //+
 Point(1) = {0, 0, 0, 1.0};
 //+
@@ -109,3 +111,6 @@ Physical Curve("emettitor", 1) = {1};
 Physical Curve("collector", 2) = {3};
 //+
 Physical Curve("Neumann", 0) = {701, 6, 5, 402, 401, 202, 702, 201, 703};
+
+
+
