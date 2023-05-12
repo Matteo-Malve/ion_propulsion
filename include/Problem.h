@@ -5,6 +5,7 @@
 #include "HelperFunctions.h"
 #include "GridForge.h"
 #include "DirichletBoundaryValuesDX.h"
+#include "GoalOrientedEstimator.h"
 //#include "Evaluation.h"
 static GetPot datafile("../data_setup");
 
@@ -60,6 +61,8 @@ private:
 
     Vector<float> values;
     const float conv_tol = datafile("Numerics/FEM_cycles/global_tolerane",1e-4); // tolleranza globale
+
+    friend class GoalOrientedEstimator;
 };
 
 
