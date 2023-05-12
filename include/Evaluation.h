@@ -99,7 +99,7 @@ namespace Evaluation
             if (!evaluation_point_found)
                 for (const auto vertex : cell->vertex_indices())
                     if (cell->vertex(vertex).distance(evaluation_point) <
-                        cell->diameter() * 1e-4)
+                        cell->diameter() * 0.5)
                     {
                         point_value = solution(cell->vertex_dof_index(vertex, 0));
 

@@ -6,7 +6,7 @@
 #include "GridForge.h"
 #include "DirichletBoundaryValuesDX.h"
 #include "GoalOrientedEstimator.h"
-//#include "Evaluation.h"
+#include "Evaluation.h"
 static GetPot datafile("../data_setup");
 
 template <int dim>
