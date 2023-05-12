@@ -13,17 +13,7 @@
 template <int dim>
 void CreateInitialGrid( Triangulation<dim> &mesh)
 {
-    Assert(dim == 2, ExcNotImplemented()); // Serve solo per dare errore se si prova con dim = 3
-    /*
-    const Point<2> top_left(0, mesh_height); // Coordinate angolo in alto a sinistra
-    const Point<2> bottom_right(electrode_distance+wire_radius, 0.); // Coordinate angolo in basso a destra
-
-    unsigned int a = (int) std::ceil( abs(top_left(0) - bottom_right(0))/wire_radius ); // Numero di suddivisioni lungo x
-    unsigned int b = (int) std::ceil( abs(top_left(1) - bottom_right(1))/wire_radius ); // Numero di suddivisioni lungo y
-
-    // Griglia rettangolare:
-    GridGenerator::subdivided_hyper_rectangle( mesh, {a,b}, top_left, bottom_right);
-    */
+    Assert(dim == 2, ExcNotImplemented());
 
     // Check if ground mesh file is present and retrieve it
     cout<<"Looking for Custom Ground Mesh built with Gmsh"<<endl;

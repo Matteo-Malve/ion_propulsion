@@ -262,12 +262,31 @@ void Problem<dim>::output_results(const double wire_radius)
      */
 
     // !!! Criterio di convergenza
-    Point<dim> sample(1.,0.2);
+    Point<dim> evaluation_point(1.,0.2);
 
-    Tensor<1,dim>  E = VectorTools::point_gradient(dof_handler, solution, sample);
-    double x = L2Norm(E);
+    // Print sample V
+    //Evaluation::PointValueEvaluation<dim> postprocessor(evaluation_point);
+    //double x_ = postprocessor(dof_handler,solution);
 
-    std::cout << "   Field magnitude at (" << sample[0] << "," << sample[1] << "): " << x << std::endl;
+    double point_value = 1e20;
+    bool evaluation_point_found = false;
+    for (const auto &cell : dof_handler.active_cell_iterators())
+        if (!evaluation_point_found)
+            for (const auto vertex : cell->vertex_indices())
+                if (cell->vertex(vertex).distance(evaluation_point) < cell->diameter()*0.5){
+                    point_value = solution(cell->vertex_dof_index(vertex, 0));
+                    evaluation_point_found = true;
+                    break;
+                }
+    if(!evaluation_point_found)
+        cerr<<"Point not found during evaluation\n";
+
+    std::cout << "   Potential at (" << evaluation_point[0] << "," << evaluation_point[1] << "): " << point_value << std::endl;
+
+    // Print sample E
+    Tensor<1,dim>  E_ = VectorTools::point_gradient(dof_handler, solution, evaluation_point);
+    double x = L2Norm(E_);
+    std::cout << "   Field magnitude at (" << evaluation_point[0] << "," << evaluation_point[1] << "): " << x << std::endl;
 
     values(cycle+1) = x;
 
