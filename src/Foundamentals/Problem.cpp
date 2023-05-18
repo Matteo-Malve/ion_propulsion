@@ -6,11 +6,6 @@ template <int dim>
 void Problem<dim>::run()
 {
 
-    // Variabili mesh
-    //const double mesh_height = datafile("Mesh/mesh_height", 4.0); // mm
-    //const double electrode_distance = datafile("Mesh/electrode_distance",2.); // mm
-    const double wire_radius = datafile("Mesh/wire_radius",0.025); // mm
-    //const double collector_height = datafile("Mesh/collector_height",1.2); // mm
 
 
     // Raffinamento griglia massimo e minimo
@@ -19,11 +14,7 @@ void Problem<dim>::run()
     cout<<"\nSettings: "<<endl;
     cout<<" Min Refinemente = "<<min_refinement<<endl;
 
-    std::cout << " Simulating for WIRE of radius: " << wire_radius
-              << " mm in " << dim << "D" << std::endl
-              << " Mesh: " << "4 x 4 mm"<<endl
-              << " # refinements: "<<Nmax
-              << endl;
+    std::cout << " Simulating: # refinements: "<<Nmax<< endl;
 
     while (cycle <= Nmax)
     {
