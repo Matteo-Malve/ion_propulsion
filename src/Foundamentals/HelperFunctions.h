@@ -1,7 +1,7 @@
 #ifndef MESH_CC_HELPERFUCTIONS_H
 #define MESH_CC_HELPERFUCTIONS_H
 
-#include "includes&parameters_setup.h"
+#include "../includes&parameters_setup.h"
 
 // Funzione per stampare a schermo alcune caratteristiche della griglia
 template <int dim>

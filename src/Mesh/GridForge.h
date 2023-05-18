@@ -1,7 +1,7 @@
 #ifndef MESH_CC_GRIDFORGE_H
 #define MESH_CC_GRIDFORGE_H
 
-#include "includes&parameters_setup.h"
+#include "../includes&parameters_setup.h"
 
 
 

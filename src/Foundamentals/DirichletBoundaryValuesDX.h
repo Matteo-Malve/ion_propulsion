@@ -1,7 +1,7 @@
 #ifndef ION_PROPULSION_DIRICHLETBOUNDARYVALUESDX_H
 #define ION_PROPULSION_DIRICHLETBOUNDARYVALUESDX_H
 
-#include "includes&parameters_setup.h"
+#include "../includes&parameters_setup.h"
 
 
 template <int dim>

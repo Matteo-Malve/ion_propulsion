@@ -1,12 +1,12 @@
 #ifndef MESH_CC_PROBLEM_H
 #define MESH_CC_PROBLEM_H
 
-#include "includes&parameters_setup.h"
+#include "../includes&parameters_setup.h"
 #include "HelperFunctions.h"
-#include "GridForge.h"
+#include "../Mesh/GridForge.h"
 #include "DirichletBoundaryValuesDX.h"
-#include "GoalOrientedEstimator.h"
-#include "Evaluation.h"
+//#include "../GoalOrientedEsimator/GoalOrientedEstimator.h"
+#include "../Evaluation.h"
 static GetPot datafile("../data_setup");
 
 template <int dim>

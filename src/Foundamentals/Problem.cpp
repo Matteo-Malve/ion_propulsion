@@ -1,4 +1,4 @@
-#include "../include/Problem.h"
+#include "Problem.h"
 
 // Public:
 

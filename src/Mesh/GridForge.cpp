@@ -1,5 +1,4 @@
-#include "../include/GridForge.h"
-//#include "GridForge.h"
+#include "GridForge.h"
 
 // Grounbd mesh settings
 // No 3,7,10,

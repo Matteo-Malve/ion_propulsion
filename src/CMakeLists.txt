@@ -1,12 +1,12 @@
-include_directories(../include)
+include_directories(Foundamentals GoalOrientedEstimator Mesh)
 
-add_library(Problem OBJECT Problem.cpp)
+add_library(Problem OBJECT Foundamentals/Problem.cpp)
 deal_ii_setup_target(Problem)
 
-add_library(HelperFunctions OBJECT HelperFunctions.cpp)
+add_library(HelperFunctions OBJECT Foundamentals/HelperFunctions.cpp)
 deal_ii_setup_target(HelperFunctions)
 
-add_library(GridForge OBJECT GridForge.cpp)
+add_library(GridForge OBJECT Mesh/GridForge.cpp)
 deal_ii_setup_target(GridForge)
 
 add_executable(main main.cpp $<TARGET_OBJECTS:Problem> $<TARGET_OBJECTS:HelperFunctions> $<TARGET_OBJECTS:GridForge>)

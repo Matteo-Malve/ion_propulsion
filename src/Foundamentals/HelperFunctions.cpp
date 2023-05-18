@@ -1,5 +1,4 @@
-#include "../include/HelperFunctions.h"
-//#include "HelperFunctions.h"
+#include "HelperFunctions.h"
 
 template <int dim>
 void print_mesh_info(const Triangulation<dim> &triangulation,
