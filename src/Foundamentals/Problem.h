@@ -37,7 +37,7 @@ private:
 
     void refine_grid(const unsigned int min_grid_level, // minimo livello di raffinamento griglia
                      const unsigned int max_grid_level); // massimo livello di raffinemento griglia
-    void output_results(const double wire_radius);
+    void output_results();
 
 
     Triangulation<dim> triangulation;   // step-1

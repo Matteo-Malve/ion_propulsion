@@ -48,7 +48,7 @@ void Problem<dim>::run()
                   << "   Number of degrees of freedom: " << dof_handler.n_dofs() << std::endl;
 
         solve();
-        output_results(wire_radius);
+        output_results();
 
         std::cout << "   Elapsed CPU time: " << timer.cpu_time() << " seconds.\n";
 
@@ -228,7 +228,7 @@ void Problem<dim>::refine_grid(const unsigned int min_grid_level,
 }
 
 template <int dim>
-void Problem<dim>::output_results(const double wire_radius)
+void Problem<dim>::output_results()
 {
     // Inizializzazione:
     if (cycle == 0) {

@@ -116,7 +116,7 @@ namespace GOE{
 
             for (const auto &cell : dof_handler.active_cell_iterators())
                 if (cell->center().distance(evaluation_point) <= cell->diameter())
-                {
+                {fcdxc
                     fe_values.reinit(cell);
                     cell_rhs = 0;
 
