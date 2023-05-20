@@ -1,11 +1,11 @@
 #include <iostream>
-#include "Foundamentals/Problem.h"
+#include "Foundamentals/PrimalSolver.h"
 
 int main()
 {
     try
     {
-        Problem<2> wire_poisson_2d; // Definisco il tipo di problema...
+        PrimalSolver<2> wire_poisson_2d; // Definisco il tipo di problema...
         wire_poisson_2d.run(); // ... e lo simulo
         cout<<endl;
     }

@@ -1,9 +1,9 @@
-#include "Problem.h"
+#include "SolverBase.h"
 
 // Public:
 
 template <int dim>
-void Problem<dim>::run()
+void Solverbase<dim>::run()
 {
 
 
@@ -27,7 +27,8 @@ void Problem<dim>::run()
         setup_system();
 
         // Forzante: imposta pari a 0
-        VectorTools::interpolate(dof_handler, Functions::ZeroFunction<dim>(), system_rhs);
+        assemble_rhs();
+        //VectorTools::interpolate(dof_handler, Functions::ZeroFunction<dim>(), system_rhs);
 
         // Permittività elettrica del vuoto:
         const double eps0 = 8.854*1e-12; // [F/m]
@@ -60,7 +61,7 @@ void Problem<dim>::run()
 // Private:
 
 template<int dim>
-void Problem<dim>::apply_boundary_conditions() {
+void Solverbase<dim>::apply_boundary_conditions() {
     std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
 
     VectorTools::interpolate_boundary_values(dof_handler,
@@ -90,7 +91,7 @@ void Problem<dim>::apply_boundary_conditions() {
 }
 
 template <int dim>
-void Problem<dim>::create_mesh()
+void Solverbase<dim>::create_mesh()
 {
     CreateGrid(triangulation);
 
@@ -110,7 +111,7 @@ void Problem<dim>::create_mesh()
 }
 
 template <int dim>
-void Problem<dim>::setup_system()
+void Solverbase<dim>::setup_system()
 {
     dof_handler.distribute_dofs(fe);
 
@@ -138,7 +139,7 @@ void Problem<dim>::setup_system()
 }
 
 template <int dim>
-void Problem<dim>::solve()
+void Solverbase<dim>::solve()
 {
     // Tolleranza e massimo numero di iterazioni
     unsigned int it_max = 1000;
@@ -189,7 +190,7 @@ void Problem<dim>::solve()
 }
 
 template <int dim>
-void Problem<dim>::refine_grid(const unsigned int min_grid_level,
+void Solverbase<dim>::refine_grid(const unsigned int min_grid_level,
                                const unsigned int max_grid_level)
 {
 // Vettore errore (funziona solo con float, per quello che ho trovato)
@@ -228,7 +229,7 @@ void Problem<dim>::refine_grid(const unsigned int min_grid_level,
 }
 
 template <int dim>
-void Problem<dim>::output_results()
+void Solverbase<dim>::output_results()
 {
     // Inizializzazione:
     if (cycle == 0) {
@@ -300,4 +301,5 @@ void Problem<dim>::output_results()
 // #######################################
 // Template initialization
 // #######################################
-template class Problem<2>;
+template class Solverbase<2>;
+

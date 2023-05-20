@@ -5,32 +5,25 @@
 #include "HelperFunctions.h"
 #include "../Mesh/GridForge.h"
 #include "DirichletBoundaryValuesDX.h"
-//#include "../GoalOrientedEsimator/GoalOrientedEstimator.h"
 #include "../Evaluation.h"
 static GetPot datafile("../data_setup");
 
-template <int dim>
-class Problem
+template<int dim>
+class Solverbase
 {
 public:
-    Problem() : fe(1), // elemeenti lineari (1) o quadratici (2)
-                dof_handler(triangulation) {};
-
-    // Ciclo globale: definizione matrici e condizioni al contorno
+    Solverbase(const unsigned int fe_order): fe(fe_order), dof_handler(triangulation) {};
     void run();
 
-private:
-    // Creazione della griglia computazionale
-    // Tutorial griglie: step-49 su deal.ii
-
+protected:
     void create_mesh();
-
-    // Definizione delle matrici e dei vettori per la soluzione
-    // Chiamata dopo ogni raffinimento della griglia per adeguare
-    // la dimensione
     void setup_system();
-
     void apply_boundary_conditions();
+    virtual void assemble_rhs() = 0;
+    /*
+    void assemble_rhs(){
+        VectorTools::interpolate(dof_handler, Functions::ZeroFunction<dim>(), system_rhs);
+    }*/
 
     // Solver
     void solve();
@@ -62,7 +55,8 @@ private:
     Vector<float> values;
     const float conv_tol = datafile("Numerics/FEM_cycles/global_tolerane",1e-4); // tolleranza globale
 
-    friend class GoalOrientedEstimator;
+    double wire_radius = datafile("Mesh/wire_radius",0.025);
+
 };
 
 

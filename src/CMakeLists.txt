@@ -1,6 +1,6 @@
 include_directories(Foundamentals GoalOrientedEstimator Mesh)
 
-add_library(Problem OBJECT Foundamentals/Problem.cpp)
+add_library(Problem OBJECT Foundamentals/SolverBase.cpp)
 deal_ii_setup_target(Problem)
 
 add_library(HelperFunctions OBJECT Foundamentals/HelperFunctions.cpp)
