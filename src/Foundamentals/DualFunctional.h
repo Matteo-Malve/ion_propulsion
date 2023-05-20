@@ -57,7 +57,7 @@ EmitterFlux<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler,
     Vector<double>            cell_rhs(dofs_per_face);
     std::vector<unsigned int> local_dof_indices(dofs_per_face);
 
-    for (const auto &face : dof_handler.active_face_iterators())
+    for (const auto &face : dof_handler.active_face_iterator())
         if (face->at_boundary()){
             const Point<dim> c = face->center();
             if ((c[1] < 0.2) && (c[0] <= wire_radius) && (c[0] >= -wire_radius))
@@ -81,6 +81,8 @@ EmitterFlux<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler,
     //AssertThrow(false, ExcEvaluationPointNotFound(evaluation_point));
 
 }
+
+
 
 
 #endif //GETPOT_DUALFUNCTIONAL_H

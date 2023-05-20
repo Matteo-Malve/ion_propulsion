@@ -1,13 +1,26 @@
 #include <iostream>
 #include "Foundamentals/PrimalSolver.h"
+#include "Foundamentals/DualSolver.h"
+
 
 int main()
 {
     try
     {
-        PrimalSolver<2> wire_poisson_2d; // Definisco il tipo di problema...
-        wire_poisson_2d.run(); // ... e lo simulo
+        cout<<"--------------------------------"<<endl
+            <<"Solving Primal Problem"<<endl
+            <<"--------------------------------"<<endl;
+        PrimalSolver<2> primal_solver;
+        primal_solver.run();
         cout<<endl;
+
+        cout<<"--------------------------------"<<endl
+            <<"Solving Dual Problem"<<endl
+            <<"--------------------------------"<<endl;
+        DualSolver<2> dual_solver;
+        dual_solver.run();
+        cout<<endl;
+
     }
     catch (std::exception &exc)
     {

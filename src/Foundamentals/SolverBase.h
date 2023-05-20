@@ -9,8 +9,7 @@
 static GetPot datafile("../data_setup");
 
 template<int dim>
-class Solverbase
-{
+class Solverbase{
 public:
     Solverbase(const unsigned int fe_order): fe(fe_order), dof_handler(triangulation) {};
     void run();
@@ -19,11 +18,9 @@ protected:
     void create_mesh();
     void setup_system();
     void apply_boundary_conditions();
-    virtual void assemble_rhs() = 0;
-    /*
-    void assemble_rhs(){
+    virtual void assemble_rhs(){
         VectorTools::interpolate(dof_handler, Functions::ZeroFunction<dim>(), system_rhs);
-    }*/
+    }
 
     // Solver
     void solve();
@@ -50,7 +47,7 @@ protected:
     Timer timer;
 
     unsigned int cycle = 0;
-    const unsigned int Nmax = datafile("Numerics/FEM_cycles/Nmax",10); // massimo numero di cicli
+    unsigned int Nmax = datafile("Numerics/FEM_cycles/Nmax",10);
 
     Vector<float> values;
     const float conv_tol = datafile("Numerics/FEM_cycles/global_tolerane",1e-4); // tolleranza globale
