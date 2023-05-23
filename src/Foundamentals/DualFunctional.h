@@ -32,9 +32,10 @@ public:
 
 // ----------------------------------------------------------------------------
 
-/*template <int dim>
+/*
+template <int dim>
 void
-EmitterFlux<dim>::assemble_rhs2(const DoFHandler<dim> &dof_handler,
+EmitterFlux<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler,
                                Vector<double> &       rhs) const
 {
     double wire_radius = 0.025;     // Terribile, da generalizzare
@@ -72,7 +73,7 @@ EmitterFlux<dim>::assemble_rhs2(const DoFHandler<dim> &dof_handler,
             for (unsigned int q = 0; q < n_face_q_points; ++q) {
                 for (const auto i : face->vertex_indices()) {
                     auto v = face->vertex(i);
-                    double theta = atan2(v[1]/v[0]);
+                    double theta = std::atan2(v[1]/v[0]);
                     std::vector<double> n = {cos(theta), sin(theta)};
                     for (unsigned int k = 0; k < dim; ++k)
                         cell_rhs(i) += fe_face_values.shape_grad(i, q)[k] * n[k];
@@ -86,7 +87,9 @@ EmitterFlux<dim>::assemble_rhs2(const DoFHandler<dim> &dof_handler,
 
     //AssertThrow(false, ExcEvaluationPointNotFound(evaluation_point));
 
-}  */ 
+}
+
+ */
 
 template <int dim>
 void

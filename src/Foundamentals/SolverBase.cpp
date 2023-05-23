@@ -1,11 +1,50 @@
 #include "SolverBase.h"
 
-// Public:
+template <int dim>
+void Solverbase<dim>::run()
+{
+    const unsigned int max_refinement = datafile("Mesh/Mesh_Refinement/max_refinement",20);
+    const unsigned int min_refinement = datafile("Mesh/Mesh_Refinement/min_refinement",0);
+    cout<<"\nSettings: "<<endl;
+    cout<<" Min Refinemente = "<<min_refinement<<endl;
+    cout << " Simulating: # refinements: "<<Nmax<< endl;
+
+    while (cycle <= Nmax)
+    {
+        if (cycle == 0)
+            create_mesh();
+        else
+            refine_grid(min_refinement, std::min(cycle + 1,max_refinement) );
+        setup_system();
+
+        // Forzante: imposta pari a 0
+        assemble_rhs();
+
+        // Permittività elettrica del vuoto:
+        const double eps0 = 8.854*1e-12; // [F/m]
+        // Matrice: matrice di Laplace, moltiplicata per la permittività dell'aria
+        system_matrix.copy_from(laplace_matrix);
+        system_matrix *= 1.0006*eps0*1e-3;
+
+        constraints.condense(system_matrix, system_rhs);
+
+        apply_boundary_conditions();
 
 
+        std::cout << std::endl
+                  << "Cycle " << cycle << ':' << std::endl
+                  << "   Number of active cells:       " << triangulation.n_active_cells() << std::endl
+                  << "   Number of degrees of freedom: " << dof_handler.n_dofs() << std::endl;
 
+        solve();
+        output_results();
 
-// Private:
+        std::cout << "   Elapsed CPU time: " << timer.cpu_time() << " seconds.\n";
+
+        cycle++;
+    }
+}
+
 
 template<int dim>
 void Solverbase<dim>::apply_boundary_conditions() {
@@ -47,7 +86,7 @@ void Solverbase<dim>::create_mesh()
 
 
 
-    ckeck_boundary_ids(triangulation);
+    //ckeck_boundary_ids(triangulation);
 
     print_mesh_info(triangulation, "grid.svg");
 

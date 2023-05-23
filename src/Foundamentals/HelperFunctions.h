@@ -32,7 +32,8 @@ public:
     }
 };
 
+/*
 template <int dim>
-void ckeck_boundary_ids(const Triangulation<dim> &triangulation);
+void ckeck_boundary_ids(const Triangulation<dim> &triangulation);*/
 
 #endif //MESH_CC_HELPERFUCTIONS_H
