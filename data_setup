@@ -6,6 +6,7 @@
 	[./Mesh_Refinement]
 		max_refinement = 20
 		min_refinement = 0
+
 [Numerics]
 	[./FEM_cycles]
 		Nmax = 1;
@@ -13,4 +14,7 @@
 
 [Load]
 	custom_mesh_to_be_loaded = ../gmsh_grids/BigMesh.msh
+
+[Ionization]
+        E_soglia = 4*10^5
 		

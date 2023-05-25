@@ -51,7 +51,7 @@ double L2Norm(const Tensor<1,dim> &input)
     return std::sqrt(magnitude);
 }
 
-template <int dim>
+/* template <int dim>
 void ckeck_boundary_ids(const Triangulation<dim> &triangulation) {
     cout<<"Starting check on Boundary ids..."<<endl;
     DataPostprocessors::BoundaryIds <dim> boundary_ids;
@@ -71,7 +71,7 @@ void ckeck_boundary_ids(const Triangulation<dim> &triangulation) {
     data_out_faces.write_vtu(out);
     cout<<"   Boundary ids written to boundary_ids.vtu"<<endl
         <<"   Check the file\n\n";     
-}
+}  */
 
 // #######################################
 // Template initialization
