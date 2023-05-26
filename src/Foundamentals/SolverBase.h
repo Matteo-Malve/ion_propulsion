@@ -12,7 +12,7 @@ template<int dim>
 class Solverbase{
 public:
     Solverbase(const unsigned int fe_order): fe(fe_order), dof_handler(triangulation) {};
-    void run();
+    virtual void run();
 
 protected:
     void create_mesh();
@@ -21,6 +21,7 @@ protected:
     virtual void assemble_rhs(){
         VectorTools::interpolate(dof_handler, Functions::ZeroFunction<dim>(), system_rhs);
     }
+    virtual void save_finest_mesh(){};
 
     // Solver
     void solve();
@@ -30,7 +31,8 @@ protected:
     void output_results();
 
 
-    Triangulation<dim> triangulation;   // step-1
+    Triangulation<dim> triangulation;
+    Triangulation<dim> finest_mesh;
 
     FE_Q<dim>       fe;
     DoFHandler<dim> dof_handler;

@@ -42,6 +42,10 @@ void Solverbase<dim>::run()
 
         std::cout << "   Elapsed CPU time: " << timer.cpu_time() << " seconds.\n";
 
+        if(cycle==Nmax){
+            save_finest_mesh();
+        }
+
         cycle++;
     }
 }
