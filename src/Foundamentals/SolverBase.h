@@ -13,6 +13,12 @@ class Solverbase{
 public:
     Solverbase(const unsigned int fe_order): fe(fe_order), dof_handler(triangulation) {};
     virtual void run();
+    
+    Triangulation<dim> triangulation;
+    FE_Q<dim>       fe;
+    DoFHandler<dim> dof_handler;
+    Vector<double> solution;
+    
 
 protected:
     void create_mesh();
@@ -30,12 +36,10 @@ protected:
                      const unsigned int max_grid_level); // massimo livello di raffinemento griglia
     void output_results();
 
-
-    Triangulation<dim> triangulation;
+    
     Triangulation<dim> finest_mesh;
 
-    FE_Q<dim>       fe;
-    DoFHandler<dim> dof_handler;
+    
 
     AffineConstraints<double> constraints;
 
@@ -43,7 +47,7 @@ protected:
     SparsityPattern      sparsity_pattern;
     SparseMatrix<double> laplace_matrix;
 
-    Vector<double> solution;
+    
     Vector<double> system_rhs;
 
     Timer timer;

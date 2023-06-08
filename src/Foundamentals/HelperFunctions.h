@@ -32,6 +32,9 @@ public:
     }
 };
 
+template <int dim>
+void ionization_area(const Triangulation<dim> &triangulation, const DoFHandler<dim> &dof_handler, const Vector<double> &solution);
+
 /*
 template <int dim>
 void ckeck_boundary_ids(const Triangulation<dim> &triangulation);*/

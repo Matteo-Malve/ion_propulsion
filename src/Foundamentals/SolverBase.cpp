@@ -5,7 +5,6 @@ void Solverbase<dim>::run()
 {
     const unsigned int max_refinement = datafile("Mesh/Mesh_Refinement/max_refinement",20);
     const unsigned int min_refinement = datafile("Mesh/Mesh_Refinement/min_refinement",0);
-    const unsigned int E_soglia = datafile("Ionization/E_soglia",4*10^5);
     cout<<"\nSettings: "<<endl;
     cout<<" Min Refinemente = "<<min_refinement<<endl;
     cout << " Simulating: # refinements: "<<Nmax<< endl;
@@ -284,9 +283,6 @@ void Solverbase<dim>::output_results()
         std::cout << "   Electric field in ("<< sample[0] << "," << sample[1] << "): " << -E << ", magnitude: " << L2Norm(E) << std::endl;
     }
 }
-
-
-
 
 
 // #######################################

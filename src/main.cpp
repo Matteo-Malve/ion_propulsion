@@ -12,6 +12,7 @@ int main()
             <<"--------------------------------"<<endl;
         PrimalSolver<2> primal_solver;
         primal_solver.run();
+        ionization_area(primal_solver.triangulation, primal_solver.dof_handler, primal_solver.solution);
         cout<<endl;
 
         cout<<"--------------------------------"<<endl

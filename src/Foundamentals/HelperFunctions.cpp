@@ -1,4 +1,5 @@
 #include "HelperFunctions.h"
+#include "../Evaluation.h"
 
 template <int dim>
 void print_mesh_info(const Triangulation<dim> &triangulation,
@@ -51,6 +52,26 @@ double L2Norm(const Tensor<1,dim> &input)
     return std::sqrt(magnitude);
 }
 
+template <int dim>
+void ionization_area(const Triangulation<dim> &triangulation, const DoFHandler<dim> &dof_handler, const Vector<double> &solution) {
+    //const double E_soglia = datafile("Ionization/E_soglia",4e+15);
+    const double E_soglia = 2e+3;
+
+    for (const auto &cell : triangulation.active_cell_iterators()){
+        Point<dim> c = cell->center();
+        //Evaluation::PointValueEvaluation<dim> postprocessor(c);
+        //double x_ = postprocessor(dof_handler, solution);
+        Tensor<1,dim>  E_ = VectorTools::point_gradient(dof_handler, solution, c);
+        double x = L2Norm(E_);
+        if (x > E_soglia)
+            cell->set_material_id(2);
+    }    
+
+    std::ofstream out("ionization_area.vtu");
+    GridOut       grid_out;
+    grid_out.write_vtu(triangulation, out);
+}
+
 /* template <int dim>
 void ckeck_boundary_ids(const Triangulation<dim> &triangulation) {
     cout<<"Starting check on Boundary ids..."<<endl;
@@ -79,4 +100,5 @@ void ckeck_boundary_ids(const Triangulation<dim> &triangulation) {
 template void print_mesh_info(const Triangulation<2> &triangulation,
                               const std::string &       filename);
 template double L2Norm(const Tensor<1,2> &input);
+template void ionization_area(const Triangulation<2> &triangulation, const DoFHandler<2> &dof_handler, const Vector<double> &solution);
 //template void ckeck_boundary_ids(const Triangulation<2> &triangulation);
