@@ -4,6 +4,9 @@
 #include "../includes&parameters_setup.h"
 #include "ErrorController.h"
 #include "../Mesh/GridForge.h"
+#include "Base.h"
+#include "DualFunctional.h"
+
 
 template <int dim>
 struct Framework
@@ -12,10 +15,12 @@ public:
     struct ProblemDescription {
         unsigned int primal_fe_degree;
         unsigned int dual_fe_degree;
-        std::unique_ptr<const DualFunctional::DualFunctionalBase <dim>> dual_functional;
+        std::unique_ptr<const DualFunctionalBase<dim>> dual_functional;
         unsigned int max_degrees_of_freedom;
         Triangulation<dim> triangulation;
-    }
+        // Constructor
+        ProblemDescription();
+    };
 
     static void run(const ProblemDescription &descriptor);
 };
@@ -39,12 +44,9 @@ void Framework<dim>::run(const ProblemDescription &descriptor)
     // QUADRATURE
     const QGauss<dim>     quadrature(descriptor.dual_fe_degree + 1);
     const QGauss<dim - 1> face_quadrature(descriptor.dual_fe_degree + 1);
-    // RHS
-    Functions::Function<dim> rhs_function;
 
-    //std::unique_ptr<Base<dim>> solver;
-
-
+    // SOLVER = pointer to BASE
+    std::unique_ptr<Base<dim>> solver;
     solver = std::make_unique<ErrorController<dim>>(
             triangulation,
             primal_fe,
@@ -53,7 +55,7 @@ void Framework<dim>::run(const ProblemDescription &descriptor)
             face_quadrature);
             // rhs, bdry_values, functional still defined inside Solvers
 
-
+    // REFINEMENT LOOP
     for (unsigned int step = 0; true; ++step)
     {
         std::cout << "Refinement cycle: " << step << std::endl;
@@ -64,13 +66,6 @@ void Framework<dim>::run(const ProblemDescription &descriptor)
 
         std::cout << "   Number of degrees of freedom=" << solver->n_dofs()
                   << std::endl;
-
-        for (const auto &evaluator : descriptor.evaluator_list)
-        {
-            evaluator->set_refinement_cycle(step);
-            solver->postprocess(*evaluator);
-        }
-
 
         if (solver->n_dofs() < descriptor.max_degrees_of_freedom)
             solver->refine_grid();

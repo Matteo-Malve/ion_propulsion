@@ -1,7 +1,5 @@
 include_directories(Foundamentals GoalOrientedEstimator Mesh)
 
-add_library(Problem OBJECT Foundamentals/SolverBase.cpp)
-deal_ii_setup_target(Problem)
 
 add_library(HelperFunctions OBJECT Foundamentals/HelperFunctions.cpp)
 deal_ii_setup_target(HelperFunctions)
@@ -9,7 +7,10 @@ deal_ii_setup_target(HelperFunctions)
 add_library(GridForge OBJECT Mesh/GridForge.cpp)
 deal_ii_setup_target(GridForge)
 
-add_executable(main main.cpp $<TARGET_OBJECTS:Problem> $<TARGET_OBJECTS:HelperFunctions> $<TARGET_OBJECTS:GridForge>)
+add_library(ErrorController OBJECT Foundamentals/ErrorController.cpp)
+deal_ii_setup_target(ErrorController)
+
+add_executable(main main.cpp $<TARGET_OBJECTS:HelperFunctions> $<TARGET_OBJECTS:GridForge> $<TARGET_OBJECTS:ErrorController>)
 deal_ii_setup_target(main)
 
 #--------------------------------------------------

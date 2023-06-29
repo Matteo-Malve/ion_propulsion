@@ -6,13 +6,10 @@
 template<int dim>
 class Base{
 public:
-    Base(Triangulation<dim> &coarse_grid): triangulation(&coarse_grid),
-                                            refinement_cycle(numbers::invalid_unsigned_int){};
+    Base(Triangulation<dim> &coarse_grid);
     virtual ~Base() = default;
 
     virtual void solve_problem() = 0;
-    virtual void postprocess(
-            const Evaluation::EvaluationBase<dim> &postprocessor) const = 0;
     virtual void         refine_grid()                            = 0;
     virtual unsigned int n_dofs() const                           = 0;
 
@@ -26,7 +23,11 @@ protected:
     unsigned int refinement_cycle;
 };
 
-
+template <int dim>
+Base<dim>::Base(Triangulation<dim> &coarse_grid)
+        : triangulation(&coarse_grid)
+        , refinement_cycle(numbers::invalid_unsigned_int)
+{}
 
 
 template <int dim>

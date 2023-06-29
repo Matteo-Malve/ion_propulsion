@@ -3,6 +3,7 @@
 
 #include "SolverBase.h"
 #include "DualFunctional.h"
+#include "Base.h"
 
 template<int dim>
 class DualSolver : public Solverbase<dim> {

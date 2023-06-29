@@ -2,6 +2,8 @@
 #define GETPOT_PRIMALSOLVER_H
 
 #include "SolverBase.h"
+#include "Base.h"
+
 template<int dim>
 class PrimalSolver : public Solverbase<dim> {
 public:

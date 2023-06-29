@@ -45,7 +45,7 @@ using std::endl;
 #include <sys/stat.h>   // stat
 #include <stdbool.h>    // bool type
 
-//#include <memory>
+#include <memory>
 #include "GetPot"
 //static std::unique_ptr<GetPot> make_unique(datafile("../data_setup"));
 
