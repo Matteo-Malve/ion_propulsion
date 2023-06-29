@@ -1,10 +1,59 @@
 #ifndef GETPOT_DUALSOLVER_H
 #define GETPOT_DUALSOLVER_H
 
-#include "SolverBase.h"
 #include "DualFunctional.h"
-#include "Base.h"
+#include "Solver.h"
 
+template <int dim>
+class DualSolver : public Solver<dim>
+{
+public:
+    DualSolver(
+            Triangulation<dim> &                           triangulation,
+            const FiniteElement<dim> &                     fe,
+            const Quadrature<dim> &                        quadrature,
+            const Quadrature<dim - 1> &                    face_quadrature,
+            const DualFunctional::DualFunctionalBase<dim> &dual_functional);
+
+protected:
+    const SmartPointer<const DualFunctional::DualFunctionalBase<dim>>
+            dual_functional;
+    virtual void assemble_rhs(Vector<double> &rhs) const override;
+};
+
+// CONSTRUCTOR
+template <int dim>
+DualSolver<dim>::DualSolver(
+        Triangulation<dim> &                           triangulation,
+        const FiniteElement<dim> &                     fe,
+        const Quadrature<dim> &                        quadrature,
+        const Quadrature<dim - 1> &                    face_quadrature,
+        const DualFunctional::DualFunctionalBase<dim> &dual_functional)
+        : Base<dim>(triangulation)
+        , Solver<dim>(triangulation,
+                      fe,
+                      quadrature,
+                      face_quadrature)  // Tolto brdy condition, spostato in solver::solve()
+        , dual_functional(&dual_functional)
+{}
+
+// ASSEMBLE_rhs override
+template <int dim>
+void DualSolver<dim>::assemble_rhs(Vector<double> &rhs) const
+{
+    dual_functional->assemble_rhs(this->dof_handler, rhs);
+}
+
+
+
+
+
+
+
+
+
+
+/*
 template<int dim>
 class DualSolver : public Solverbase<dim> {
 public:
@@ -71,6 +120,6 @@ void DualSolver<dim>::run()
 
 }
 
-
+*/
 
 #endif //GETPOT_DUALSOLVER_H
