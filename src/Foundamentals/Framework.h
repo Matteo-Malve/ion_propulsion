@@ -31,7 +31,7 @@ template <int dim>
 void Framework<dim>::run(const ProblemDescription &descriptor)
 {
     // MESH
-    Triangulation<dim> triangulation;
+    Triangulation<dim> triangulation(Triangulation<dim>::smoothing_on_refinement);
     CreateGrid<dim>(triangulation);
     // FE
     const FE_Q<dim>       primal_fe(descriptor.primal_fe_degree);
@@ -50,10 +50,8 @@ void Framework<dim>::run(const ProblemDescription &descriptor)
             primal_fe,
             dual_fe,
             quadrature,
-            face_quadrature,
-            rhs_function,
-            descriptor.data->get_boundary_values(),
-            *descriptor.dual_functional);
+            face_quadrature);
+            // rhs, bdry_values, functional still defined inside Solvers
 
 
     for (unsigned int step = 0; true; ++step)
