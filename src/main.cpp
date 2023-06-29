@@ -1,35 +1,24 @@
 #include <iostream>
-#include "Foundamentals/PrimalSolver.h"
-#include "Foundamentals/DualSolver.h"
-#include "Foundamentals/ErrorEstimate.h"
+#include "Foundamentals/Framework.h"
 
 
 int main()
 {
     try
     {
-        cout<<"--------------------------------"<<endl
-            <<"Solving Primal Problem"<<endl
-            <<"--------------------------------"<<endl;
-        PrimalSolver<2> primal_solver;
-        primal_solver.run();
-        ionization_area(primal_solver.triangulation, primal_solver.dof_handler, primal_solver.solution);
-        cout<<endl;
+        const unsigned int                 dim = 2;
+        Framework<dim>::ProblemDescription descriptor;
 
-            cout << "--------------------------------" << endl
-                 << "Solving Dual Problem" << endl
-                 << "--------------------------------" << endl;
-            DualSolver<2> dual_solver;
-            dual_solver.run();
-            cout << endl;
+        descriptor.primal_fe_degree = 1;
+        descriptor.dual_fe_degree   = 2;
 
-            cout<<endl<<"Trying to compute error"<<endl;
-            ErrorEstimate<2> errorEstimate;
-            double err=errorEstimate.evaluate_err();
-            cout<<"ERR:   "<<err<<endl<<endl;
+        descriptor.dual_functional = std::make_unique<DualFunctional::PointValueEvaluation<dim>>(evaluation_point);
 
+        descriptor.max_degrees_of_freedom = 20000;
 
+        Framework<dim>::run(descriptor);
     }
+
     catch (std::exception &exc)
     {
         std::cerr << std::endl
@@ -41,8 +30,7 @@ int main()
                   << "Aborting!" << std::endl
                   << "----------------------------------------------------"
                   << std::endl;
-
-        return 1; // Report an error
+        return 1;
     }
     catch (...)
     {
@@ -59,4 +47,3 @@ int main()
 
     return 0;
 }
-
