@@ -7,6 +7,7 @@ class PrimalSolver : public Solverbase<dim> {
 public:
     PrimalSolver(): Solverbase<dim>(1) {};
 private:
+
     void save_finest_mesh() override{
         cout<<"Saving Primal solver's finest mesh for later use"<<endl;
         std::ofstream out("../mesh_storage/primal_finest_mesh.vtu");

@@ -9,10 +9,23 @@ class DualSolver : public Solverbase<dim> {
 public:
     DualSolver(): Solverbase<dim>(2) {Solverbase<dim>::Nmax = 0;};
     void run() override;
+
+    using Solverbase<dim>::dof_handler;
+    using Solverbase<dim>::system_rhs;
+    using Solverbase<dim>::laplace_matrix;
+    using Solverbase<dim>::system_matrix;
+    using Solverbase<dim>::finest_mesh;
+    using Solverbase<dim>::timer;
+    using Solverbase<dim>::constraints;
+    using Solverbase<dim>::apply_boundary_conditions;
+    using Solverbase<dim>::solve;
+    using Solverbase<dim>::output_results;
+
 private:
     EmitterFlux<dim> J;
+
     void assemble_rhs() override{
-        J.assemble_rhs(Solverbase<dim>::dof_handler,Solverbase<dim>::system_rhs);
+        J.assemble_rhs(dof_handler,system_rhs);
     }
 };
 
@@ -40,20 +53,20 @@ void DualSolver<dim>::run()
     Solverbase<dim>::setup_system();
     assemble_rhs();
     const double eps0 = 8.854*1e-12; // [F/m]
-    Solverbase<dim>::system_matrix.copy_from(Solverbase<dim>::laplace_matrix);
-    Solverbase<dim>::system_matrix *= 1.0006*eps0*1e-3;
-    Solverbase<dim>::constraints.condense(Solverbase<dim>::system_matrix, Solverbase<dim>::system_rhs);
-    Solverbase<dim>::apply_boundary_conditions();
+    system_matrix.copy_from(laplace_matrix);
+    system_matrix *= 1.0006*eps0*1e-3;
+    constraints.condense(system_matrix, system_rhs);
+    apply_boundary_conditions();
 
 
     std::cout << std::endl
-            << "   Number of active cells:       " << Solverbase<dim>::finest_mesh.n_active_cells() << std::endl
-            << "   Number of degrees of freedom: " << Solverbase<dim>::dof_handler.n_dofs() << std::endl;
+            << "   Number of active cells:       " << finest_mesh.n_active_cells() << std::endl
+            << "   Number of degrees of freedom: " << dof_handler.n_dofs() << std::endl;
 
-    Solverbase<dim>::solve();
-    Solverbase<dim>::output_results();
+    solve();
+    output_results();
 
-    std::cout << "   Elapsed CPU time: " << Solverbase<dim>::timer.cpu_time() << " seconds.\n";
+    std::cout << "   Elapsed CPU time: " << timer.cpu_time() << " seconds.\n";
 
 }
 

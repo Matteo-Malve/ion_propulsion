@@ -12,6 +12,7 @@ template<int dim>
 class Solverbase{
 public:
     Solverbase(const unsigned int fe_order): fe(fe_order), dof_handler(triangulation) {};
+    virtual ~Solverbase() = default;
     virtual void run();
     
     Triangulation<dim> triangulation;
