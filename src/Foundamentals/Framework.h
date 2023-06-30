@@ -72,11 +72,11 @@ void Framework<dim>::run(const ProblemDescription &descriptor)
         std::cout << "Refinement cycle: " << step << std::endl;
 
         solver->set_refinement_cycle(step);
-        cout<<"Set refinement cycle done\n"
+        cout<<"Set refinement cycle done\n";
         solver->solve_problem();
-        cout<<"SolveProblem done\n"
+        cout<<"SolveProblem done\n";
         solver->output_solution();
-        cout<<"Output solution\n"
+        cout<<"Output solution\n";
 
         std::cout << "   Number of degrees of freedom=" << solver->n_dofs()
                   << std::endl;
