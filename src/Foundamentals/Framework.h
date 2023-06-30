@@ -35,7 +35,7 @@ template <int dim>
 Framework<dim>::ProblemDescription::ProblemDescription(Function<dim>& rhs_func)
         : primal_fe_degree(1)
         , dual_fe_degree(2)
-        , max_degrees_of_freedom(20000),
+        , max_degrees_of_freedom(50000),
           rhs_function(rhs_func)
 
 {}
@@ -72,11 +72,9 @@ void Framework<dim>::run(const ProblemDescription &descriptor)
         std::cout << "Refinement cycle: " << step << std::endl;
 
         solver->set_refinement_cycle(step);
-        cout<<"Set refinement cycle done\n";
-        solver->solve_problem();
-        cout<<"SolveProblem done\n";
+        solver->solve_problem();    // <--- Problema qui
         solver->output_solution();
-        cout<<"Output solution\n";
+
 
         std::cout << "   Number of degrees of freedom=" << solver->n_dofs()
                   << std::endl;

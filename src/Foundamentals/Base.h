@@ -15,7 +15,7 @@ public:
 
     virtual void set_refinement_cycle(const unsigned int cycle);
     // Tolto Postprocess
-    virtual void output_solution() const = 0;
+    virtual void output_solution()  = 0;
 
 protected:
     const SmartPointer<Triangulation<dim>> triangulation;
