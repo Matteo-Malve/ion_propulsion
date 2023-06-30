@@ -28,6 +28,9 @@ protected:
    // boundary values BY us
 
     virtual void assemble_rhs(Vector<double> &rhs) const = 0;
+    SparsityPattern      sparsity_pattern;
+    SparseMatrix<double> system_matrix;
+    Vector<double>       system_rhs;
 
 private:
     void apply_boundary_conditions();       // OURS
@@ -35,9 +38,7 @@ private:
     void assemble_system();
     void solve_system();
 
-    SparsityPattern      sparsity_pattern;
-    SparseMatrix<double> system_matrix;
-    Vector<double>       system_rhs;
+
 
 };
 
