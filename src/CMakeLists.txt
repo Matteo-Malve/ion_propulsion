@@ -10,7 +10,10 @@ deal_ii_setup_target(GridForge)
 add_library(ErrorController OBJECT Foundamentals/ErrorController.cpp)
 deal_ii_setup_target(ErrorController)
 
-add_executable(main main.cpp $<TARGET_OBJECTS:HelperFunctions> $<TARGET_OBJECTS:GridForge> $<TARGET_OBJECTS:ErrorController>)
+add_library(Solver OBJECT Foundamentals/Solver.cpp)
+deal_ii_setup_target(Solver)
+
+add_executable(main main.cpp $<TARGET_OBJECTS:HelperFunctions> $<TARGET_OBJECTS:GridForge> $<TARGET_OBJECTS:ErrorController> $<TARGET_OBJECTS:Solver>)
 deal_ii_setup_target(main)
 
 #--------------------------------------------------

@@ -42,26 +42,26 @@ private:
 // CONSTRUCTOR
 template <int dim>
 ErrorController<dim>::ErrorController(
-        Triangulation<dim> &                           coarse_grid,
-        const FiniteElement<dim> &                     primal_fe,
-        const FiniteElement<dim> &                     dual_fe,
-        const Quadrature<dim> &                        quadrature,
-        const Quadrature<dim - 1> &                    face_quadrature,
-        const Function<dim> &                          rhs_function,        //  Not sure
+        Triangulation<dim> &                           coarse_grid_,
+        const FiniteElement<dim> &                     primal_fe_,
+        const FiniteElement<dim> &                     dual_fe_,
+        const Quadrature<dim> &                        quadrature_,
+        const Quadrature<dim - 1> &                    face_quadrature_,
+        const Function<dim> &                          rhs_function_,        //  Not sure
         //const Function<dim> &                          bv,                  //  Not sure
-        const DualFunctionalBase<dim> &dual_functional      //  Not sure
+        const DualFunctionalBase<dim> &dual_functional_      //  Not sure
         )
-        : Base<dim>(coarse_grid)
-        , PrimalSolver<dim>(coarse_grid,
-                            primal_fe,
-                            quadrature,
-                            face_quadrature,
-                            rhs_function)
-        , DualSolver<dim>(coarse_grid,
-                          dual_fe,
-                          quadrature,
-                          face_quadrature,
-                          dual_functional)
+        : Base<dim>(coarse_grid_)
+        , PrimalSolver<dim>(coarse_grid_,
+                            primal_fe_,
+                            quadrature_,
+                            face_quadrature_,
+                            rhs_function_)
+        , DualSolver<dim>(coarse_grid_,
+                          dual_fe_,
+                          quadrature_,
+                          face_quadrature_,
+                          dual_functional_)
 {}
 
 template <int dim>
@@ -109,6 +109,7 @@ void ErrorController<dim>::refine_grid() {
 template <int dim>
 void ErrorController<dim>::estimate_error(Vector<float> &error_indicators) const{
     // TO BE DONE
+    (void)error_indicators;
 }
 
 #endif //GETPOT_ERRORCONTROLLER_H

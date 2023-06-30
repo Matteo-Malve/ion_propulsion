@@ -22,18 +22,17 @@ protected:
 
 // CONSTRUCTOR
 template <int dim>
-PrimalSolver<dim>::PrimalSolver(Triangulation<dim> &       triangulation,
-                                const FiniteElement<dim> & fe,
-                                const Quadrature<dim> &    quadrature,
-                                const Quadrature<dim - 1> &face_quadrature,
-                                const Function<dim> &      rhs_function)  // tolto bdry values
-        : Base<dim>(triangulation)
-        , Solver<dim>(triangulation,
-                      fe,
-                      quadrature,
-                      face_quadrature,
-                      boundary_values)
-        , rhs_function(&rhs_function)
+PrimalSolver<dim>::PrimalSolver(Triangulation<dim> &       triangulation_,
+                                const FiniteElement<dim> & fe_,
+                                const Quadrature<dim> &    quadrature_,
+                                const Quadrature<dim - 1> &face_quadrature_,
+                                const Function<dim> &      rhs_function_)  // tolto bdry values
+        : Base<dim>(triangulation_)
+        , Solver<dim>(triangulation_,
+                      fe_,
+                      quadrature_,
+                      face_quadrature_)
+        , rhs_function(&rhs_function_)
 {}
 
 

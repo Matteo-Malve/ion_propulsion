@@ -13,10 +13,10 @@ public:
             const FiniteElement<dim> &                     fe,
             const Quadrature<dim> &                        quadrature,
             const Quadrature<dim - 1> &                    face_quadrature,
-            const DualFunctional::DualFunctionalBase<dim> &dual_functional);
+            const DualFunctionalBase<dim> &dual_functional);
 
 protected:
-    const SmartPointer<const DualFunctional::DualFunctionalBase<dim>>
+    const SmartPointer<const DualFunctionalBase<dim>>
             dual_functional;
     virtual void assemble_rhs(Vector<double> &rhs) const override;
 };
@@ -24,17 +24,17 @@ protected:
 // CONSTRUCTOR
 template <int dim>
 DualSolver<dim>::DualSolver(
-        Triangulation<dim> &                           triangulation,
-        const FiniteElement<dim> &                     fe,
-        const Quadrature<dim> &                        quadrature,
-        const Quadrature<dim - 1> &                    face_quadrature,
-        const DualFunctional::DualFunctionalBase<dim> &dual_functional)
-        : Base<dim>(triangulation)
-        , Solver<dim>(triangulation,
-                      fe,
-                      quadrature,
-                      face_quadrature)  // Tolto brdy condition, spostato in solver::solve()
-        , dual_functional(&dual_functional)
+        Triangulation<dim> &                           triangulation_,
+        const FiniteElement<dim> &                     fe_,
+        const Quadrature<dim> &                        quadrature_,
+        const Quadrature<dim - 1> &                    face_quadrature_,
+        const DualFunctionalBase<dim> &dual_functional_)
+        : Base<dim>(triangulation_)
+        , Solver<dim>(triangulation_,
+                      fe_,
+                      quadrature_,
+                      face_quadrature_)  // Tolto brdy condition, spostato in solver::solve()
+        , dual_functional(&dual_functional_)
 {}
 
 // ASSEMBLE_rhs override

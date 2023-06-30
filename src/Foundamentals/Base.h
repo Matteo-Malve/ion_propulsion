@@ -14,7 +14,7 @@ public:
     virtual unsigned int n_dofs() const                           = 0;
 
     virtual void set_refinement_cycle(const unsigned int cycle);
-
+    // Tolto Postprocess
     virtual void output_solution() const = 0;
 
 protected:
@@ -23,9 +23,10 @@ protected:
     unsigned int refinement_cycle;
 };
 
+// CONSTRUCTOR
 template <int dim>
-Base<dim>::Base(Triangulation<dim> &coarse_grid)
-        : triangulation(&coarse_grid)
+Base<dim>::Base(Triangulation<dim> &coarse_grid_)
+        : triangulation(&coarse_grid_)
         , refinement_cycle(numbers::invalid_unsigned_int)
 {}
 
