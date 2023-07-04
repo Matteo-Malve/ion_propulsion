@@ -22,6 +22,7 @@ void PrimalSolver<dim>::output_solution()
         values.reinit(Nmax+2);
         values(0) = 0;
     }
+    values.reinit(Nmax+2);
     // Convergence critierion
     Point<dim> evaluation_point(1.,0.2);
 
@@ -31,28 +32,36 @@ void PrimalSolver<dim>::output_solution()
     std::cout << "   [PrimalSolver]Potential at (" << evaluation_point[0] << "," << evaluation_point[1] << "): "
               << std::scientific << x_ << std::defaultfloat << std::endl;
 
-    // Print sample E
+    /* Print sample E
     Tensor<1,dim>  E_ = VectorTools::point_gradient(this->dof_handler, this->solution, evaluation_point);
     double x = L2Norm(E_);
     std::cout << "   [PrimalSolver]Field magnitude at (" << evaluation_point[0] << "," << evaluation_point[1] << "): " << x << std::endl;
-
+    std::cout<<"c0\n";
+    std::cout<<"Refinement cycle is = ";
     values(this->refinement_cycle+1) = x;
-
+    std::cout<<"c1\n";
     // Se la condizione è verificata, si considera si sia raggiunta convergenza
     if ( std::fabs(values(this->refinement_cycle) - x) <= conv_tol*std::fabs(x))
         this->refinement_cycle = Nmax;
-
+    std::cout<<"c2\n";
+     */
     // Scrittura su file della soluzione ad ogni ciclo:
     GradientPostprocessor<dim> gradient_postprocessor;
+    std::cout<<"c3\n";
     DataOut<dim> data_out;
     data_out.attach_dof_handler(this->dof_handler);
+    std::cout<<"c4\n";
     data_out.add_data_vector(this->solution, "Potential");
+    std::cout<<"c5\n";
     data_out.add_data_vector (this->solution, gradient_postprocessor);
+    std::cout<<"c6\n";
+
     data_out.build_patches();
+    std::cout<<"c7\n";
 
     std::ofstream output("solution-" + std::to_string(this->refinement_cycle) + ".vtu");
     data_out.write_vtu(output);
-
+    std::cout<<"c8\n";
 
     // A convergenza raggiunta, stampa a schermo i risultati
     if (this->refinement_cycle == Nmax) {

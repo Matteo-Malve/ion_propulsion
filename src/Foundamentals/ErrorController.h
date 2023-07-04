@@ -27,9 +27,6 @@ public:
     //virtual void output_solution() const override;                // TO BE DONE
 
 private:
-    // SIMPLE INTERNAL CALLS
-    void solve_primal_problem();
-    void solve_dual_problem();
     //
     // ... removed a lot of things
     //
