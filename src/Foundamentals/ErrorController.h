@@ -180,9 +180,10 @@ void ErrorController<dim>::estimate_error(Vector<float> &error_indicators) const
                                       primal_hanging_node_constraints,
                                       dual_weights);
     // Instance CELL DATA
-    CellData cell_data(this->DualSolver<dim>::fe,
-                       this->DualSolver<dim>::quadrature,
-                       PrimalSolver<dim>::rhs_function);
+    CellData cell_data(*(this->DualSolver<dim>::fe),
+                       *(this->DualSolver<dim>::quadrature),
+                       *(this->PrimalSolver<dim>::rhs_function));
+    
     // INTEGRATE OVER CELLS
     for (const auto &cell : DualSolver<dim>::dof_handler.active_cell_iterators()){
         integrate_over_cell(cell,
