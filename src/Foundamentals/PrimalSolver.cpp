@@ -28,13 +28,13 @@ void PrimalSolver<dim>::output_solution()
     // Print sample V
     Evaluation::PointValueEvaluation<dim> postprocessor(evaluation_point);
     double x_ = postprocessor(this->dof_handler,this->solution);
-    std::cout << "   Potential at (" << evaluation_point[0] << "," << evaluation_point[1] << "): "
+    std::cout << "   [PrimalSolver]Potential at (" << evaluation_point[0] << "," << evaluation_point[1] << "): "
               << std::scientific << x_ << std::defaultfloat << std::endl;
 
     // Print sample E
     Tensor<1,dim>  E_ = VectorTools::point_gradient(this->dof_handler, this->solution, evaluation_point);
     double x = L2Norm(E_);
-    std::cout << "   Field magnitude at (" << evaluation_point[0] << "," << evaluation_point[1] << "): " << x << std::endl;
+    std::cout << "   [PrimalSolver]Field magnitude at (" << evaluation_point[0] << "," << evaluation_point[1] << "): " << x << std::endl;
 
     values(this->refinement_cycle+1) = x;
 
@@ -59,7 +59,7 @@ void PrimalSolver<dim>::output_solution()
 
         Point<dim> sample(wire_radius, 0.);
         Tensor<1,dim>  E = VectorTools::point_gradient(this->dof_handler, this->solution, sample);
-        std::cout << "   Electric field in ("<< sample[0] << "," << sample[1] << "): " << -E << ", magnitude: " << L2Norm(E) << std::endl;
+        std::cout << "   [PrimalSolver]Electric field in ("<< sample[0] << "," << sample[1] << "): " << -E << ", magnitude: " << L2Norm(E) << std::endl;
     }
 }
 

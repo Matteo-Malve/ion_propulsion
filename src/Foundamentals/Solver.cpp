@@ -58,7 +58,7 @@ template <int dim>
 void Solver<dim>::setup_system()
 {
     dof_handler.distribute_dofs(*fe);
-    std::cout << "Number of degrees of freedom: " << dof_handler.n_dofs()
+    std::cout << "[Solver]Number of degrees of freedom: " << dof_handler.n_dofs()
               << std::endl;
 
     DynamicSparsityPattern dsp(dof_handler.n_dofs());

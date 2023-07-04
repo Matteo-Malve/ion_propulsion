@@ -69,18 +69,20 @@ void Framework<dim>::run(const ProblemDescription &descriptor)
     // REFINEMENT LOOP
     for (unsigned int step = 0; true; ++step)
     {
-        std::cout << "Refinement cycle: " << step << std::endl;
+        std::cout << "[Framework]Refinement cycle: " << step << std::endl;
 
         solver->set_refinement_cycle(step);
         solver->solve_problem();    // <--- Problema qui
         solver->output_solution();
 
 
-        std::cout << "   Number of degrees of freedom=" << solver->n_dofs()
+        std::cout << "   [Framework]Number of degrees of freedom=" << solver->n_dofs()
                   << std::endl;
 
-        if (solver->n_dofs() < descriptor.max_degrees_of_freedom)
+        if (solver->n_dofs() < descriptor.max_degrees_of_freedom) {
+            cout << "   [Framework]Prepare call to refine grid" << endl;
             solver->refine_grid();
+        }
         else
             break;
     }

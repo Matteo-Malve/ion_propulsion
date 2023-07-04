@@ -15,7 +15,7 @@ void CreateInitialGrid( Triangulation<dim> &mesh)
     Assert(dim == 2, ExcNotImplemented());
 
     // Check if ground mesh file is present and retrieve it
-    cout<<"Looking for Custom Ground Mesh built with Gmsh"<<endl;
+    cout<<"[GridForge::CreateInitialGrid]Looking for Custom Ground Mesh built with Gmsh"<<endl;
     struct stat sb;
     GetPot redefined_datafile("../data_setup");
     int is_present = stat(redefined_datafile("Load/custom_mesh_to_be_loaded","file inesistente"),&sb);
@@ -97,21 +97,21 @@ template <int dim>
 void CreateGrid(Triangulation<dim> &mesh){
     struct stat sb;
     int is_present = stat("../mesh_storage/initial_mesh.vtu",&sb);
-    cout<<endl<<"Looking for an already existent mesh:"<<endl;
+    cout<<endl<<"[GridForge::CreateGrid]Looking for an already existent mesh:"<<endl;
     if(is_present==-1) {
-        std::cout << " File NOT found: proceed to generate initial mesh" << std::endl;
+        std::cout << "   [GridForge::CreateGrid]File NOT found: proceed to generate initial mesh" << std::endl;
         CreateInitialGrid<dim>(mesh);
     }
     else if(is_present==0){
-        std::cout<<" File found"<<std::endl;
-        std::cout<<" Prepare import"<<std::endl;
+        std::cout<<"   [GridForge::CreateGrid]File found"<<std::endl;
+        std::cout<<"   [GridForge::CreateGrid]Prepare import"<<std::endl;
         std::ifstream input_file("../mesh_storage/initial_mesh.vtu");
         GridIn<dim>       grid_in;
         grid_in.attach_triangulation(mesh);
         grid_in.read_vtu(input_file);
-        std::cout<<" Grid imported"<<std::endl;
+        std::cout<<"   [GridForge::CreateGrid]Grid imported"<<std::endl;
     } else
-        std::cout<<" File not found nor not found. Anomaly."<<endl;
+        std::cout<<"   [GridForge::CreateGrid]File not found nor not found. Anomaly."<<endl;
 }
 
 template<int dim>
