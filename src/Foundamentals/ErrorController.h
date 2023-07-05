@@ -31,7 +31,7 @@ private:
     // ... removed a lot of things
     //
     void estimate_error(Vector<float> &error_indicators) const;     // TO BE DONE
-
+    double global_estimate() const;
     //
     // ... removed a lot of things
     //
@@ -142,8 +142,13 @@ void ErrorController<dim>::refine_grid() {
     estimate_error(error_indicators);
     cout<<"   [ErrorController::refine_grid]Estimate errors"<<endl;
 
-    //compute_global_error();
-    //compute_global_error_as_sum_of_cell_errors();
+    double global_error=0.0;
+    global_error=global_estimate();
+    double global_error_as_sum_of_cell_errors=0.0;
+    for(size_t i=0;i<error_indicators.size();i++)
+        global_error_as_sum_of_cell_errors+=abs(error_indicators[i]);
+    cout<<"   [ErrorController::refine_grid]Global error = "<<global_error<<endl
+        <<"   [ErrorController::refine_grid]Global error as sum of cells' errors = "<<global_error_as_sum_of_cell_errors<<endl;
 
     for (float &error_indicator : error_indicators)
         error_indicator = std::fabs(error_indicator);
@@ -224,5 +229,59 @@ void ErrorController<dim>::integrate_over_cell(
     error_indicators(cell->active_cell_index()) += sum;
 }
 
+template <int dim>
+double ErrorController<dim>::global_estimate() const {
+    // INTERPOLATION
+    AffineConstraints<double> dual_hanging_node_constraints;
+    DoFTools::make_hanging_node_constraints(DualSolver<dim>::dof_handler,
+                                            dual_hanging_node_constraints);
+    dual_hanging_node_constraints.close();
+    Vector<double> primal_solution(DualSolver<dim>::dof_handler.n_dofs());
+    cout<<"   [ErrorController::global_estimate]Interpolated primal solution DOF "<<primal_solution.size()<< endl;
+    FETools::interpolate(PrimalSolver<dim>::dof_handler,
+                         PrimalSolver<dim>::solution,
+                         DualSolver<dim>::dof_handler,
+                         dual_hanging_node_constraints,
+                         primal_solution);
+
+    AffineConstraints<double> primal_hanging_node_constraints;
+    DoFTools::make_hanging_node_constraints(PrimalSolver<dim>::dof_handler,
+                                            primal_hanging_node_constraints);
+    primal_hanging_node_constraints.close();
+    Vector<double> dual_weights(DualSolver<dim>::dof_handler.n_dofs());
+    FETools::interpolation_difference(DualSolver<dim>::dof_handler,
+                                      dual_hanging_node_constraints,
+                                      DualSolver<dim>::solution,
+                                      PrimalSolver<dim>::dof_handler,
+                                      primal_hanging_node_constraints,
+                                      dual_weights);
+    cout<<"   [ErrorController::global_estimate]Interpolations done"<<endl;
+
+    // EVALUATION
+    //using dual_solution = DualSolver<dim>::solution;
+    //using A = DualSolver<dim>::system_matrix;
+    /*
+    size_t M = primal_solution.size();
+    double temp = 0.0;
+    double global_error = 0.0;
+    for(size_t i=0;i<M;i++) {
+        temp=0.0;
+        for(size_t j=0;j<M;j++)
+            temp+=dual_weights[j]*DualSolver<dim>::system_matrix(i,j);
+        global_error += primal_solution[i]*temp;
+    }
+     */
+    Vector<double> temp(dual_weights.size());
+    double global_error = 0.0;
+    cout<<"check\n";
+    DualSolver<dim>::system_matrix.vmult(temp,dual_weights);
+    cout<<"check\n";
+
+    if(temp.size()!=primal_solution.size())
+        cout<<"PROBLEMA DIMENSIONALE"<<endl;
+    for(size_t i=0;i<primal_solution.size();++i)
+        global_error+=primal_solution(i)*temp(i);
+    return global_error;
+}
 
 #endif //GETPOT_ERRORCONTROLLER_H
