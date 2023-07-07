@@ -113,6 +113,25 @@ void CreateGrid(Triangulation<dim> &mesh){
     } else
         std::cout<<"   [GridForge::CreateGrid]File not found nor not found. Anomaly."<<endl;
 }
+template <int dim>
+void LoadSecondGrid(Triangulation<dim> &mesh){
+    struct stat sb;
+    int is_present = stat("../zSecond_grid/circular_mesh.vtu",&sb);
+    cout<<endl<<"[GridForge::LoadSecondGrid]Looking for an already existent mesh:"<<endl;
+    if(is_present==-1) {
+        std::cout << "   [GridForge::LoadSecondGrid]File NOT found: proceed to generate initial mesh" << std::endl;
+    }
+    else if(is_present==0){
+        std::cout<<"   [GridForge::LoadSecondGrid]File found"<<std::endl;
+        std::cout<<"   [GridForge::LoadSecondGrid]Prepare import"<<std::endl;
+        std::ifstream input_file("../zSecond_grid/circular_mesh.vtu");
+        GridIn<dim>       grid_in;
+        grid_in.attach_triangulation(mesh);
+        grid_in.read_vtu(input_file);
+        std::cout<<"   [GridForge::LoadSecondGrid]Grid imported"<<std::endl;
+    } else
+        std::cout<<"   [GridForge::LoadSecondGrid]File not found nor not found. Anomaly."<<endl;
+}
 
 template<int dim>
 void FirstRefineGrid(Triangulation<dim> &mesh){
@@ -158,6 +177,7 @@ void SetManifoldsAndBoundaries(Triangulation<dim> &mesh, const double collector_
 // Template initialization
 // #######################################
 template void CreateGrid( Triangulation<2> &mesh);
+template void LoadSecondGrid( Triangulation<2> &mesh);
 /*
 template void SetManifoldsAndBoundaries(Triangulation<2> &mesh, const double collector_height,
                                     const double electrode_distance, const double wire_radius);*/

@@ -46,6 +46,7 @@ void Framework<dim>::run(const ProblemDescription &descriptor)
     // MESH
     Triangulation<dim> triangulation(Triangulation<dim>::smoothing_on_refinement);
     CreateGrid<dim>(triangulation);
+    LoadSecondGrid<dim>(triangulation);
     // FE
     const FE_Q<dim>       primal_fe(descriptor.primal_fe_degree);
     const FE_Q<dim>       dual_fe(descriptor.dual_fe_degree);

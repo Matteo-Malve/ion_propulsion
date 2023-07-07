@@ -19,6 +19,7 @@ deal_ii_setup_target(PrimalSolver)
 add_executable(main main.cpp $<TARGET_OBJECTS:HelperFunctions> $<TARGET_OBJECTS:GridForge> $<TARGET_OBJECTS:ErrorController> $<TARGET_OBJECTS:Solver> $<TARGET_OBJECTS:PrimalSolver>)
 deal_ii_setup_target(main)
 
+
 #--------------------------------------------------
 
 set_property(TARGET main

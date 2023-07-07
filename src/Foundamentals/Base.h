@@ -21,7 +21,6 @@ public:
 
 protected:
     const SmartPointer<Triangulation<dim>> triangulation;
-
     unsigned int refinement_cycle;
 };
 

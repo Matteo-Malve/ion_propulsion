@@ -22,6 +22,7 @@ protected:
 
 private:
     Vector<float> values;
+    unsigned int grid_option = datafile("Load/grid_option",1);
     unsigned int Nmax = datafile("Numerics/FEM_cycles/Nmax",10);
     double wire_radius = datafile("Mesh/wire_radius",0.025);
     const float conv_tol = datafile("Numerics/FEM_cycles/global_tolerane",1e-4);
