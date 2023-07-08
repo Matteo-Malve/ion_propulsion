@@ -129,6 +129,25 @@ void LoadSecondGrid(Triangulation<dim> &mesh){
         grid_in.attach_triangulation(mesh);
         grid_in.read_vtu(input_file);
         std::cout<<"   [GridForge::LoadSecondGrid]Grid imported"<<std::endl;
+
+
+        // SET BOUNDARY
+        const Point<2> center(1, 0);
+        const double inner_radius = 0.5, outer_radius = 1.0;
+        const types::boundary_id collector_id = 2;
+        const types::boundary_id emitter_id = 1;
+        for (auto &face : mesh.active_face_iterators())
+        {
+            if (face->at_boundary())
+            {
+                const double distance_from_center = center.distance(face->center());
+                if (std::fabs(distance_from_center - inner_radius) <= 1e-6 * inner_radius)
+                    face->set_boundary_id(emitter_id);
+                else if (std::fabs(distance_from_center - outer_radius) <= 1e-6 * outer_radius) {
+                    face->set_boundary_id(collector_id);
+                }
+            }
+        }
     } else
         std::cout<<"   [GridForge::LoadSecondGrid]File not found nor not found. Anomaly."<<endl;
 }
