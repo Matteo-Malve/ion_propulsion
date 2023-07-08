@@ -132,6 +132,7 @@ void LoadSecondGrid(Triangulation<dim> &mesh){
 
 
         // SET BOUNDARY
+        /*
         const Point<2> center(1, 0);
         const double inner_radius = 0.5, outer_radius = 1.0;
         const types::boundary_id collector_id = 2;
@@ -148,6 +149,8 @@ void LoadSecondGrid(Triangulation<dim> &mesh){
                 }
             }
         }
+        */
+
     } else
         std::cout<<"   [GridForge::LoadSecondGrid]File not found nor not found. Anomaly."<<endl;
 }

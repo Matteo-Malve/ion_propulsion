@@ -1,0 +1,4 @@
+/home/dealii/shared-folder/ion_propulsion/zSecond_grid/CMakeFiles/second_grid.dir
+/home/dealii/shared-folder/ion_propulsion/zSecond_grid/CMakeFiles/run.dir
+/home/dealii/shared-folder/ion_propulsion/zSecond_grid/CMakeFiles/edit_cache.dir
+/home/dealii/shared-folder/ion_propulsion/zSecond_grid/CMakeFiles/rebuild_cache.dir
