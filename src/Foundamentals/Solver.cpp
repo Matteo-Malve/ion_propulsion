@@ -13,7 +13,7 @@ void Solver<dim>::apply_boundary_conditions() {
 
     VectorTools::interpolate_boundary_values(dof_handler,
                                              2,  // Boundary corrispondente al collettore, definito sopra
-                                             Functions::ConstantFunction<dim>(1.6e+4), // Valore di potenziale al collettore (0 V)
+                                             Functions::ConstantFunction<dim>(0), // Valore di potenziale al collettore (0 V)
             //DirichletBoundaryValuesDX<dim>(),
                                              collector_boundary_values);
 
@@ -124,31 +124,14 @@ void Solver<dim>::assemble_system()
     }
 
     // IMPOSE BOUNDARY VALUES
-    std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
-    VectorTools::interpolate_boundary_values(dof_handler,
-                                             1, // Boundary corrispondente all'emettitore, definito sopra
-                                             Functions::ConstantFunction<dim>(2.e+4), // Valore di potenziale all'emettitore (20 kV)
-                                             emitter_boundary_values);
-    VectorTools::interpolate_boundary_values(dof_handler,
-                                             2,  // Boundary corrispondente al collettore, definito sopra
-                                             Functions::ConstantFunction<dim>(1.6e+4), // Valore di potenziale al collettore (0 V)
-                                             //DirichletBoundaryValuesDX<dim>(),
-                                             collector_boundary_values);
-    MatrixTools::apply_boundary_values(emitter_boundary_values,
-                                       system_matrix,
-                                       solution,
-                                       system_rhs);
-    MatrixTools::apply_boundary_values(collector_boundary_values,
-                                       system_matrix,
-                                       solution,
-                                       system_rhs);
+    apply_boundary_conditions();
 }
 
 
 template <int dim>
 void Solver<dim>::solve_system()
 {
-    SolverControl            solver_control(2000, 1e-6 * system_rhs.l2_norm());
+    SolverControl            solver_control(5000, 1e-6 * system_rhs.l2_norm());
     SolverCG<Vector<double>> solver(solver_control);
     solver.solve(system_matrix, solution, system_rhs, PreconditionIdentity());
 }

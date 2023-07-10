@@ -134,7 +134,7 @@ EmitterFlux<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler,
                 auto n = fe_face_values.normal_vector(q);
                 for (unsigned int i = 0; i < dofs_per_face; ++i) {
                     for (unsigned int k = 0; k < dim; ++k)
-                        cell_rhs[i] += fe_face_values.shape_grad(i, q)[k] * n[k];
+                        cell_rhs[i] += fe_face_values.shape_grad(i, q)[k] * (-n[k]);
                     cell_rhs[i] *= fe_face_values.JxW(q);  // ??    access operator [], perchè () ?
                 }
             }

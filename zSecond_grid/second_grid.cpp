@@ -6,8 +6,8 @@ int main()
 {
     // BUILD TRIANGULATION
     Triangulation<2> triangulation;
-    const Point<2> center(1, 0);
-    const double inner_radius = 0.5, outer_radius = 1.0;
+    const Point<2> center(0, 0);
+    const double inner_radius = 0.025, outer_radius = 1.025;
     GridGenerator::hyper_shell(
             triangulation, center, inner_radius, outer_radius, 10);
     for (unsigned int step = 0; step < 5; ++step)
