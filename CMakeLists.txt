@@ -14,7 +14,7 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/build)
 #--------------------------------------------------
 
 add_custom_target(cleanres
-  COMMAND rm *.svg *.vtu
+  COMMAND rm *.vtu
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/../results
   )
 
