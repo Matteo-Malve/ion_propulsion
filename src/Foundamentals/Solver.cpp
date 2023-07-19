@@ -94,11 +94,15 @@ void Solver<dim>::assemble_system()
         cell_matrix = 0;
         //cell_rhs    = 0;
 
+        // Electrical permittivity of void:
+        const double eps0 = 8.854*1e-12; // [F/m]
+
         for (const unsigned int q_index : fe_values.quadrature_point_indices())
         {
             for (const unsigned int i : fe_values.dof_indices())
                 for (const unsigned int j : fe_values.dof_indices())
                     cell_matrix(i, j) +=
+                            1.0006*eps0*1e-2*
                             (fe_values.shape_grad(i, q_index) * // grad phi_i(x_q)
                              fe_values.shape_grad(j, q_index) * // grad phi_j(x_q)
                              fe_values.JxW(q_index));           // dx
@@ -116,6 +120,10 @@ void Solver<dim>::assemble_system()
                 system_matrix.add(local_dof_indices[i],
                                   local_dof_indices[j],
                                   cell_matrix(i, j));
+
+
+
+        //csystem_matrix*=1.0006*eps0*1e-2;
 /*
         for (const unsigned int i : fe_values.dof_indices())
             system_rhs(local_dof_indices[i]) += cell_rhs(i);
@@ -131,9 +139,22 @@ void Solver<dim>::assemble_system()
 template <int dim>
 void Solver<dim>::solve_system()
 {
-    SolverControl            solver_control(5000, 1e-6 * system_rhs.l2_norm());
+    // Build CG Solver
+    SolverControl            solver_control(2000, 1e-6 * system_rhs.l2_norm());
     SolverCG<Vector<double>> solver(solver_control);
-    solver.solve(system_matrix, solution, system_rhs, PreconditionIdentity());
+
+    // Apply Preconditioner
+    double relaxation_parameter = 1.5;
+    PreconditionSSOR<SparseMatrix<double>> preconditioner;
+    preconditioner.initialize(system_matrix, relaxation_parameter);
+
+    // Solve Linear System
+    solver.solve(system_matrix, solution, system_rhs, preconditioner);
+    //solver.solve(system_matrix, solution, system_rhs, PreconditionIdentity());
+
+    // Print iterations
+    cout<<"[Solver]"<<solver_control.last_step()
+        <<" CG iterations needed to obtain convergence."<<endl;
 }
 
 

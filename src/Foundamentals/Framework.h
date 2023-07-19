@@ -59,8 +59,8 @@ void Framework<dim>::run(const ProblemDescription &descriptor)
         return;
     }
      */
-    CreateGrid<dim>(triangulation);
-    //LoadSecondGrid<dim>(triangulation);
+    //CreateGrid<dim>(triangulation);
+    LoadSecondGrid<dim>(triangulation);
     
     // FE
     const FE_Q<dim>       primal_fe(descriptor.primal_fe_degree);

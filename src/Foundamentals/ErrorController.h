@@ -188,6 +188,7 @@ void ErrorController<dim>::estimate_error(Vector<float> &error_indicators) const
                                       primal_hanging_node_constraints,
                                       dual_weights);
     cout<<"   [ErrorController::estimate_error]Interpolations done"<<endl;
+
     // Instance CELL DATA
     CellData cell_data(this->DualSolver<dim>::fe,
                        this->DualSolver<dim>::quadrature,
@@ -198,7 +199,6 @@ void ErrorController<dim>::estimate_error(Vector<float> &error_indicators) const
     for (const auto &cell : DualSolver<dim>::dof_handler.active_cell_iterators()){
         integrate_over_cell(cell,
                             primal_solution,
-                            //PrimalSolver<dim>::solution,
                             dual_weights,
                             cell_data,
                             error_indicators);
@@ -226,7 +226,7 @@ void ErrorController<dim>::integrate_over_cell(
         sum += ((cell_data.cell_primal_gradients[p]) *
                 cell_data.cell_dual_gradients[p] * cell_data.fe_values.JxW(p));
     }
-    error_indicators(cell->active_cell_index()) += sum;
+    error_indicators(cell->active_cell_index()) += -sum;
 }
 
 template <int dim>
@@ -258,19 +258,6 @@ double ErrorController<dim>::global_estimate() const {
     cout<<"   [ErrorController::global_estimate]Interpolations done"<<endl;
 
     // EVALUATION
-    //using dual_solution = DualSolver<dim>::solution;
-    //using A = DualSolver<dim>::system_matrix;
-    /*
-    size_t M = primal_solution.size();
-    double temp = 0.0;
-    double global_error = 0.0;
-    for(size_t i=0;i<M;i++) {
-        temp=0.0;
-        for(size_t j=0;j<M;j++)
-            temp+=dual_weights[j]*DualSolver<dim>::system_matrix(i,j);
-        global_error += primal_solution[i]*temp;
-    }
-     */
     Vector<double> temp(dual_weights.size());
     double global_error = 0.0;
     DualSolver<dim>::system_matrix.vmult(temp,dual_weights);
@@ -279,7 +266,7 @@ double ErrorController<dim>::global_estimate() const {
         cout<<"PROBLEMA DIMENSIONALE"<<endl;
     for(size_t i=0;i<primal_solution.size();++i)
         global_error+=primal_solution(i)*temp(i);
-    return global_error;
+    return -global_error;
 }
 
 #endif //GETPOT_ERRORCONTROLLER_H
