@@ -2,6 +2,7 @@
 #define GETPOT_BASE_H
 
 #include "../includes&parameters_setup.h"
+static GetPot datafile("../data_setup");
 
 template<int dim>
 class Base{
@@ -22,6 +23,7 @@ public:
 protected:
     const SmartPointer<Triangulation<dim>> triangulation;
     unsigned int refinement_cycle;
+
 };
 
 // CONSTRUCTOR

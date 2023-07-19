@@ -35,18 +35,18 @@ Solver<dim>::~Solver()
     dof_handler.clear();
 }
 
-
+/*
 template <int dim>
 void Solver<dim>::solve_problem()
 {
-    //cout<<"entro nella funzione solve problem\n";
-    //this->apply_boundary_conditions();      // OURS
+
     setup_system();
     assemble_system();
+    this->apply_boundary_conditions();
     solve_system();
-    //output_results();
-}
 
+}
+*/
 
 template <int dim>
 unsigned int Solver<dim>::n_dofs() const
@@ -124,7 +124,7 @@ void Solver<dim>::assemble_system()
     }
 
     // IMPOSE BOUNDARY VALUES
-    apply_boundary_conditions();
+    //apply_boundary_conditions();
 }
 
 

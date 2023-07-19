@@ -13,7 +13,7 @@ public:
             // boundary values BY us
     virtual ~Solver() override;
 
-    virtual void solve_problem() override;
+    //virtual void solve_problem() override;
 
     // Tolto postprocess
 
@@ -32,7 +32,7 @@ protected:
     SparseMatrix<double> system_matrix;
     Vector<double>       system_rhs;
 
-private:
+
     void apply_boundary_conditions();       // OURS
     void setup_system();
     void assemble_system();

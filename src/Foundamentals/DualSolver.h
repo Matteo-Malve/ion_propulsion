@@ -14,7 +14,7 @@ public:
             const Quadrature<dim> &                        quadrature,
             const Quadrature<dim - 1> &                    face_quadrature,
             const DualFunctionalBase<dim> &dual_functional);
-
+    virtual void solve_problem() override;
 protected:
     const SmartPointer<const DualFunctionalBase<dim>>
             dual_functional;
@@ -44,7 +44,16 @@ void DualSolver<dim>::assemble_rhs(Vector<double> &rhs) const
     dual_functional->assemble_rhs(this->dof_handler, rhs);
 }
 
+template <int dim>
+void DualSolver<dim>::solve_problem()
+{
 
+    this->setup_system();
+    this->assemble_system();
+    this->apply_boundary_conditions();
+    this->solve_system();
+
+}
 
 
 

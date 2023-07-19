@@ -273,9 +273,7 @@ double ErrorController<dim>::global_estimate() const {
      */
     Vector<double> temp(dual_weights.size());
     double global_error = 0.0;
-    cout<<"check\n";
     DualSolver<dim>::system_matrix.vmult(temp,dual_weights);
-    cout<<"check\n";
 
     if(temp.size()!=primal_solution.size())
         cout<<"PROBLEMA DIMENSIONALE"<<endl;

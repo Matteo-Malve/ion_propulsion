@@ -70,7 +70,15 @@ void PrimalSolver<dim>::output_solution()
     data_out.write_vtu(output);
 }
 
+template <int dim>
+void PrimalSolver<dim>::solve_problem()
+{
+    this->setup_system();
+    this->assemble_system();
+    this->apply_boundary_conditions();
+    this->solve_system();
 
+}
 
 template <int dim>
 void PrimalSolver<dim>::assemble_rhs(Vector<double> &rhs) const

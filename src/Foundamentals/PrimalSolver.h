@@ -2,7 +2,7 @@
 #define GETPOT_PRIMALSOLVER_H
 
 #include "Solver.h"
-static GetPot datafile("../data_setup");
+
 
 template <int dim>
 class PrimalSolver : public Solver<dim>
@@ -13,7 +13,7 @@ public:
                  const Quadrature<dim> &    quadrature,
                  const Quadrature<dim - 1> &face_quadrature,
                  const Function<dim> &      rhs_function);  // tolto bdry values
-
+    virtual void solve_problem() override;
     virtual void output_solution() override;
 
 protected:

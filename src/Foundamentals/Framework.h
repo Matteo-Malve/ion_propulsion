@@ -11,6 +11,8 @@
 template <int dim>
 class ErrorController;
 
+//static GetPot redefined_2_datafile("../../data_setup");
+
 template <int dim>
 struct Framework
 {
@@ -43,10 +45,23 @@ Framework<dim>::ProblemDescription::ProblemDescription(Function<dim>& rhs_func)
 template <int dim>
 void Framework<dim>::run(const ProblemDescription &descriptor)
 {
+    //unsigned int grid_option=redefined_2_datafile("Load/GridOption",3);
+
     // MESH
     Triangulation<dim> triangulation(Triangulation<dim>::smoothing_on_refinement);
-    //CreateGrid<dim>(triangulation);
-    LoadSecondGrid<dim>(triangulation);
+    /*
+    if(grid_option==1)
+        CreateGrid<dim>(triangulation);
+    else if(grid_option==2)
+        LoadSecondGrid<dim>(triangulation);
+    else {
+        cout << "Error in reading Datafile!\n";
+        return;
+    }
+     */
+    CreateGrid<dim>(triangulation);
+    //LoadSecondGrid<dim>(triangulation);
+    
     // FE
     const FE_Q<dim>       primal_fe(descriptor.primal_fe_degree);
     const FE_Q<dim>       dual_fe(descriptor.dual_fe_degree);
