@@ -75,6 +75,7 @@ void PrimalSolver<dim>::solve_problem()
 {
     this->setup_system();
     this->assemble_system();
+
     this->apply_boundary_conditions();
     this->solve_system();
 

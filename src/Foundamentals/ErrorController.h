@@ -146,7 +146,7 @@ void ErrorController<dim>::refine_grid() {
     global_error=global_estimate();
     double global_error_as_sum_of_cell_errors=0.0;
     for(size_t i=0;i<error_indicators.size();i++)
-        global_error_as_sum_of_cell_errors+=abs(error_indicators[i]);
+        global_error_as_sum_of_cell_errors+=error_indicators[i];
     cout<<"   [ErrorController::refine_grid]Global error = "<<global_error<<endl
         <<"   [ErrorController::refine_grid]Global error as sum of cells' errors = "<<global_error_as_sum_of_cell_errors<<endl;
 
@@ -226,7 +226,7 @@ void ErrorController<dim>::integrate_over_cell(
         sum += ((cell_data.cell_primal_gradients[p]) *
                 cell_data.cell_dual_gradients[p] * cell_data.fe_values.JxW(p));
     }
-    error_indicators(cell->active_cell_index()) += -sum;
+    error_indicators(cell->active_cell_index()) += (0 - sum);
 }
 
 template <int dim>

@@ -14,7 +14,7 @@ void Solver<dim>::apply_boundary_conditions() {
     VectorTools::interpolate_boundary_values(dof_handler,
                                              2,  // Boundary corrispondente al collettore, definito sopra
                                              Functions::ConstantFunction<dim>(0), // Valore di potenziale al collettore (0 V)
-            //DirichletBoundaryValuesDX<dim>(),
+                                             //DirichletBoundaryValuesDX<dim>(),
                                              collector_boundary_values);
 
     MatrixTools::apply_boundary_values(emitter_boundary_values,
@@ -34,19 +34,6 @@ Solver<dim>::~Solver()
 {
     dof_handler.clear();
 }
-
-/*
-template <int dim>
-void Solver<dim>::solve_problem()
-{
-
-    setup_system();
-    assemble_system();
-    this->apply_boundary_conditions();
-    solve_system();
-
-}
-*/
 
 template <int dim>
 unsigned int Solver<dim>::n_dofs() const
@@ -75,28 +62,22 @@ void Solver<dim>::setup_system()
 template <int dim>
 void Solver<dim>::assemble_system()
 {
-
     FEValues<dim> fe_values(*this->fe,
                             *this->quadrature,
                             update_values | update_gradients | update_JxW_values);
-
     const unsigned int dofs_per_cell = fe->n_dofs_per_cell();
-
     FullMatrix<double> cell_matrix(dofs_per_cell, dofs_per_cell);
-    //Vector<double>     cell_rhs(dofs_per_cell);
-
     std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
 
     for (const auto &cell : dof_handler.active_cell_iterators())
     {
         fe_values.reinit(cell);
-
         cell_matrix = 0;
-        //cell_rhs    = 0;
 
         // Electrical permittivity of void:
         const double eps0 = 8.854*1e-12; // [F/m]
 
+        // Compute A_loc
         for (const unsigned int q_index : fe_values.quadrature_point_indices())
         {
             for (const unsigned int i : fe_values.dof_indices())
@@ -115,21 +96,17 @@ void Solver<dim>::assemble_system()
         }
         cell->get_dof_indices(local_dof_indices);
 
+        // Add contribution to A_global
         for (const unsigned int i : fe_values.dof_indices())
             for (const unsigned int j : fe_values.dof_indices())
                 system_matrix.add(local_dof_indices[i],
                                   local_dof_indices[j],
                                   cell_matrix(i, j));
-
-
-
-        //csystem_matrix*=1.0006*eps0*1e-2;
-/*
-        for (const unsigned int i : fe_values.dof_indices())
-            system_rhs(local_dof_indices[i]) += cell_rhs(i);
-*/
-
     }
+
+    // Assemble rhs
+    this->assemble_rhs(this->system_rhs);
+    cout<<"   [Solver::assemble_system]Assembled the rhs"<<endl;
 
     // IMPOSE BOUNDARY VALUES
     //apply_boundary_conditions();
