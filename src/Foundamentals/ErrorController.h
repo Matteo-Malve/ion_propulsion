@@ -174,7 +174,7 @@ void ErrorController<dim>::estimate_error(Vector<float> &error_indicators) const
                          PrimalSolver<dim>::solution,
                          DualSolver<dim>::dof_handler,
                          dual_hanging_node_constraints,
-                         primal_solution);
+                         primal_solution);                                      // uh projected dual FE space
 
     AffineConstraints<double> primal_hanging_node_constraints;
     DoFTools::make_hanging_node_constraints(PrimalSolver<dim>::dof_handler,
@@ -186,13 +186,13 @@ void ErrorController<dim>::estimate_error(Vector<float> &error_indicators) const
                                       DualSolver<dim>::solution,
                                       PrimalSolver<dim>::dof_handler,
                                       primal_hanging_node_constraints,
-                                      dual_weights);
+                                      dual_weights);                            // zh-∏zh
     cout<<"   [ErrorController::estimate_error]Interpolations done"<<endl;
 
     // Instance CELL DATA
-    CellData cell_data(this->DualSolver<dim>::fe,
-                       this->DualSolver<dim>::quadrature,
-                       this->PrimalSolver<dim>::rhs_function);
+    CellData cell_data(this->DualSolver<dim>::fe,               // Initialized
+                       this->DualSolver<dim>::quadrature,       // Empty
+                       this->PrimalSolver<dim>::rhs_function);  // Empty
     cout<<"   [ErrorController::estimate_error]Instantiated CellData"<<endl;
 
     // INTEGRATE OVER CELLS
@@ -216,15 +216,16 @@ void ErrorController<dim>::integrate_over_cell(
         Vector<float> &             error_indicators) const
 {
     cell_data.fe_values.reinit(cell);
-    cell_data.right_hand_side->value_list(cell_data.fe_values.get_quadrature_points(), cell_data.rhs_values);
+    auto & quadrature_points = cell_data.fe_values.get_quadrature_points();
+    cell_data.right_hand_side->value_list(quadrature_points, cell_data.rhs_values);
     cell_data.fe_values.get_function_gradients(primal_solution, cell_data.cell_primal_gradients);
     cell_data.fe_values.get_function_gradients(dual_weights, cell_data.cell_dual_gradients);
 
 
     double sum = 0;
-    for (unsigned int p = 0; p < cell_data.fe_values.n_quadrature_points; ++p) {
-        sum += ((cell_data.cell_primal_gradients[p]) *
-                cell_data.cell_dual_gradients[p] * cell_data.fe_values.JxW(p));
+    for (unsigned int p = 0; p < quadrature_points.size(); ++p) {
+        sum += ((cell_data.cell_primal_gradients[p] * cell_data.cell_dual_gradients[p]  )   // Scalar product btw Tensors
+                * cell_data.fe_values.JxW(p));
     }
     error_indicators(cell->active_cell_index()) += (0 - sum);
 }

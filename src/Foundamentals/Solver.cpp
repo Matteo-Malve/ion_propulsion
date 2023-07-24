@@ -45,7 +45,7 @@ template <int dim>
 void Solver<dim>::setup_system()
 {
     dof_handler.distribute_dofs(*fe);
-    std::cout << "[Solver]Number of degrees of freedom: " << dof_handler.n_dofs()
+    std::cout << "   [Solver]Number of degrees of freedom: " << dof_handler.n_dofs()
               << std::endl;
 
     DynamicSparsityPattern dsp(dof_handler.n_dofs());
@@ -130,7 +130,7 @@ void Solver<dim>::solve_system()
     //solver.solve(system_matrix, solution, system_rhs, PreconditionIdentity());
 
     // Print iterations
-    cout<<"[Solver]"<<solver_control.last_step()
+    cout<<"   [Solver]"<<solver_control.last_step()
         <<" CG iterations needed to obtain convergence."<<endl;
 }
 
