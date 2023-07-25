@@ -221,10 +221,13 @@ void ErrorController<dim>::integrate_over_cell(
     cell_data.fe_values.get_function_gradients(primal_solution, cell_data.cell_primal_gradients);
     cell_data.fe_values.get_function_gradients(dual_weights, cell_data.cell_dual_gradients);
 
+    // Electrical permittivity of void:
+    const double eps0 = 8.854*1e-12; // [F/m]
 
     double sum = 0;
     for (unsigned int p = 0; p < quadrature_points.size(); ++p) {
-        sum += ((cell_data.cell_primal_gradients[p] * cell_data.cell_dual_gradients[p]  )   // Scalar product btw Tensors
+        sum +=  1.0006*eps0*1e-2*
+                ((cell_data.cell_primal_gradients[p] * cell_data.cell_dual_gradients[p]  )   // Scalar product btw Tensors
                 * cell_data.fe_values.JxW(p));
     }
     error_indicators(cell->active_cell_index()) += (0 - sum);
