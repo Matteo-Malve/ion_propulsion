@@ -18,10 +18,9 @@ struct ProblemDescription {
     unsigned int dual_fe_degree;
     std::unique_ptr<const DualFunctionalBase<dim>> dual_functional;
     unsigned int max_degrees_of_freedom;
+    unsigned int max_number_of_refinement_cycles;
     Triangulation<dim> triangulation;
-    // Tripletta infame
-    Function<dim> &      rhs_function;        // Not sure
-    //const Function<dim> &      boundary_values;     // Not sure
+    Function<dim> &      rhs_function;
     // Constructor
     ProblemDescription(Function<dim>&);
 };
@@ -30,12 +29,13 @@ template<int dim>
 ProblemDescription<dim>::ProblemDescription(Function<dim>& rhs_func)
         : primal_fe_degree(1)
         , dual_fe_degree(2)
-        , max_degrees_of_freedom(50000),
+        , max_degrees_of_freedom(20000)
+        , max_number_of_refinement_cycles(0),
           rhs_function(rhs_func) {}
 
 template<int dim>
 void framework_run(const ProblemDescription<dim> &descriptor,unsigned int grid_option){
-    Triangulation<dim> triangulation(Triangulation<dim>::smoothing_on_refinement);
+        Triangulation<dim> triangulation(Triangulation<dim>::smoothing_on_refinement);
     // IMPORT correct grid
         if(grid_option<1.5)
             CreateGrid<dim>(triangulation);
@@ -56,24 +56,23 @@ void framework_run(const ProblemDescription<dim> &descriptor,unsigned int grid_o
             dual_fe,
             quadrature,
             face_quadrature,
-            descriptor.rhs_function,    // Not sure
-            //descriptor.boundary_values, // Not sure
+            descriptor.rhs_function,
             *descriptor.dual_functional);
 
 
     // REFINEMENT LOOP
-    for (unsigned int step = 0; true; ++step) {
+    for (unsigned int step = 0; true; step++) {
         std::cout << "[Framework]Refinement cycle: " << step << std::endl;
 
         solver->set_refinement_cycle(step);
-        solver->solve_problem();    // <--- Problema qui
+        solver->solve_problem();
         solver->output_solution();
 
 
-        std::cout << "   [Framework]Number of degrees of freedom=" << solver->n_dofs()
+        std::cout << "   [Framework]Number of degrees of freedom=" << solver->n_dofs()<< "   max allowed "<< descriptor.max_degrees_of_freedom
                   << std::endl;
 
-        if (solver->n_dofs() < descriptor.max_degrees_of_freedom) {
+        if (step<descriptor.max_number_of_refinement_cycles && solver->n_dofs() < descriptor.max_degrees_of_freedom) {
             cout << "   [Framework]Prepare call to refine grid" << endl;
             solver->refine_grid();
         } else

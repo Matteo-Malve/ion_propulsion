@@ -16,10 +16,16 @@ int main()
         Functions::ZeroFunction <dim> zero_function;
         ProblemDescription<dim> descriptor(zero_function);
         // Fill DESCRIPTOR fields
-        descriptor.primal_fe_degree = 1;
-        descriptor.dual_fe_degree = 2;
+        descriptor.primal_fe_degree = redefined_2_datafile("Numerics/FE_choice/primal_fe_degree",1);
+        descriptor.dual_fe_degree = redefined_2_datafile("Numerics/FE_choice/dual_fe_degree",2);
         descriptor.dual_functional = std::make_unique<EmitterFlux<dim>>();
-        descriptor.max_degrees_of_freedom = 20000;
+        descriptor.max_degrees_of_freedom = redefined_2_datafile("Numerics/FEM_cycles/max_degrees_of_freedom",50000);
+        descriptor.max_number_of_refinement_cycles = redefined_2_datafile("Numerics/FEM_cycles/max_number_of_refinement_cycles",0);
+        cout<< "   [Main] Data setup:" <<endl
+            << "           - primal_fe_degree                   "<<descriptor.primal_fe_degree<<endl
+            << "           - dual_fe_degree                     "<<descriptor.dual_fe_degree<<endl
+            << "           - max_degrees_of_freedom             "<<descriptor.max_degrees_of_freedom<<endl
+            << "           - max_number_of_refinement_cycles    "<<descriptor.max_number_of_refinement_cycles<<endl;
 
         // RUN FRAMEWORK
         framework_run(descriptor,grid_option);

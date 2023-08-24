@@ -8,10 +8,15 @@
 		min_refinement = 0
 
 [Numerics]
-	[./FEM_cycles]
-		Nmax = 0;
+	[./FE_choice]
+		primal_fe_degree = 1;
+		dual_fe_degree = 2;
+	[../FEM_cycles]
+		max_degrees_of_freedom = 200000;
+		max_number_of_refinement_cycles = 9;
 		global_tolerance = 1e-4;
+
 
 [Load]
 	custom_mesh_to_be_loaded = ../gmsh_grids/mesh_defalco.msh
-	grid_option = 2;
+	grid_option = 1;
