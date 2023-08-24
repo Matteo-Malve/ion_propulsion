@@ -10,13 +10,16 @@ deal_ii_setup_target(GridForge)
 add_library(ErrorController OBJECT Foundamentals/ErrorController.cpp)
 deal_ii_setup_target(ErrorController)
 
+add_library(Framework OBJECT Foundamentals/Framework.cpp)
+deal_ii_setup_target(Framework)
+
 add_library(Solver OBJECT Foundamentals/Solver.cpp)
 deal_ii_setup_target(Solver)
 
 add_library(PrimalSolver OBJECT Foundamentals/PrimalSolver.cpp)
 deal_ii_setup_target(PrimalSolver)
 
-add_executable(main main.cpp $<TARGET_OBJECTS:HelperFunctions> $<TARGET_OBJECTS:GridForge> $<TARGET_OBJECTS:ErrorController> $<TARGET_OBJECTS:Solver> $<TARGET_OBJECTS:PrimalSolver>)
+add_executable(main main.cpp $<TARGET_OBJECTS:HelperFunctions> $<TARGET_OBJECTS:GridForge> $<TARGET_OBJECTS:ErrorController> $<TARGET_OBJECTS:Framework> $<TARGET_OBJECTS:Solver> $<TARGET_OBJECTS:PrimalSolver>)
 deal_ii_setup_target(main)
 
 
