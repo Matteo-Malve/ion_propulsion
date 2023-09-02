@@ -8,14 +8,17 @@ template <int dim>
 class DualSolver : public Solver<dim>
 {
 public:
+    // Constructor
     DualSolver(
             Triangulation<dim> &                           triangulation,
             const FiniteElement<dim> &                     fe,
             const Quadrature<dim> &                        quadrature,
             const Quadrature<dim - 1> &                    face_quadrature,
             const DualFunctionalBase<dim> &dual_functional);
+    // Override solve method
     virtual void solve_problem() override;
 protected:
+    // DualFunctional class comes into play
     const SmartPointer<const DualFunctionalBase<dim>>
             dual_functional;
     virtual void assemble_rhs(Vector<double> &rhs) const override;
@@ -33,7 +36,7 @@ DualSolver<dim>::DualSolver(
         , Solver<dim>(triangulation_,
                       fe_,
                       quadrature_,
-                      face_quadrature_)  // Tolto brdy condition, spostato in solver::solve()
+                      face_quadrature_)
         , dual_functional(&dual_functional_)
 {}
 
@@ -47,7 +50,6 @@ void DualSolver<dim>::assemble_rhs(Vector<double> &rhs) const
 template <int dim>
 void DualSolver<dim>::solve_problem()
 {
-
     this->setup_system();
     this->assemble_system();
     this->apply_boundary_conditions();

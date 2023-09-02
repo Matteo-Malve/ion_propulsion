@@ -9,9 +9,8 @@ ErrorController<dim>::ErrorController(
         const FiniteElement<dim> &                     dual_fe_,
         const Quadrature<dim> &                        quadrature_,
         const Quadrature<dim - 1> &                    face_quadrature_,
-        const Function<dim> &                          rhs_function_,        //  Not sure
-        //const Function<dim> &                          bv,                  //  Not sure
-        const DualFunctionalBase<dim> &dual_functional_      //  Not sure
+        const Function<dim> &                          rhs_function_,
+        const DualFunctionalBase<dim> &dual_functional_
 )
         : Base<dim>(coarse_grid_)
         , PrimalSolver<dim>(coarse_grid_,
@@ -46,6 +45,7 @@ ErrorController<dim>::CellData::CellData(
     cell_dual_gradients.resize(ptr_quadrature->size());
 }
 
+// COPY CONSTRUCTOR CellData
 template <int dim>
 ErrorController<dim>::CellData::CellData(const CellData &cell_data)
         : fe_values(cell_data.fe_values.get_fe(),
@@ -61,6 +61,8 @@ ErrorController<dim>::CellData::CellData(const CellData &cell_data)
         , cell_dual_gradients(cell_data.cell_dual_gradients)
 
 {}
+
+// Methods definitions:
 
 template <int dim>
 void ErrorController<dim>::solve_problem()
@@ -78,38 +80,56 @@ unsigned int ErrorController<dim>::n_dofs() const
 
 template <int dim>
 void ErrorController<dim>::refine_grid(int step) {
+
+    // Prepare vector to store error values
     Vector<float> error_indicators(this->triangulation->n_active_cells());
     cout<<"   [ErrorController::refine_grid]Build vector to store errors"<<endl;
+    // Compute local errors
     estimate_error(error_indicators);
     cout<<"   [ErrorController::refine_grid]Estimate errors"<<endl;
 
+    // Compute global error estimate
     double global_error=0.0;
     global_error=global_estimate();
+
+    // Sum contribution of each cell's local error to get a global estimate
     double global_error_as_sum_of_cell_errors=0.0;
     for(size_t i=0;i<error_indicators.size();i++)
         global_error_as_sum_of_cell_errors+=error_indicators[i];
+
+    // Output the two derived global estimates
     cout<<"   [ErrorController::refine_grid]Global error = "<<global_error<<endl
         <<"   [ErrorController::refine_grid]Global error as sum of cells' errors = "<<global_error_as_sum_of_cell_errors<<endl;
 
+    // Take absolute value of each error
     for (float &error_indicator : error_indicators)
         error_indicator = std::fabs(error_indicator);
+
+    // Temporarily shut down, but would allow to make refinements with multiple criteria depending on refinement cycle
     if(step<0)
         GridRefinement::refine_and_coarsen_fixed_fraction(*this->triangulation,
                                                           error_indicators,
                                                           0.2,
                                                           0.3);
+    // Active (unique) refinement criteria
     else
         GridRefinement::refine_and_coarsen_optimize(*this->triangulation,
                                                     error_indicators,
                                                     4);
 
+    // Execute refinement
     this->triangulation->execute_coarsening_and_refinement();
     cout<<"   [ErrorController::refine_grid]Executed coarsening and refinement"<<endl;
 }
 
+
+
 template <int dim>
 void ErrorController<dim>::estimate_error(Vector<float> &error_indicators) const
-{   // INTERPOLATION
+{
+    // INTERPOLATION
+
+    // Project primal solution on dual solution FE space
     AffineConstraints<double> dual_hanging_node_constraints;
     DoFTools::make_hanging_node_constraints(DualSolver<dim>::dof_handler,
                                             dual_hanging_node_constraints);
@@ -120,8 +140,9 @@ void ErrorController<dim>::estimate_error(Vector<float> &error_indicators) const
                          PrimalSolver<dim>::solution,
                          DualSolver<dim>::dof_handler,
                          dual_hanging_node_constraints,
-                         primal_solution);                                      // uh projected dual FE space
+                         primal_solution);
 
+    // Subtract from dual solution its projection on the primal solution FE space
     AffineConstraints<double> primal_hanging_node_constraints;
     DoFTools::make_hanging_node_constraints(PrimalSolver<dim>::dof_handler,
                                             primal_hanging_node_constraints);
@@ -170,6 +191,7 @@ void ErrorController<dim>::integrate_over_cell(
     // Electrical permittivity of void:
     const double eps0 = 8.854*1e-12; // [F/m]
 
+    // Numerically approximate the integral of the scalar product between the gradients of the two
     double sum = 0;
     for (unsigned int p = 0; p < quadrature_points.size(); ++p) {
         sum +=  1.0006*eps0*1e-2*
@@ -182,6 +204,8 @@ void ErrorController<dim>::integrate_over_cell(
 template <int dim>
 double ErrorController<dim>::global_estimate() const {
     // INTERPOLATION
+
+    // Project primal solution on dual solution FE space
     AffineConstraints<double> dual_hanging_node_constraints;
     DoFTools::make_hanging_node_constraints(DualSolver<dim>::dof_handler,
                                             dual_hanging_node_constraints);
@@ -194,6 +218,7 @@ double ErrorController<dim>::global_estimate() const {
                          dual_hanging_node_constraints,
                          primal_solution);
 
+    // Subtract from dual solution its projection on the primal solution FE space
     AffineConstraints<double> primal_hanging_node_constraints;
     DoFTools::make_hanging_node_constraints(PrimalSolver<dim>::dof_handler,
                                             primal_hanging_node_constraints);
@@ -211,9 +236,8 @@ double ErrorController<dim>::global_estimate() const {
     Vector<double> temp(dual_weights.size());
     double global_error = 0.0;
     DualSolver<dim>::system_matrix.vmult(temp,dual_weights);
-
     if(temp.size()!=primal_solution.size())
-        cout<<"PROBLEMA DIMENSIONALE"<<endl;
+        cout<<"DIMENSIONALITY PROBLEM"<<endl;
     for(size_t i=0;i<primal_solution.size();++i)
         global_error+=primal_solution(i)*temp(i);
     return -global_error;

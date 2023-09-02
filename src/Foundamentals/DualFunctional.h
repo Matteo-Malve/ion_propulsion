@@ -37,24 +37,25 @@ void
 EmitterFlux<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler,
                                Vector<double> &       rhs) const
 {
-        double radius = redefined_3_datafile("Mesh/wire_radius",0.025);
-        const Point<2> mesh_center(redefined_3_datafile("Mesh/wire_center_x_coord",0.0),redefined_3_datafile("Mesh/wire_center_y_coord",0.0));
-        rhs.reinit(dof_handler.n_dofs());
-        QGauss<dim>          quadrature(dof_handler.get_fe().degree + 1);
-        QGauss<dim-1>        face_quadrature(dof_handler.get_fe().degree + 1);
+    double radius = redefined_3_datafile("Mesh/wire_radius",0.025);
+    const Point<2> mesh_center(redefined_3_datafile("Mesh/wire_center_x_coord",0.0),redefined_3_datafile("Mesh/wire_center_y_coord",0.0));
 
-        FEValues<dim>        fe_values(dof_handler.get_fe(),
-                                       quadrature,
-                                       update_gradients | update_quadrature_points |
-                                       update_JxW_values);
+    rhs.reinit(dof_handler.n_dofs());
+    QGauss<dim>          quadrature(dof_handler.get_fe().degree + 1);
+    QGauss<dim-1>        face_quadrature(dof_handler.get_fe().degree + 1);
 
-        FEFaceValues<dim>    fe_face_values(dof_handler.get_fe(),
-                                            face_quadrature,
-                                            update_gradients | update_quadrature_points |
-                                            update_JxW_values | update_normal_vectors);
+    FEValues<dim>        fe_values(dof_handler.get_fe(),
+                                   quadrature,
+                                   update_gradients | update_quadrature_points |
+                                   update_JxW_values);
 
-        const unsigned int n_face_q_points = face_quadrature.size();
-        const unsigned int dofs_per_face = dof_handler.get_fe().n_dofs_per_face();
+    FEFaceValues<dim>    fe_face_values(dof_handler.get_fe(),
+                                        face_quadrature,
+                                        update_gradients | update_quadrature_points |
+                                        update_JxW_values | update_normal_vectors);
+
+    const unsigned int n_face_q_points = face_quadrature.size();
+    const unsigned int dofs_per_face = dof_handler.get_fe().n_dofs_per_face();
 
         Vector<double>     face_rhs(dofs_per_face);
         std::vector<unsigned int> local_dof_face_indices(dofs_per_face);
@@ -83,9 +84,6 @@ EmitterFlux<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler,
                     }
                 }
         }
-
-        //AssertThrow(false, ExcEvaluationPointNotFound(evaluation_point));
-
     }
 
 #endif //GETPOT_DUALFUNCTIONAL_H

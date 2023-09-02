@@ -18,24 +18,15 @@ public:
             const Quadrature<dim - 1> &                    face_quadrature,
             const Function<dim> &                          rhs_function,
             const DualFunctionalBase<dim> &dual_functional);
-    // Bdry values to be done in solvers
+
     using active_cell_iterator = typename DoFHandler<dim>::active_cell_iterator;
     // METHODS
     virtual void solve_problem() override;
     virtual unsigned int n_dofs() const override;
     virtual void refine_grid(int step) override;
-    //virtual void output_solution() const override;                // TO BE DONE
-
 private:
-    //
-    // ... removed a lot of things
-    //
-    void estimate_error(Vector<float> &error_indicators) const;     // TO BE DONE
+    void estimate_error(Vector<float> &error_indicators) const;
     double global_estimate() const;
-    //
-    // ... removed a lot of things
-    //
-
     struct CellData
     {
         FEValues<dim>                           fe_values;
