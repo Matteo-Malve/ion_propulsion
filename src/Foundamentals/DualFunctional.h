@@ -38,7 +38,7 @@ EmitterFlux<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler,
                                Vector<double> &       rhs) const
 {
         double radius = redefined_3_datafile("Mesh/wire_radius",0.025);
-        const Point<2> mesh_center(0, 0);
+        const Point<2> mesh_center(redefined_3_datafile("Mesh/wire_center_x_coord",0.0),redefined_3_datafile("Mesh/wire_center_y_coord",0.0));
         rhs.reinit(dof_handler.n_dofs());
         QGauss<dim>          quadrature(dof_handler.get_fe().degree + 1);
         QGauss<dim-1>        face_quadrature(dof_handler.get_fe().degree + 1);

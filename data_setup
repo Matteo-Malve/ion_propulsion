@@ -1,11 +1,7 @@
 [Mesh]
-	mesh_height = 4.0
-	electrode_distance = 4.0
-	wire_radius = 0.025
-	collector_height = 1.2
-	[./Mesh_Refinement]
-		max_refinement = 20
-		min_refinement = 0
+	wire_radius = 0.025;
+	wire_center_x_coord = 0;
+	wire_center_y_coord = 0;
 
 [Numerics]
 	[./FE_choice]
@@ -19,4 +15,4 @@
 
 [Load]
 	custom_mesh_to_be_loaded = ../gmsh_grids/mesh_defalco.msh
-	grid_option = 2;
+	grid_option = 1;
