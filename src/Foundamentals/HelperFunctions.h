@@ -2,7 +2,7 @@
 #define MESH_CC_HELPERFUCTIONS_H
 
 #include "../includes&parameters_setup.h"
-
+static GetPot redefined_4_datafile("../data_setup");
 
 
 // To compute L2-norm of a tensor
@@ -32,6 +32,7 @@ public:
 // Our target function, retrieves the potential area of ionized air, basing on a threshold
 template <int dim>
 void ionization_area(const Triangulation<dim> &triangulation, const DoFHandler<dim> &dof_handler, const Vector<double> &solution);
+
 
 /* Helper function, gives errors on less recent versions of deal.ii
  * It outputs a .vtu with a field dedicated to the boundary ids.

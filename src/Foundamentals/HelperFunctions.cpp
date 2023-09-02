@@ -14,16 +14,13 @@ double L2Norm(const Tensor<1,dim> &input)
 
 template <int dim>
 void ionization_area(const Triangulation<dim> &triangulation, const DoFHandler<dim> &dof_handler, const Vector<double> &solution) {
-    //const double E_soglia = datafile("Ionization/E_soglia",4e+15);
-    const double E_soglia = 2e+3;
-
+    const double E_threshold = redefined_4_datafile("Ionization/electical_field_intensity_threshold",2e+3);
+    cout<<"electical_field_intensity_threshold "<< E_threshold << endl;
     for (const auto &cell : triangulation.active_cell_iterators()){
         Point<dim> c = cell->center();
-        //Evaluation::PointValueEvaluation<dim> postprocessor(c);
-        //double x_ = postprocessor(dof_handler, solution);
         Tensor<1,dim>  E_ = VectorTools::point_gradient(dof_handler, solution, c);
         double x = L2Norm(E_);
-        if (x > E_soglia)
+        if (x > E_threshold)
             cell->set_material_id(2);
     }    
 
@@ -32,7 +29,11 @@ void ionization_area(const Triangulation<dim> &triangulation, const DoFHandler<d
     grid_out.write_vtu(triangulation, out);
 }
 
-/* template <int dim>
+/* Helper function, gives errors on less recent versions of deal.ii
+ * It outputs a .vtu with a field dedicated to the boundary ids.
+ * It is helpful to visualize if you've correctly set the desired BCs.
+
+template <int dim>
 void check_boundary_ids(const Triangulation<dim> &triangulation) {
     cout<<"Starting check on Boundary ids..."<<endl;
     DataPostprocessors::BoundaryIds <dim> boundary_ids;
@@ -53,6 +54,9 @@ void check_boundary_ids(const Triangulation<dim> &triangulation) {
     cout<<"   Boundary ids written to boundary_ids.vtu"<<endl
         <<"   Check the file\n\n";     
 }  */
+
+
+
 
 // #######################################
 // Template initialization

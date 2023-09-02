@@ -60,22 +60,22 @@ void framework_run(const ProblemDescription<dim> &descriptor,unsigned int grid_o
             *descriptor.dual_functional);
 
 
-    // REFINEMENT LOOP
+    // REFINEMENT LOOP: ruled both by -Max Nb. of iterations- and by a -Max Nb. of DoF-
     unsigned int step = 0;
     while(step<descriptor.max_number_of_refinement_cycles && solver->n_dofs() < descriptor.max_degrees_of_freedom){
         std::cout << "[Framework]Refinement cycle: " << step << std::endl;
 
+        // Core calls
         solver->set_refinement_cycle(step);
         solver->solve_problem();
         solver->output_solution();
+        std::cout << "   [Framework]Number of degrees of freedom=" << solver->n_dofs() << std::endl;
 
-
-        std::cout << "   [Framework]Number of degrees of freedom=" << solver->n_dofs()
-                  << std::endl;
-
+        // Refine grid
         cout << "   [Framework]Prepare call to refine grid" << endl;
         solver->refine_grid(step);
 
+        // Update step
         step++;
     }
 

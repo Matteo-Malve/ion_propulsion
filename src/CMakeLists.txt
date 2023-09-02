@@ -20,7 +20,10 @@ deal_ii_setup_target(Solver)
 add_library(PrimalSolver OBJECT Foundamentals/PrimalSolver.cpp)
 deal_ii_setup_target(PrimalSolver)
 
-add_executable(main main.cpp $<TARGET_OBJECTS:HelperFunctions> $<TARGET_OBJECTS:GridForge> $<TARGET_OBJECTS:Framework> $<TARGET_OBJECTS:ErrorController> $<TARGET_OBJECTS:Solver> $<TARGET_OBJECTS:PrimalSolver>)
+add_library(DualFunctional OBJECT Foundamentals/DualFunctional.cpp)
+deal_ii_setup_target(DualFunctional)
+
+add_executable(main main.cpp $<TARGET_OBJECTS:HelperFunctions> $<TARGET_OBJECTS:GridForge> $<TARGET_OBJECTS:Framework> $<TARGET_OBJECTS:ErrorController> $<TARGET_OBJECTS:Solver> $<TARGET_OBJECTS:PrimalSolver> $<TARGET_OBJECTS:DualFunctional>)
 deal_ii_setup_target(main)
 
 

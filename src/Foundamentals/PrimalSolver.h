@@ -34,7 +34,7 @@ PrimalSolver<dim>::PrimalSolver(Triangulation<dim> &       triangulation_,
                                 const FiniteElement<dim> & fe_,
                                 const Quadrature<dim> &    quadrature_,
                                 const Quadrature<dim - 1> &face_quadrature_,
-                                const Function<dim> &      rhs_function_)  // tolto bdry values
+                                const Function<dim> &      rhs_function_)
         : Base<dim>(triangulation_)
         , Solver<dim>(triangulation_,
                       fe_,
