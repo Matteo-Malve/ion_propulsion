@@ -11,7 +11,7 @@ public:
     virtual ~Base() = default;
 
     virtual void solve_problem() = 0;
-    virtual void         refine_grid()                            = 0;
+    virtual void refine_grid(int step)                            = 0;
     virtual unsigned int n_dofs() const                           = 0;
 
     virtual void set_refinement_cycle(const unsigned int cycle);

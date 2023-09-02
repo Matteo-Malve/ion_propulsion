@@ -61,7 +61,8 @@ void framework_run(const ProblemDescription<dim> &descriptor,unsigned int grid_o
 
 
     // REFINEMENT LOOP
-    for (unsigned int step = 0; true; step++) {
+    unsigned int step = 0;
+    while(step<descriptor.max_number_of_refinement_cycles && solver->n_dofs() < descriptor.max_degrees_of_freedom){
         std::cout << "[Framework]Refinement cycle: " << step << std::endl;
 
         solver->set_refinement_cycle(step);
@@ -69,14 +70,13 @@ void framework_run(const ProblemDescription<dim> &descriptor,unsigned int grid_o
         solver->output_solution();
 
 
-        std::cout << "   [Framework]Number of degrees of freedom=" << solver->n_dofs()<< "   max allowed "<< descriptor.max_degrees_of_freedom
+        std::cout << "   [Framework]Number of degrees of freedom=" << solver->n_dofs()
                   << std::endl;
 
-        if (step<descriptor.max_number_of_refinement_cycles && solver->n_dofs() < descriptor.max_degrees_of_freedom) {
-            cout << "   [Framework]Prepare call to refine grid" << endl;
-            solver->refine_grid();
-        } else
-            break;
+        cout << "   [Framework]Prepare call to refine grid" << endl;
+        solver->refine_grid(step);
+
+        step++;
     }
 
     std::cout << std::endl;
