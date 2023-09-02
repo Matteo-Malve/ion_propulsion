@@ -3,16 +3,13 @@
 
 #include "../includes&parameters_setup.h"
 
-// To print mesh infos
-template <int dim>
-void print_mesh_info(const Triangulation<dim> &triangulation,
-                     const std::string &       filename);
+
 
 // To compute L2-norm of a tensor
 template <int dim>
 double L2Norm(const Tensor<1,dim> &input);
 
-// To be used in post-processing to compute the electical field as -gradient of the potential
+// To be used in post-processing to compute the electrical field as -gradient of the potential
 template <int dim>
 class GradientPostprocessor : public DataPostprocessorVector<dim>
 {
@@ -41,7 +38,7 @@ void ionization_area(const Triangulation<dim> &triangulation, const DoFHandler<d
  * It is helpful to visualize if you've correctly set the desired BCs.
 
 template <int dim>
-void ckeck_boundary_ids(const Triangulation<dim> &triangulation);
+void check_boundary_ids(const Triangulation<dim> &triangulation);
 
 */
 

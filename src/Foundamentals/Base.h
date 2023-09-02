@@ -7,15 +7,19 @@ static GetPot datafile("../data_setup");
 template<int dim>
 class Base{
 public:
+    // Constructor and virtual destructor
     Base(Triangulation<dim> &coarse_grid);
     virtual ~Base() = default;
 
-    virtual void solve_problem() = 0;
+    // Pure virtual main methods
+    virtual void solve_problem()                                  = 0;
     virtual void refine_grid(int step)                            = 0;
     virtual unsigned int n_dofs() const                           = 0;
 
+    // Setter
     virtual void set_refinement_cycle(const unsigned int cycle);
-    // Tolto Postprocess
+
+    // Virtual method for output to be overwritten by PrimalSolver
     virtual void output_solution(){
         cout<<"   [Base] I don't print anything but I work"<<endl;
     }
@@ -33,7 +37,7 @@ Base<dim>::Base(Triangulation<dim> &coarse_grid_)
         , refinement_cycle(numbers::invalid_unsigned_int)
 {}
 
-
+// Setter
 template <int dim>
 void Base<dim>::set_refinement_cycle(const unsigned int cycle)
 {
