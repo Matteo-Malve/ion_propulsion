@@ -3,16 +3,16 @@
 
 #include "../includes&parameters_setup.h"
 
-// Funzione per stampare a schermo alcune caratteristiche della griglia
+// To print mesh infos
 template <int dim>
 void print_mesh_info(const Triangulation<dim> &triangulation,
                      const std::string &       filename);
 
-// Funzione per calcolo norma di tensore
+// To compute L2-norm of a tensor
 template <int dim>
 double L2Norm(const Tensor<1,dim> &input);
 
-// Funzione usata in post-processing per estrarre il campo elettrico come -gradiente del potenziale
+// To be used in post-processing to compute the electical field as -gradient of the potential
 template <int dim>
 class GradientPostprocessor : public DataPostprocessorVector<dim>
 {
@@ -32,11 +32,17 @@ public:
     }
 };
 
+// Our target function, retrieves the potential area of ionized air, basing on a threshold
 template <int dim>
 void ionization_area(const Triangulation<dim> &triangulation, const DoFHandler<dim> &dof_handler, const Vector<double> &solution);
 
-/*
+/* Helper function, gives errors on less recent versions of deal.ii
+ * It outputs a .vtu with a field dedicated to the boundary ids.
+ * It is helpful to visualize if you've correctly set the desired BCs.
+
 template <int dim>
-void ckeck_boundary_ids(const Triangulation<dim> &triangulation);*/
+void ckeck_boundary_ids(const Triangulation<dim> &triangulation);
+
+*/
 
 #endif //MESH_CC_HELPERFUCTIONS_H

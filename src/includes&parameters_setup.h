@@ -15,7 +15,7 @@
 
 #include <deal.II/grid/tria.h>
 #include <deal.II/grid/grid_generator.h>
-#include <deal.II/grid/manifold_lib.h> // To use manifolds
+#include <deal.II/grid/manifold_lib.h>
 #include <deal.II/grid/grid_in.h>
 #include <deal.II/grid/grid_out.h>
 #include <deal.II/grid/grid_refinement.h>
@@ -43,12 +43,11 @@ using namespace dealii;
 using std::cout;
 using std::endl;
 
-#include <sys/stat.h>   // stat
-#include <stdbool.h>    // bool type
+#include <sys/stat.h>
+#include <stdbool.h>
 
 #include <memory>
 #include "GetPot"
-//static std::unique_ptr<GetPot> make_unique(datafile("../data_setup"));
 
 #include <cmath>
 

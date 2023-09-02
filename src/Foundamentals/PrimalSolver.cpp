@@ -33,21 +33,7 @@ void PrimalSolver<dim>::output_solution()
         std::cout << "   [PrimalSolver]Potential at (" << evaluation_point[0] << "," << evaluation_point[1] << "): "
                   << std::scientific << x_ << std::defaultfloat << std::endl;
 
-        /* Print sample E
-        Tensor<1,dim>  E_ = VectorTools::point_gradient(this->dof_handler, this->solution, evaluation_point);
-        double x = L2Norm(E_);
-        std::cout << "   [PrimalSolver]Field magnitude at (" << evaluation_point[0] << "," << evaluation_point[1] << "): " << x << std::endl;
-        std::cout<<"c0\n";
-        std::cout<<"Refinement cycle is = ";
-        values(this->refinement_cycle+1) = x;
-        std::cout<<"c1\n";
-        // Se la condizione è verificata, si considera si sia raggiunta convergenza
-        if ( std::fabs(values(this->refinement_cycle) - x) <= conv_tol*std::fabs(x))
-            this->refinement_cycle = Nmax;
-        std::cout<<"c2\n";
-         */
-
-        // A convergenza raggiunta, stampa a schermo i risultati
+        // Upon reaching of convergence, print results
         if (this->refinement_cycle == Nmax) {
 
             Point <dim> sample(wire_radius, 0.);
