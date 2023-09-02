@@ -19,4 +19,4 @@
 
 [Load]
 	custom_mesh_to_be_loaded = ../gmsh_grids/mesh_defalco.msh
-	grid_option = 1;
+	grid_option = 2;
