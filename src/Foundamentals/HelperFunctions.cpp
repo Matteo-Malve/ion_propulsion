@@ -14,11 +14,8 @@ double L2Norm(const Tensor<1,dim> &input)
 
 template <int dim>
 void ionization_area(const Triangulation<dim> &triangulation, const DoFHandler<dim> &dof_handler, const Vector<double> &solution) {
-    // Retrieve electical field intensity threshold from datafile
     const double E_threshold = redefined_4_datafile("Ionization/electical_field_intensity_threshold",2e+3);
     cout<<"electical_field_intensity_threshold "<< E_threshold << endl;
-
-    // Cycle over cells and determine which ones are in the ionization area
     for (const auto &cell : triangulation.active_cell_iterators()){
         Point<dim> c = cell->center();
         Tensor<1,dim>  E_ = VectorTools::point_gradient(dof_handler, solution, c);
@@ -27,7 +24,6 @@ void ionization_area(const Triangulation<dim> &triangulation, const DoFHandler<d
             cell->set_material_id(2);
     }    
 
-    // Write results in .vtu format
     std::ofstream out("ionization_area.vtu");
     GridOut       grid_out;
     grid_out.write_vtu(triangulation, out);
