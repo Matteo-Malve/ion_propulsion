@@ -8,7 +8,7 @@ void Solver<dim>::apply_boundary_conditions() {
 
     VectorTools::interpolate_boundary_values(dof_handler,
                                              1, // Boundary corrispondente all'emettitore, definito sopra
-                                             Functions::ConstantFunction<dim>(2.e+4), // Valore di potenziale all'emettitore (20 kV)
+                                             Functions::ConstantFunction<dim>(0), // Valore di potenziale all'emettitore (20 kV)
                                              emitter_boundary_values);
 
     VectorTools::interpolate_boundary_values(dof_handler,
@@ -87,12 +87,6 @@ void Solver<dim>::assemble_system()
                             (fe_values.shape_grad(i, q_index) * // grad phi_i(x_q)
                              fe_values.shape_grad(j, q_index) * // grad phi_j(x_q)
                              fe_values.JxW(q_index));           // dx
-            /*
-            for (const unsigned int i : fe_values.dof_indices())
-                cell_rhs(i) += (fe_values.shape_value(i, q_index) * // phi_i(x_q)
-                                1. *                                // f(x_q)
-                                fe_values.JxW(q_index));            // dx
-            */
         }
         cell->get_dof_indices(local_dof_indices);
 

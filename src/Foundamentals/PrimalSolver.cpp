@@ -67,23 +67,36 @@ void PrimalSolver<dim>::solve_problem()
 
 }
 
+auto evaluate_grad_Rg = [](double x, double y) {
+    double r = sqrt(x * x + y * y);
+    Tensor<1,2> grad_Rg;
+    double Ve = 20000;
+    double Re = 250e-6;
+    double a = 100;
+    double dfdr = - Ve / ( 1 + ( (a*(r - Re))*(a*(r - Re)) )*( (a*(r - Re))*(a*(r - Re)) ) ) *  a*a*2*(r-Re) * x / r;                 // dr\dx
+    grad_Rg[0] = dfdr * x / r;
+    grad_Rg[1] = dfdr * y / r;
+    return grad_Rg;
+};
+
 template <int dim>
-void PrimalSolver<dim>::assemble_rhs(Vector<double> &rhs) const
-{
-    FEValues<dim> fe_values(*this->fe,
-                            *this->quadrature,
-                            update_values | update_quadrature_points |
-                            update_JxW_values);
+void PrimalSolver<dim>::assemble_rhs(Vector<double> &rhs) const {
+
+    // f(v)
+
+    FEValues <dim> fe_values(*this->fe,
+                             *this->quadrature,
+                             update_values | update_gradients | update_quadrature_points |
+                             update_JxW_values);
 
     const unsigned int dofs_per_cell = this->fe->n_dofs_per_cell();
-    const unsigned int n_q_points    = this->quadrature->size();
+    const unsigned int n_q_points = this->quadrature->size();
 
-    Vector<double>                       cell_rhs(dofs_per_cell);
-    std::vector<double>                  rhs_values(n_q_points);
-    std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
+    Vector<double> cell_rhs(dofs_per_cell);
+    std::vector<double> rhs_values(n_q_points);
+    std::vector <types::global_dof_index> local_dof_indices(dofs_per_cell);
 
-    for (const auto &cell : this->dof_handler.active_cell_iterators())
-    {
+    for (const auto &cell: this->dof_handler.active_cell_iterators()) {
         cell_rhs = 0;
 
         fe_values.reinit(cell);
@@ -101,9 +114,48 @@ void PrimalSolver<dim>::assemble_rhs(Vector<double> &rhs) const
         for (unsigned int i = 0; i < dofs_per_cell; ++i)
             rhs(local_dof_indices[i]) += cell_rhs(i);
     }
+
+    // -----------------------------
+
+    // -a(Rg,v)
+
+    QGauss<dim>          Rg_quadrature(4);
+    FEValues<dim>        Rg_fe_values(*this->fe,
+                                   Rg_quadrature,
+                                   update_values | update_gradients | update_quadrature_points |
+                                   update_JxW_values);
+
+    const unsigned int Rg_n_q_points = Rg_quadrature.size();
+
+    for (const auto &cell: this->dof_handler.active_cell_iterators()) {
+        cell_rhs = 0;
+        Rg_fe_values.reinit(cell);
+        /*auto evaluate_Rg = [](double r) {
+            double Ve = 20000;
+            double Re = 250e-6;
+            double a = 100;
+            return Ve / (1 + (a*(r - Re))*(a*(r - Re)) );
+        };*/
+        for (unsigned int q_point = 0; q_point < Rg_n_q_points; ++q_point){
+
+            // evaluate evaluate_grad_Rg
+            auto & quad_point_coords = Rg_fe_values.get_quadrature_points()[q_point];
+            auto grad_Rg_xq = evaluate_grad_Rg(quad_point_coords[0],quad_point_coords[1]);
+            // assemble a(Rg,v)
+            for (unsigned int i = 0; i < dofs_per_cell; ++i)
+                cell_rhs(i) += (Rg_fe_values.shape_grad(i, q_point) *      // grad phi_i(x_q)
+                                grad_Rg_xq *                            // Rg(x_q)
+                                Rg_fe_values.JxW(q_point));                // dx
+        }
+
+        cell->get_dof_indices(local_dof_indices);
+        for (unsigned int i = 0; i < dofs_per_cell; ++i)
+            rhs(local_dof_indices[i]) += - cell_rhs(i);
+    }
+
+
+
 }
-
-
 
 
 // #######################################
