@@ -71,7 +71,7 @@ auto evaluate_grad_Rg = [](double x, double y) {
     double r = sqrt(x * x + y * y);
     Tensor<1,2> grad_Rg;
     double Ve = 20000;
-    double Re = 250e-6;
+    double Re = 0.025;
     double a = 100;
     double dfdr = - Ve / ( 1 + ( (a*(r - Re))*(a*(r - Re)) )*( (a*(r - Re))*(a*(r - Re)) ) ) *  a*a*2*(r-Re) * x / r;                 // dr\dx
     grad_Rg[0] = dfdr * x / r;
@@ -144,7 +144,7 @@ void PrimalSolver<dim>::assemble_rhs(Vector<double> &rhs) const {
             // assemble a(Rg,v)
             for (unsigned int i = 0; i < dofs_per_cell; ++i)
                 cell_rhs(i) += (Rg_fe_values.shape_grad(i, q_point) *      // grad phi_i(x_q)
-                                grad_Rg_xq *                            // Rg(x_q)
+                                grad_Rg_xq *                               // grad_Rg(x_q)
                                 Rg_fe_values.JxW(q_point));                // dx
         }
 
