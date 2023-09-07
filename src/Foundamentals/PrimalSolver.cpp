@@ -81,7 +81,7 @@ auto evaluate_grad_Rg = [](double x, double y) {
 
 template <int dim>
 void PrimalSolver<dim>::assemble_rhs(Vector<double> &rhs) const {
-
+    const double eps0 = 8.854*1e-12; // [F/m]
     // f(v)
 
     FEValues <dim> fe_values(*this->fe,
@@ -104,9 +104,10 @@ void PrimalSolver<dim>::assemble_rhs(Vector<double> &rhs) const {
         rhs_function->value_list(fe_values.get_quadrature_points(),
                                  rhs_values);
 
+
         for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
             for (unsigned int i = 0; i < dofs_per_cell; ++i)
-                cell_rhs(i) += (fe_values.shape_value(i, q_point) * // phi_i(x_q)
+                cell_rhs(i) +=(fe_values.shape_value(i, q_point) * // phi_i(x_q)
                                 rhs_values[q_point] *               // f((x_q)
                                 fe_values.JxW(q_point));            // dx
 
@@ -143,7 +144,8 @@ void PrimalSolver<dim>::assemble_rhs(Vector<double> &rhs) const {
             auto grad_Rg_xq = evaluate_grad_Rg(quad_point_coords[0],quad_point_coords[1]);
             // assemble a(Rg,v)
             for (unsigned int i = 0; i < dofs_per_cell; ++i)
-                cell_rhs(i) += (Rg_fe_values.shape_grad(i, q_point) *      // grad phi_i(x_q)
+                cell_rhs(i) += 1.0006*eps0*1e-2*
+                                (Rg_fe_values.shape_grad(i, q_point) *      // grad phi_i(x_q)
                                 grad_Rg_xq *                               // grad_Rg(x_q)
                                 Rg_fe_values.JxW(q_point));                // dx
         }
