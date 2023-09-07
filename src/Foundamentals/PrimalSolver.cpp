@@ -73,7 +73,7 @@ auto evaluate_grad_Rg = [](double x, double y) {
     double Ve = 20000;
     double Re = 0.025;
     double a = 100;
-    double dfdr = - Ve / ( 1 + ( (a*(r - Re))*(a*(r - Re)) )*( (a*(r - Re))*(a*(r - Re)) ) ) *  a*a*2*(r-Re) * x / r;                 // dr\dx
+    double dfdr = - Ve / ( (1 +  (a*(r - Re))*(a*(r - Re)) )*(1+ (a*(r - Re))*(a*(r - Re)) ) ) *  a*a*2*(r-Re) * x / r;                 // dr\dx
     grad_Rg[0] = dfdr * x / r;
     grad_Rg[1] = dfdr * y / r;
     return grad_Rg;
