@@ -25,12 +25,14 @@ protected:
     const SmartPointer<const Quadrature<dim - 1>> face_quadrature;
     DoFHandler<dim>                               dof_handler;
     Vector<double>                                solution;
+    //Vector<double>       Rg_vector;
    // boundary values BY us
 
     virtual void assemble_rhs(Vector<double> &rhs) const = 0;
     SparsityPattern      sparsity_pattern;
     SparseMatrix<double> system_matrix;
     Vector<double>       system_rhs;
+
 
 
     void apply_boundary_conditions();       // OURS

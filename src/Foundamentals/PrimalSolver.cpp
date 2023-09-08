@@ -3,8 +3,7 @@
 #include "HelperFunctions.h"
 
 template <int dim>
-void PrimalSolver<dim>::output_solution()
-{
+void PrimalSolver<dim>::output_solution(){
     if(grid_option==1) {
         /*
         DataOut<dim> data_out;
@@ -56,6 +55,8 @@ void PrimalSolver<dim>::output_solution()
     data_out.write_vtu(output);
 }
 
+
+
 template <int dim>
 void PrimalSolver<dim>::solve_problem()
 {
@@ -66,8 +67,21 @@ void PrimalSolver<dim>::solve_problem()
     this->solve_system();
 
     // Retrieve lifting
-    // ...
+    /*
+    VectorTools::interpolate(dof_handler,
+                             evaluate_Rg_function,
+                             this->Rg_vector);*/
+    // this->solution += this->Rg_vector
 }
+
+auto evaluate_Rg = [](double x, double y) {
+    double r = sqrt(x * x + y * y);
+    double Ve = 20000;
+    double Re = 250e-6;
+    double a = 100;
+    double Rg = Ve / (1 + (a*(r - Re))*(a*(r - Re)) );
+    return Rg;
+};
 
 auto evaluate_grad_Rg = [](double x, double y) {
     double r = sqrt(x * x + y * y);
@@ -75,7 +89,7 @@ auto evaluate_grad_Rg = [](double x, double y) {
     double Ve = 20000;
     double Re = 0.025;
     double a = 100;
-    double dfdr = - Ve / ( (1 +  (a*(r - Re))*(a*(r - Re)) )*(1+ (a*(r - Re))*(a*(r - Re)) ) ) *  a*a*2*(r-Re) * x / r;                 // dr\dx
+    double dfdr = - Ve / ( (1 +  (a*(r - Re))*(a*(r - Re)) )*(1+ (a*(r - Re))*(a*(r - Re)) ) ) *  a*a*2*(r-Re) * x / r;
     grad_Rg[0] = dfdr * x / r;
     grad_Rg[1] = dfdr * y / r;
     return grad_Rg;
@@ -133,14 +147,9 @@ void PrimalSolver<dim>::assemble_rhs(Vector<double> &rhs) const {
     for (const auto &cell: this->dof_handler.active_cell_iterators()) {
         cell_rhs = 0;
         Rg_fe_values.reinit(cell);
-        /*auto evaluate_Rg = [](double r) {
-            double Ve = 20000;
-            double Re = 250e-6;
-            double a = 100;
-            return Ve / (1 + (a*(r - Re))*(a*(r - Re)) );
-        };*/
-        for (unsigned int q_point = 0; q_point < Rg_n_q_points; ++q_point){
 
+        // A_loc(Rg,v)
+        for (unsigned int q_point = 0; q_point < Rg_n_q_points; ++q_point){
             // evaluate evaluate_grad_Rg
             auto & quad_point_coords = Rg_fe_values.get_quadrature_points()[q_point];
             auto grad_Rg_xq = evaluate_grad_Rg(quad_point_coords[0],quad_point_coords[1]);
@@ -157,8 +166,41 @@ void PrimalSolver<dim>::assemble_rhs(Vector<double> &rhs) const {
             rhs(local_dof_indices[i]) += - cell_rhs(i);
     }
 
+    // Prepare Rg_vector for later use
+/*
+    Vector<double> cell_Rg_vector(9);
+
+    for (const auto &cell: this->dof_handler.active_cell_iterators()) {
+        cell_Rg_vector = 0;
 
 
+
+            auto & quad_point_coords = Rg_fe_values.get_quadrature_points()[q_point];
+            auto cell_Rg_vector[q_point] = evaluate_Rg(quad_point_coords[0],quad_point_coords[1]);
+
+        cell->get_dof_indices(local_dof_index);
+            this->Rg_vector(local_dof_index) =
+
+
+
+    }
+
+    for (unsigned int q_point = 0; q_point < Rg_n_q_points; ++q_point){
+        // evaluate evaluate_grad_Rg
+        auto & quad_point_coords = fe_values.get_quadrature_points()[q_point];
+        auto Rg_xq = evaluate_Rg(quad_point_coords[0],quad_point_coords[1]);
+        // assemble a(Rg,v)
+        for (unsigned int i = 0; i < dofs_per_cell; ++i)
+            cell_rhs(i) += (Rg_fe_values.shape_value(i, q_point) *      // grad phi_i(x_q)
+                            Rg_xq *                               // grad_Rg(x_q)
+                            Rg_fe_values.JxW(q_point));                // dx
+    }
+
+    cell->get_dof_indices(local_dof_indices);
+    for (unsigned int i = 0; i < dofs_per_cell; ++i)
+        rhs(local_dof_indices[i]) += - cell_rhs(i);
+}
+*/
 }
 
 
