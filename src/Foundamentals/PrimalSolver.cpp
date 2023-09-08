@@ -65,6 +65,8 @@ void PrimalSolver<dim>::solve_problem()
     this->apply_boundary_conditions();
     this->solve_system();
 
+    // Retrieve lifting
+    // ...
 }
 
 auto evaluate_grad_Rg = [](double x, double y) {

@@ -101,9 +101,6 @@ void Solver<dim>::assemble_system()
     // Assemble rhs
     this->assemble_rhs(this->system_rhs);
     cout<<"   [Solver::assemble_system]Assembled the rhs"<<endl;
-
-    // IMPOSE BOUNDARY VALUES
-    //apply_boundary_conditions();
 }
 
 
