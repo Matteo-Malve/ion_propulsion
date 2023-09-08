@@ -1,6 +1,7 @@
 #include "PrimalSolver.h"
 #include "../Evaluation.h"
 #include "HelperFunctions.h"
+#include "Evaluate_Rg.h"
 
 template <int dim>
 void PrimalSolver<dim>::output_solution(){
@@ -67,13 +68,18 @@ void PrimalSolver<dim>::solve_problem()
     this->solve_system();
 
     // Retrieve lifting
-    /*
-    VectorTools::interpolate(dof_handler,
-                             evaluate_Rg_function,
-                             this->Rg_vector);*/
-    // this->solution += this->Rg_vector
+    Vector<double> Rg_vector(this->solution.size());
+    VectorTools::interpolate(this->dof_handler,
+                             Evaluate_Rg<dim>(),
+                             Rg_vector);
+    for(int i =0; i<20;i++)
+        cout<<this->solution(i)<<endl;
+    cout<<"-------"<<endl;
+    this->solution += Rg_vector;
+    for(int i =0; i<20;i++)
+        cout<<this->solution(i)<<endl;
 }
-
+/*
 auto evaluate_Rg = [](double x, double y) {
     double r = sqrt(x * x + y * y);
     double Ve = 20000;
@@ -81,7 +87,7 @@ auto evaluate_Rg = [](double x, double y) {
     double a = 100;
     double Rg = Ve / (1 + (a*(r - Re))*(a*(r - Re)) );
     return Rg;
-};
+};*/
 
 auto evaluate_grad_Rg = [](double x, double y) {
     double r = sqrt(x * x + y * y);

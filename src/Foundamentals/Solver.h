@@ -25,7 +25,6 @@ protected:
     const SmartPointer<const Quadrature<dim - 1>> face_quadrature;
     DoFHandler<dim>                               dof_handler;
     Vector<double>                                solution;
-    //Vector<double>       Rg_vector;
    // boundary values BY us
 
     virtual void assemble_rhs(Vector<double> &rhs) const = 0;
