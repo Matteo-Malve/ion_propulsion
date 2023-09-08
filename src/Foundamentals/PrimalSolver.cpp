@@ -89,7 +89,7 @@ auto evaluate_grad_Rg = [](double x, double y) {
     Tensor<1,2> grad_Rg;
     double Ve = 20000;
     double Re = 250e-6;
-    double a = 1000;
+    double a = 100000;
     double dfdr = - Ve / ( (1 +  (a*(r - Re))*(a*(r - Re)) )*(1+ (a*(r - Re))*(a*(r - Re)) ) ) *  a*a*2*(r-Re);
     grad_Rg[0] = dfdr * x / r;
     grad_Rg[1] = dfdr * y / r;

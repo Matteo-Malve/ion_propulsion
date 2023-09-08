@@ -16,7 +16,7 @@ public:
         double r = sqrt(x * x + y * y);
         double Ve = 20000;
         double Re = 250e-6;
-        double a = 1000;
+        double a = 100000;
         double Rg = Ve / (1 + (a*(r - Re))*(a*(r - Re)) );
         return Rg;
     }

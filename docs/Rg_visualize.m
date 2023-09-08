@@ -29,19 +29,19 @@ close all;
 clear;
 clc;
 
-x=linspace(-200,20,1000);
-y=linspace(0,10, 100);
+x=linspace(-2,0.20,1000);
+y=linspace(0,0.10, 100);
 
 [xx,yy]=meshgrid(x,y);
 rr=sqrt(xx.^2+yy.^2);
 
 Ve=20000;
 Re=250e-6;
-a=1000;
+a=100000;
 zz= Ve ./ (1+a^2.*(rr-Re).^2);
 
 plot=surf(xx,yy,zz);
-axis([-200,20,0,10]);
+axis([-2,0.20,0,0.10]);
 
 %% Grad exact
 clc
