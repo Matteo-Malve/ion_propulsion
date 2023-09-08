@@ -45,6 +45,7 @@ template <int dim>
 void DualSolver<dim>::assemble_rhs(Vector<double> &rhs) const
 {
     dual_functional->assemble_rhs(this->dof_handler, rhs);
+
 }
 
 template <int dim>
@@ -53,7 +54,20 @@ void DualSolver<dim>::solve_problem()
     this->setup_system();
     this->assemble_system();
     this->apply_boundary_conditions();
+
+    //for(int i=0;i<100;i++)
+    //    cout<<this->system_rhs(i)<<endl;
+
+    cout<<"-----"<<endl;
+
+
+
+    //for(int i=0;i<100;i++)
+    //    cout<<this->system_rhs(i)<<endl;
+
     this->solve_system();
+
+
 
 }
 

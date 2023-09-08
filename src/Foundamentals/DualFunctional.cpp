@@ -5,7 +5,7 @@ void
 EmitterFlux<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler,
                                Vector<double> &       rhs) const
 {
-    double radius = redefined_3_datafile("Mesh/wire_radius",0.025);
+    double radius = redefined_3_datafile("Mesh/wire_radius",250e-6);
     const Point<2> mesh_center(redefined_3_datafile("Mesh/wire_center_x_coord",0.0),redefined_3_datafile("Mesh/wire_center_y_coord",0.0));
 
     rhs.reinit(dof_handler.n_dofs());
@@ -42,7 +42,9 @@ EmitterFlux<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler,
                         for (unsigned int i = 0; i < dofs_per_face; ++i) {
                             for (unsigned int k = 0; k < dim; ++k)
                                 face_rhs[i] += fe_face_values.shape_grad(i, q)[k] * (-n[k]);
+
                             face_rhs[i] *= fe_face_values.JxW(q);
+
                         }
                     }
 
@@ -52,6 +54,7 @@ EmitterFlux<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler,
                 }
             }
     }
+
 }
 
 
