@@ -25,7 +25,7 @@ void PrimalSolver<dim>::output_solution(){
         }
         values.reinit(Nmax + 2);
 
-        Point <dim> evaluation_point(1., 0.2);
+        Point <dim> evaluation_point(0.01, 0.002);
 
         // Print sample V
         Evaluation::PointValueEvaluation<dim> postprocessor(evaluation_point);
@@ -62,22 +62,17 @@ template <int dim>
 void PrimalSolver<dim>::solve_problem()
 {
     this->setup_system();
-    this->assemble_system();
+    this->assemble_system(); // Assemble a(u0,v) f(v) -a(Rg,v)
 
-    this->apply_boundary_conditions();
-    this->solve_system();
+    this->apply_boundary_conditions(); // Applica a u0 BC Neumann: sotto, sx e sopra
+    this->solve_system();   // Solve     a(u0,v) = f(v) -a(Rg,v)
 
     // Retrieve lifting
     Vector<double> Rg_vector(this->solution.size());
     VectorTools::interpolate(this->dof_handler,
                              Evaluate_Rg<dim>(),
                              Rg_vector);
-    for(int i =0; i<20;i++)
-        cout<<this->solution(i)<<endl;
-    cout<<"-------"<<endl;
-    this->solution += Rg_vector;
-    for(int i =0; i<20;i++)
-        cout<<this->solution(i)<<endl;
+    this->solution += Rg_vector;                 // uh = u0 + Rg     Si perdono le BC di Neumann essendo Rg radiale
 }
 /*
 auto evaluate_Rg = [](double x, double y) {
@@ -93,9 +88,9 @@ auto evaluate_grad_Rg = [](double x, double y) {
     double r = sqrt(x * x + y * y);
     Tensor<1,2> grad_Rg;
     double Ve = 20000;
-    double Re = 0.025;
-    double a = 100;
-    double dfdr = - Ve / ( (1 +  (a*(r - Re))*(a*(r - Re)) )*(1+ (a*(r - Re))*(a*(r - Re)) ) ) *  a*a*2*(r-Re) * x / r;
+    double Re = 250e-6;
+    double a = 1000;
+    double dfdr = - Ve / ( (1 +  (a*(r - Re))*(a*(r - Re)) )*(1+ (a*(r - Re))*(a*(r - Re)) ) ) *  a*a*2*(r-Re);
     grad_Rg[0] = dfdr * x / r;
     grad_Rg[1] = dfdr * y / r;
     return grad_Rg;
@@ -161,7 +156,7 @@ void PrimalSolver<dim>::assemble_rhs(Vector<double> &rhs) const {
             auto grad_Rg_xq = evaluate_grad_Rg(quad_point_coords[0],quad_point_coords[1]);
             // assemble a(Rg,v)
             for (unsigned int i = 0; i < dofs_per_cell; ++i)
-                cell_rhs(i) += 1.0006*eps0*1e-2*
+                cell_rhs(i) += 1.0006*eps0*
                                 (Rg_fe_values.shape_grad(i, q_point) *      // grad phi_i(x_q)
                                 grad_Rg_xq *                               // grad_Rg(x_q)
                                 Rg_fe_values.JxW(q_point));                // dx

@@ -83,7 +83,7 @@ void Solver<dim>::assemble_system()
             for (const unsigned int i : fe_values.dof_indices())
                 for (const unsigned int j : fe_values.dof_indices())
                     cell_matrix(i, j) +=
-                            1.0006*eps0*1e-2*
+                            1.0006*eps0*
                             (fe_values.shape_grad(i, q_index) * // grad phi_i(x_q)
                              fe_values.shape_grad(j, q_index) * // grad phi_j(x_q)
                              fe_values.JxW(q_index));           // dx

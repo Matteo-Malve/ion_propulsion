@@ -37,8 +37,8 @@ rr=sqrt(xx.^2+yy.^2);
 
 Ve=20000;
 Re=250e-6;
-a=100;
-zz= Ve ./ (1+a.*(rr-Re).^2);
+a=1000;
+zz= Ve ./ (1+a^2.*(rr-Re).^2);
 
 plot=surf(xx,yy,zz);
 axis([-200,20,0,10]);

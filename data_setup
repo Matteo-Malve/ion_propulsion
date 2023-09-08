@@ -1,5 +1,5 @@
 [Mesh]
-	wire_radius = 0.025;
+	wire_radius = 250e-6;
 	wire_center_x_coord = 0;
 	wire_center_y_coord = 0;
 
@@ -14,7 +14,7 @@
 
 
 [Load]
-	custom_mesh_to_be_loaded = ../gmsh_grids/mesh_defalco.msh
+	custom_mesh_to_be_loaded = ../gmsh_grids/horizontal_strip.msh
 	grid_option = 1;
 
 [Ionization]
