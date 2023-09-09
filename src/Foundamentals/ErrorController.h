@@ -24,6 +24,7 @@ public:
     virtual void solve_problem() override;
     virtual unsigned int n_dofs() const override;
     virtual void refine_grid(int step) override;
+    virtual void output_solution() override;
 private:
     void estimate_error(Vector<float> &error_indicators) const;
     double global_estimate() const;
@@ -50,5 +51,12 @@ private:
             CellData &                  cell_data,
             Vector<float> &             error_indicators) const;
 };
+
+template <int dim>
+void ErrorController<dim>::output_solution()
+{
+    this->PrimalSolver<dim>::output_solution();
+    this->DualSolver<dim>::output_solution();
+}
 
 #endif //GETPOT_ERRORCONTROLLER_H
