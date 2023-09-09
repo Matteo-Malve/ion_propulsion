@@ -101,6 +101,7 @@ void Solver<dim>::assemble_system()
     // Assemble rhs
     this->assemble_rhs(this->system_rhs);
 
+
     cout<<"   [Solver::assemble_system]Assembled the rhs"<<endl;
 }
 

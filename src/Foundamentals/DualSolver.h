@@ -53,11 +53,19 @@ void DualSolver<dim>::solve_problem()
 {
     this->setup_system();
     this->assemble_system();
+
+    cout<<"-----"<<endl;
+    cout<<"Primi 100 valori di rhs dual problem PRIMA apply_boundary_conditions()"<<endl;
+    for(int i=0;i<100;i++)
+        cout<<this->system_rhs(i)<<endl;
+    cout<<"-----"<<endl;
+
     this->apply_boundary_conditions();
 
-    //for(int i=0;i<100;i++)
-    //    cout<<this->system_rhs(i)<<endl;
-
+    cout<<"-----"<<endl;
+    cout<<"Primi 100 valori di rhs dual problem DOPO apply_boundary_conditions()"<<endl;
+    for(int i=0;i<100;i++)
+        cout<<this->system_rhs(i)<<endl;
     cout<<"-----"<<endl;
 
 

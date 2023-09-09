@@ -33,15 +33,17 @@ EmitterFlux<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler,
         for (const auto &face : cell->face_iterators())
             if (face->at_boundary()){
                 const Point<dim> & face_center = face->center();
-                if (mesh_center.distance(face_center)<1.00001*radius) {
+                if (mesh_center.distance(face_center)<1.10001*radius) {
                     fe_face_values.reinit(cell, face);
                     face_rhs = 0;
 
                     for (unsigned int q = 0; q < n_face_q_points; ++q) {
                         auto n = fe_face_values.normal_vector(q);
                         for (unsigned int i = 0; i < dofs_per_face; ++i) {
-                            for (unsigned int k = 0; k < dim; ++k)
+                            for (unsigned int k = 0; k < dim; ++k) {
                                 face_rhs[i] += fe_face_values.shape_grad(i, q)[k] * (-n[k]);
+
+                            }
 
                             face_rhs[i] *= fe_face_values.JxW(q);
 
@@ -49,8 +51,10 @@ EmitterFlux<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler,
                     }
 
                     face->get_dof_indices(local_dof_face_indices);
-                    for (unsigned int i = 0; i < dofs_per_face; ++i)
+                    for (unsigned int i = 0; i < dofs_per_face; ++i) {
                         rhs(local_dof_face_indices[i]) += face_rhs[i];
+
+                    }
                 }
             }
     }
