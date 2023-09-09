@@ -1,5 +1,5 @@
 #include "ErrorController.h"
-
+#include "Evaluate_Rg.h"
 
 // CONSTRUCTOR
 template <int dim>
@@ -137,7 +137,7 @@ void ErrorController<dim>::estimate_error(Vector<float> &error_indicators) const
     Vector<double> primal_solution(DualSolver<dim>::dof_handler.n_dofs());
     cout<<"   Interpolated primal solution DOF "<<primal_solution.size()<< endl;
     FETools::interpolate(PrimalSolver<dim>::dof_handler,
-                         PrimalSolver<dim>::solution,
+                         PrimalSolver<dim>::uh0,
                          DualSolver<dim>::dof_handler,
                          dual_hanging_node_constraints,
                          primal_solution);
@@ -162,10 +162,19 @@ void ErrorController<dim>::estimate_error(Vector<float> &error_indicators) const
                        this->PrimalSolver<dim>::rhs_function);  // Empty
     cout<<"   [ErrorController::estimate_error]Instantiated CellData"<<endl;
 
+    // Compute Rg_plus_uh0hat
+    Vector<double> Rg_plus_uh0hat(primal_solution.size());
+    Vector<double> Rg_vector(primal_solution.size());
+    VectorTools::interpolate(DualSolver<dim>::dof_handler,
+                             Evaluate_Rg<dim>(),
+                             Rg_vector);
+    for(size_t i=0;i<primal_solution.size();i++)
+        Rg_plus_uh0hat(i) = Rg_vector(i) + primal_solution(i);
+
     // INTEGRATE OVER CELLS
     for (const auto &cell : DualSolver<dim>::dof_handler.active_cell_iterators()){
         integrate_over_cell(cell,
-                            primal_solution,
+                            Rg_plus_uh0hat,
                             dual_weights,
                             cell_data,
                             error_indicators);
