@@ -213,7 +213,7 @@ double ErrorController<dim>::global_estimate() const {
     Vector<double> primal_solution(DualSolver<dim>::dof_handler.n_dofs());
     cout<<"   [ErrorController::global_estimate]Interpolated primal solution DOF "<<primal_solution.size()<< endl;
     FETools::interpolate(PrimalSolver<dim>::dof_handler,
-                         PrimalSolver<dim>::solution,
+                         PrimalSolver<dim>::uh0,
                          DualSolver<dim>::dof_handler,
                          dual_hanging_node_constraints,
                          primal_solution);
@@ -234,13 +234,56 @@ double ErrorController<dim>::global_estimate() const {
 
     // EVALUATION
     Vector<double> temp(dual_weights.size());
-    double global_error = 0.0;
-    DualSolver<dim>::system_matrix.vmult(temp,dual_weights);
+    double dx = 0.0; double lx = 0.0;
+
+    // dx
+    DualSolver<dim>::system_matrix.vmult(temp,dual_weights);    // A z
     if(temp.size()!=primal_solution.size())
         cout<<"DIMENSIONALITY PROBLEM"<<endl;
     for(size_t i=0;i<primal_solution.size();++i)
-        global_error+=primal_solution(i)*temp(i);
-    return -global_error;
+        dx+=primal_solution(i)*temp(i);           // u' A z
+
+    Vector<double> F(dual_weights.size());
+
+    // a(Rg,v)
+    const double eps0 = 8.854*1e-12; // [F/m]
+    const unsigned int dofs_per_cell = DualSolver<dim>::dof_handler.get_fe().n_dofs_per_cell();
+    Vector<double> cell_F(dofs_per_cell);
+    std::vector <types::global_dof_index> local_dof_indices(dofs_per_cell);
+
+    QGauss<dim>          Rg_quadrature(5);
+    FEValues<dim>        Rg_fe_values(DualSolver<dim>::dof_handler.get_fe(),
+                                      Rg_quadrature,
+                                      update_values | update_gradients | update_quadrature_points |
+                                      update_JxW_values);
+    const unsigned int Rg_n_q_points = Rg_quadrature.size();
+    for (const auto &cell: DualSolver<dim>::dof_handler.active_cell_iterators()) {
+        cell_F = 0;
+        Rg_fe_values.reinit(cell);
+
+
+        for (unsigned int q_point = 0; q_point < Rg_n_q_points; ++q_point){
+            // evaluate_grad_Rg
+            auto & quad_point_coords = Rg_fe_values.get_quadrature_points()[q_point];
+            auto grad_Rg_xq = evaluate_grad_Rg(quad_point_coords[0],quad_point_coords[1]);
+            // assemble a(Rg,v)
+            for (unsigned int i = 0; i < dofs_per_cell; ++i)
+                cell_F(i) += 1.0006*eps0*
+                               (Rg_fe_values.shape_grad(i, q_point) *      // grad phi_i(x_q)
+                                grad_Rg_xq *                               // grad_Rg(x_q)
+                                Rg_fe_values.JxW(q_point));                // dx
+        }
+
+        cell->get_dof_indices(local_dof_indices);
+        for (unsigned int i = 0; i < dofs_per_cell; ++i)
+            F(local_dof_indices[i]) += cell_F(i);
+    }
+
+    // lx
+    for(size_t i=0;i<dual_weights.size();i++)
+        lx += dual_weights(i) * F(i);
+
+    return -lx -dx;
 }
 
 

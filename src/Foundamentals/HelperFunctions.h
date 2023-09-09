@@ -4,6 +4,24 @@
 #include "../includes&parameters_setup.h"
 static GetPot redefined_4_datafile("../data_setup");
 
+static auto evaluate_grad_Rg = [](double x, double y) {
+    double r = sqrt(x * x + y * y);
+    Tensor<1,2> grad_Rg;
+    double Ve = 20000;
+    double Re = 250e-6;
+    //double a = 100000;
+    //double dfdr = - Ve / ( (1 +  (a*(r - Re))*(a*(r - Re)) )*(1+ (a*(r - Re))*(a*(r - Re)) ) ) *  a*a*2*(r-Re);
+    //grad_Rg[0] = dfdr * x / r;
+    //grad_Rg[1] = dfdr * y / r;
+    grad_Rg[0] = 0;
+    grad_Rg[1] = 0;
+    if(r<2*Re) {
+        grad_Rg[0] = -Ve / Re * x / r;
+        grad_Rg[1] = -Ve / Re * y / r;
+    }
+    return grad_Rg;
+};
+
 
 // To compute L2-norm of a tensor
 template <int dim>

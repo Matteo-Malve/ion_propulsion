@@ -91,6 +91,8 @@ void PrimalSolver<dim>::solve_problem()
     this->apply_boundary_conditions(); // Applica a u0 BC Neumann: sotto, sx e sopra
     this->solve_system();   // Solve     a(u0,v) = f(v) -a(Rg,v)
 
+    uh0 = this->solution;
+
     // Retrieve lifting
     Vector<double> Rg_vector(this->solution.size());
     VectorTools::interpolate(this->dof_handler,
@@ -110,23 +112,6 @@ auto evaluate_Rg = [](double x, double y) {
     return Rg;
 };*/
 
-auto evaluate_grad_Rg = [](double x, double y) {
-    double r = sqrt(x * x + y * y);
-    Tensor<1,2> grad_Rg;
-    double Ve = 20000;
-    double Re = 250e-6;
-    //double a = 100000;
-    //double dfdr = - Ve / ( (1 +  (a*(r - Re))*(a*(r - Re)) )*(1+ (a*(r - Re))*(a*(r - Re)) ) ) *  a*a*2*(r-Re);
-    //grad_Rg[0] = dfdr * x / r;
-    //grad_Rg[1] = dfdr * y / r;
-    grad_Rg[0] = 0;
-    grad_Rg[1] = 0;
-    if(r<2*Re) {
-        grad_Rg[0] = -Ve / Re * x / r;
-        grad_Rg[1] = -Ve / Re * y / r;
-    }
-    return grad_Rg;
-};
 
 template <int dim>
 void PrimalSolver<dim>::assemble_rhs(Vector<double> &rhs) const {

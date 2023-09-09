@@ -2,6 +2,7 @@
 #include "../Evaluation.h"
 
 
+
 template <int dim>
 double L2Norm(const Tensor<1,dim> &input)
 {
