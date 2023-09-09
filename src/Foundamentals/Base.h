@@ -20,9 +20,7 @@ public:
     virtual void set_refinement_cycle(const unsigned int cycle);
 
     // Virtual method for output to be overwritten by PrimalSolver
-    virtual void output_solution(){
-        cout<<"   [Base] I don't print anything but I work"<<endl;
-    }
+    virtual void output_solution()                                = 0;
 
 protected:
     const SmartPointer<Triangulation<dim>> triangulation;

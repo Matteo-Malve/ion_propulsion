@@ -3,6 +3,7 @@
 
 #include "DualFunctional.h"
 #include "Solver.h"
+#include "HelperFunctions.h"
 
 template <int dim>
 class DualSolver : public Solver<dim>
@@ -17,6 +18,7 @@ public:
             const DualFunctionalBase<dim> &dual_functional);
     // Override solve method
     virtual void solve_problem() override;
+    virtual void output_solution() override;
 protected:
     // DualFunctional class comes into play
     const SmartPointer<const DualFunctionalBase<dim>>
@@ -104,7 +106,28 @@ void DualSolver<dim>::solve_problem()
 
     this->solve_system();
 
+}
 
+template <int dim>
+void DualSolver<dim>::output_solution()
+{
+
+    // WRITE SOL TO .vtu
+    GradientPostprocessor<dim> gradient_postprocessor;
+    DataOut <dim> data_out;
+    data_out.attach_dof_handler(this->dof_handler);
+    data_out.add_data_vector(this->solution, "Potential");
+    data_out.add_data_vector(this->solution, gradient_postprocessor);
+    data_out.build_patches();
+    std::ofstream output("dual_solution-" + std::to_string(this->refinement_cycle) + ".vtu");
+    data_out.write_vtu(output);
+
+    std::ofstream out("../mesh_storage/dual_mesh_cycle_" + std::to_string(this->refinement_cycle) + ".vtu");
+    GridOut       grid_out;
+    GridOutFlags::Vtu flags(true);
+    grid_out.set_flags(flags);
+    grid_out.write_vtu(*this->triangulation, out);
+    std::cout<<" Mesh written to vtu"<<endl<<endl;
 
 }
 
