@@ -56,7 +56,31 @@ void PrimalSolver<dim>::output_solution(){
     data_out.write_vtu(output);
 }
 
+template<int dim>
+void PrimalSolver<dim>::apply_boundary_conditions() {
+    std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
 
+    VectorTools::interpolate_boundary_values(this->dof_handler,
+                                             1, // Boundary corrispondente all'emettitore, definito sopra
+                                             Functions::ConstantFunction<dim>(0), // Valore di potenziale all'emettitore (20 kV)
+                                             emitter_boundary_values);
+
+    VectorTools::interpolate_boundary_values(this->dof_handler,
+                                             2,  // Boundary corrispondente al collettore, definito sopra
+                                             Functions::ConstantFunction<dim>(0), // Valore di potenziale al collettore (0 V)
+            //DirichletBoundaryValuesDX<dim>(),
+                                             collector_boundary_values);
+
+    MatrixTools::apply_boundary_values(emitter_boundary_values,
+                                       this->system_matrix,
+                                       this->solution,
+                                       this->system_rhs);
+
+    MatrixTools::apply_boundary_values(collector_boundary_values,
+                                       this->system_matrix,
+                                       this->solution,
+                                       this->system_rhs);
+}
 
 template <int dim>
 void PrimalSolver<dim>::solve_problem()

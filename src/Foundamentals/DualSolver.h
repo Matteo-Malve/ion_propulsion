@@ -22,6 +22,7 @@ protected:
     const SmartPointer<const DualFunctionalBase<dim>>
             dual_functional;
     virtual void assemble_rhs(Vector<double> &rhs) const override;
+    virtual void apply_boundary_conditions() override;
 };
 
 // CONSTRUCTOR
@@ -48,25 +49,53 @@ void DualSolver<dim>::assemble_rhs(Vector<double> &rhs) const
 
 }
 
+template<int dim>
+void DualSolver<dim>::apply_boundary_conditions() {
+    std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
+
+    VectorTools::interpolate_boundary_values(this->dof_handler,
+                                             1, // Boundary corrispondente all'emettitore, definito sopra
+                                             Functions::ConstantFunction<dim>(0), // Valore di potenziale all'emettitore (20 kV)
+                                             emitter_boundary_values);
+
+    VectorTools::interpolate_boundary_values(this->dof_handler,
+                                             2,  // Boundary corrispondente al collettore, definito sopra
+                                             Functions::ConstantFunction<dim>(0), // Valore di potenziale al collettore (0 V)
+            //DirichletBoundaryValuesDX<dim>(),
+                                             collector_boundary_values);
+
+    MatrixTools::apply_boundary_values(emitter_boundary_values,
+                                       this->system_matrix,
+                                       this->solution,
+                                       this->system_rhs);
+
+    MatrixTools::apply_boundary_values(collector_boundary_values,
+                                       this->system_matrix,
+                                       this->solution,
+                                       this->system_rhs);
+}
+
 template <int dim>
 void DualSolver<dim>::solve_problem()
 {
     this->setup_system();
     this->assemble_system();
 
-    cout<<"-----"<<endl;
-    cout<<"Primi 100 valori di rhs dual problem PRIMA apply_boundary_conditions()"<<endl;
-    for(int i=0;i<100;i++)
-        cout<<this->system_rhs(i)<<endl;
-    cout<<"-----"<<endl;
+
+    int flag = 0;
+    for(int i=0;i<this->system_rhs.size();i++)
+        if(this->system_rhs(i)>0)
+            flag++;
+    cout<<"Nonzero elements of rhs BEFORE apply_boundary_conditions() = "<<flag<<endl;
+
 
     this->apply_boundary_conditions();
 
-    cout<<"-----"<<endl;
-    cout<<"Primi 100 valori di rhs dual problem DOPO apply_boundary_conditions()"<<endl;
-    for(int i=0;i<100;i++)
-        cout<<this->system_rhs(i)<<endl;
-    cout<<"-----"<<endl;
+    flag = 0;
+    for(int i=0;i<this->system_rhs.size();i++)
+        if(this->system_rhs(i)>0)
+            flag++;
+    cout<<"Nonzero elements of rhs AFTER apply_boundary_conditions() = "<<flag<<endl;
 
 
 

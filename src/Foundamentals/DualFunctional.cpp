@@ -33,7 +33,7 @@ EmitterFlux<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler,
         for (const auto &face : cell->face_iterators())
             if (face->at_boundary()){
                 const Point<dim> & face_center = face->center();
-                if (mesh_center.distance(face_center)<1.10001*radius) {
+                if (mesh_center.distance(face_center)<1.00001*radius) {
                     fe_face_values.reinit(cell, face);
                     face_rhs = 0;
 

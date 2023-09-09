@@ -34,7 +34,7 @@ protected:
 
 
 
-    void apply_boundary_conditions();       // OURS
+    virtual void apply_boundary_conditions() = 0;      // OURS
     void setup_system();
     void assemble_system();
     void solve_system();

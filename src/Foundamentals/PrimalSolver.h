@@ -19,7 +19,7 @@ public:
 protected:
     const SmartPointer<const Function<dim>> rhs_function;
     virtual void assemble_rhs(Vector<double> &rhs) const override;
-
+    virtual void apply_boundary_conditions() override;
 private:
     Vector<float> values;
     unsigned int grid_option = datafile("Load/grid_option",1);

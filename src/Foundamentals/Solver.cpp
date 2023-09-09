@@ -2,31 +2,7 @@
 
 
 
-template<int dim>
-void Solver<dim>::apply_boundary_conditions() {
-    std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
 
-    VectorTools::interpolate_boundary_values(dof_handler,
-                                             1, // Boundary corrispondente all'emettitore, definito sopra
-                                             Functions::ConstantFunction<dim>(0), // Valore di potenziale all'emettitore (20 kV)
-                                             emitter_boundary_values);
-
-    VectorTools::interpolate_boundary_values(dof_handler,
-                                             2,  // Boundary corrispondente al collettore, definito sopra
-                                             Functions::ConstantFunction<dim>(0), // Valore di potenziale al collettore (0 V)
-                                             //DirichletBoundaryValuesDX<dim>(),
-                                             collector_boundary_values);
-
-    MatrixTools::apply_boundary_values(emitter_boundary_values,
-                                       system_matrix,
-                                       solution,
-                                       system_rhs);
-
-    MatrixTools::apply_boundary_values(collector_boundary_values,
-                                       system_matrix,
-                                       solution,
-                                       system_rhs);
-}
 
 
 template <int dim>
