@@ -1,22 +1,18 @@
 #include "HelperFunctions.h"
 #include "../Evaluation.h"
 
-
-
 template <int dim>
 double L2Norm(const Tensor<1,dim> &input)
 {
     double magnitude = 0.;
     for (unsigned int i=0; i<dim; ++i)
         magnitude += input[i]*input[i];
-
     return std::sqrt(magnitude);
 }
 
 template <int dim>
 void ionization_area(const Triangulation<dim> &triangulation, const DoFHandler<dim> &dof_handler, const Vector<double> &solution) {
-    const double E_threshold = redefined_4_datafile("Ionization/electical_field_intensity_threshold",2e+3);
-    cout<<"electical_field_intensity_threshold "<< E_threshold << endl;
+    const double E_threshold = redefined_4_datafile("Ionization/electrical_field_intensity_threshold",2e+3);
     for (const auto &cell : triangulation.active_cell_iterators()){
         Point<dim> c = cell->center();
         Tensor<1,dim>  E_ = VectorTools::point_gradient(dof_handler, solution, c);
@@ -24,11 +20,12 @@ void ionization_area(const Triangulation<dim> &triangulation, const DoFHandler<d
         if (x > E_threshold)
             cell->set_material_id(2);
     }    
-
+    // At each refinement loop it will overwrite itself. Only last one remains.
     std::ofstream out("ionization_area.vtu");
     GridOut       grid_out;
     grid_out.write_vtu(triangulation, out);
 }
+
 
 /* Helper function, gives errors on less recent versions of deal.ii
  * It outputs a .vtu with a field dedicated to the boundary ids.

@@ -10,12 +10,8 @@ public:
            const FiniteElement<dim> & fe,
            const Quadrature<dim> &    quadrature,
            const Quadrature<dim - 1> &face_quadrature);
-            // boundary values BY us
+
     virtual ~Solver() override;
-
-    //virtual void solve_problem() override;
-
-    // Tolto postprocess
 
     virtual unsigned int n_dofs() const override;
 
@@ -25,22 +21,17 @@ protected:
     const SmartPointer<const Quadrature<dim - 1>> face_quadrature;
     DoFHandler<dim>                               dof_handler;
     Vector<double>                                solution;
-   // boundary values BY us
 
     virtual void assemble_rhs(Vector<double> &rhs) const = 0;
+
     SparsityPattern      sparsity_pattern;
     SparseMatrix<double> system_matrix;
     Vector<double>       system_rhs;
 
-
-
-    virtual void apply_boundary_conditions() = 0;      // OURS
+    virtual void apply_boundary_conditions() = 0;
     void setup_system();
     void assemble_system();
     void solve_system();
-
-
-
 };
 
 

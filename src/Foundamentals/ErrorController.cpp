@@ -69,7 +69,7 @@ void ErrorController<dim>::solve_problem()
 {
     cout<<"   [ErrorController::solve_problem] Begin solving Primal Problem"<<endl;
     this->PrimalSolver<dim>::solve_problem();
-    cout<<"   [ErrorController::solve_problem] Begin solving Dual Dual"<<endl;
+    cout<<"   [ErrorController::solve_problem] Begin solving Dual Problem"<<endl;
     this->DualSolver<dim>::solve_problem();
 }
 
@@ -96,6 +96,7 @@ void ErrorController<dim>::refine_grid(int step) {
     double global_error_as_sum_of_cell_errors=0.0;
     for(size_t i=0;i<error_indicators.size();i++)
         global_error_as_sum_of_cell_errors+=error_indicators[i];
+    global_error_as_sum_of_cell_errors=abs(global_error_as_sum_of_cell_errors);
 
     // Output the two derived global estimates
     cout<<"   [ErrorController::refine_grid]Global error = "<<global_error<<endl
@@ -113,9 +114,14 @@ void ErrorController<dim>::refine_grid(int step) {
                                                           0.3);
     // Active (unique) refinement criteria
     else
+        /*
         GridRefinement::refine_and_coarsen_optimize(*this->triangulation,
                                                     error_indicators,
-                                                    4);
+                                                    4);*/
+        GridRefinement::refine_and_coarsen_fixed_fraction(*this->triangulation,
+                                                          error_indicators,
+                                                          0.8,
+                                                          0.02);
 
     // Execute refinement
     this->triangulation->execute_coarsening_and_refinement();
@@ -289,9 +295,9 @@ double ErrorController<dim>::global_estimate() const {
         lx += dual_weights(i) * F(i);
 
 
-    // Return             r(z) = - z' F - u' A z
-    // or, precisely,     r(zk-∏zk) = - (zk-∏zk)' F - uh0' A (zk-∏zk)
-    return -lx -dx;
+    // Return             η = |r(z)|  = | - z' F - u' A z |
+    // or, precisely,     η = |r(zk-∏zk)|  = | - (zk-∏zk)' F - uh0' A (zk-∏zk) |
+    return abs(-lx -dx);
 }
 
 

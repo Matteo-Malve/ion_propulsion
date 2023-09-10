@@ -12,7 +12,7 @@ public:
                  const FiniteElement<dim> & fe,
                  const Quadrature<dim> &    quadrature,
                  const Quadrature<dim - 1> &face_quadrature,
-                 const Function<dim> &      rhs_function);  // tolto bdry values
+                 const Function<dim> &      rhs_function);
     virtual void solve_problem() override;
     virtual void output_solution() override;
 

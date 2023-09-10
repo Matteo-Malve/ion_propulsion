@@ -9,10 +9,8 @@ static auto evaluate_grad_Rg = [](double x, double y) {
     Tensor<1,2> grad_Rg;
     double Ve = 20000;
     double Re = 250e-6;
-    //double a = 100000;
-    //double dfdr = - Ve / ( (1 +  (a*(r - Re))*(a*(r - Re)) )*(1+ (a*(r - Re))*(a*(r - Re)) ) ) *  a*a*2*(r-Re);
-    //grad_Rg[0] = dfdr * x / r;
-    //grad_Rg[1] = dfdr * y / r;
+
+    // Gradient computed analytically by hand. Check Evaluate_Rg.h for the primitive function.
     grad_Rg[0] = 0;
     grad_Rg[1] = 0;
     if(r<2*Re) {
@@ -36,11 +34,11 @@ public:
 
     virtual void evaluate_scalar_field(const DataPostprocessorInputs::Scalar<dim> &input_data,
                                        std::vector<Vector<double> > &computed_quantities) const override {
-        AssertDimension (input_data.solution_gradients.size(), computed_quantities.size()); // size check
+        AssertDimension (input_data.solution_gradients.size(), computed_quantities.size()); // Size check
 
         for (unsigned int p=0; p<input_data.solution_gradients.size(); ++p)
         {
-            AssertDimension (computed_quantities[p].size(), dim); // dimension check
+            AssertDimension (computed_quantities[p].size(), dim); // Dimensionality check
             for (unsigned int d=0; d<dim; ++d)
                 computed_quantities[p][d] = -input_data.solution_gradients[p][d];
         }

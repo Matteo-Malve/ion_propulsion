@@ -65,8 +65,7 @@ void DualSolver<dim>::apply_boundary_conditions() {
                                              2,  // Boundary id corresponding to the Collector
                                              Functions::ConstantFunction<dim>(0),
                                              collector_boundary_values);
-    // NOTE: We manually do the lifting.
-    //       Therefore, we set the Dirichlet BCs to zero
+    // NOTE: z belongs to H1_O_GammaD
     //       By default, deal.ii will then set all non-specified boundary points to have homogeneous Neumann BCs.
     //       That's exactly what we need.
 

@@ -1,10 +1,5 @@
 #include "Solver.h"
 
-
-
-
-
-
 template <int dim>
 Solver<dim>::~Solver()
 {
@@ -74,9 +69,8 @@ void Solver<dim>::assemble_system()
                                   cell_matrix(i, j));
     }
 
-    // Assemble rhs
+    // Call assemble_rhs (overwritten by Primal and Dual solvers)
     this->assemble_rhs(this->system_rhs);
-
 
     cout<<"   [Solver::assemble_system]Assembled the rhs"<<endl;
 }
@@ -89,14 +83,13 @@ void Solver<dim>::solve_system()
     SolverControl            solver_control(2000, 1e-6 * system_rhs.l2_norm());
     SolverCG<Vector<double>> solver(solver_control);
 
-    // Apply Preconditioner
+    // Construct SSOR preconditioner
     double relaxation_parameter = 1.5;
     PreconditionSSOR<SparseMatrix<double>> preconditioner;
     preconditioner.initialize(system_matrix, relaxation_parameter);
 
-    // Solve Linear System
+    // Solve Linear System with CG and SSOR preconditioner
     solver.solve(system_matrix, solution, system_rhs, preconditioner);
-    //solver.solve(system_matrix, solution, system_rhs, PreconditionIdentity());
 
     // Print iterations
     cout<<"   [Solver]"<<solver_control.last_step()

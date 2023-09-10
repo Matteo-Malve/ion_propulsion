@@ -5,6 +5,8 @@
 
 template <int dim>
 void PrimalSolver<dim>::output_solution(){
+
+    // Only if working on main grid
     if(grid_option==1) {
         if (this->refinement_cycle == 0) {
             values.reinit(Nmax + 2);
@@ -12,19 +14,21 @@ void PrimalSolver<dim>::output_solution(){
         }
         values.reinit(Nmax + 2);
 
+        // Print evaluation of V in a meaningful sample point
         Point <dim> evaluation_point(0.01, 0.002);
-
-        // Print sample V
         Evaluation::PointValueEvaluation<dim> postprocessor(evaluation_point);
         double x_ = postprocessor(this->dof_handler, this->solution);
         std::cout << "   [PrimalSolver]Potential at sample point (" << evaluation_point[0] << "," << evaluation_point[1] << "): "
                   << std::scientific << x_ << std::defaultfloat << std::endl;
 
+        // Identify ionization area and save it to .vtu file
+        ionization_area<dim>(this->triangulation,this->dof_handler,this->solution);
+
     }
     if(this->grid_option==2)
         cout<<"   No point evaluations, grid 2"<<endl;
 
-    // WRITE SOL TO .vtu
+    // WRITE SOL TO FILE.    Format: .vtu
     GradientPostprocessor<dim> gradient_postprocessor;
     DataOut <dim> data_out;
     data_out.attach_dof_handler(this->dof_handler);
@@ -39,16 +43,20 @@ template<int dim>
 void PrimalSolver<dim>::apply_boundary_conditions() {
     std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
 
+    // Associate BCs to corresponding Boundary Ids. The latter are directly set in Gmsh, as physical curves
     VectorTools::interpolate_boundary_values(this->dof_handler,
-                                             1, // Boundary corrispondente all'emettitore, definito sopra
-                                             Functions::ConstantFunction<dim>(0), // Valore di potenziale all'emettitore (20 kV)
+                                             1, // Boundary id corresponding to Emitter
+                                             Functions::ConstantFunction<dim>(0),
                                              emitter_boundary_values);
 
     VectorTools::interpolate_boundary_values(this->dof_handler,
-                                             2,  // Boundary corrispondente al collettore, definito sopra
-                                             Functions::ConstantFunction<dim>(0), // Valore di potenziale al collettore (0 V)
-            //DirichletBoundaryValuesDX<dim>(),
+                                             2,  // Boundary id corresponding to the Collector
+                                             Functions::ConstantFunction<dim>(0),
                                              collector_boundary_values);
+    // NOTE: We manually do the lifting.
+    //       Therefore, we set the Dirichlet BCs to zero
+    //       By default, deal.ii will then set all non-specified boundary points to have homogeneous Neumann BCs.
+    //       That's exactly what we need.
 
     MatrixTools::apply_boundary_values(emitter_boundary_values,
                                        this->system_matrix,
@@ -65,11 +73,11 @@ template <int dim>
 void PrimalSolver<dim>::solve_problem()
 {
     this->setup_system();
-    this->assemble_system(); // Assemble a(u0,v) f(v) -a(Rg,v)
+    this->assemble_system();                    // Assembles:  a(u0,v),  f(v),  -a(Rg,v)
+    this->apply_boundary_conditions();
+    this->solve_system();                       // Solves     a(u0,v) = f(v) -a(Rg,v)
 
-    this->apply_boundary_conditions(); // Applica a u0 BC Neumann: sotto, sx e sopra
-    this->solve_system();   // Solve     a(u0,v) = f(v) -a(Rg,v)
-
+    // Save uh0 for later use
     uh0 = this->solution;
 
     // Retrieve lifting
@@ -77,89 +85,72 @@ void PrimalSolver<dim>::solve_problem()
     VectorTools::interpolate(this->dof_handler,
                              Evaluate_Rg<dim>(),
                              Rg_vector);
-    this->solution += Rg_vector;                 // uh = u0 + Rg     Si perdono le BC di Neumann essendo Rg radiale
+    this->solution += Rg_vector;               // uh = u0 + Rg
 }
-
-
-/*
-auto evaluate_Rg = [](double x, double y) {
-    double r = sqrt(x * x + y * y);
-    double Ve = 20000;
-    double Re = 250e-6;
-    double a = 100;
-    double Rg = Ve / (1 + (a*(r - Re))*(a*(r - Re)) );
-    return Rg;
-};*/
 
 
 template <int dim>
 void PrimalSolver<dim>::assemble_rhs(Vector<double> &rhs) const {
+
+    // Electrical permittivity of void
     const double eps0 = 8.854*1e-12; // [F/m]
 
-    // f(v)
+    // 1) ASSEMBLE    f(v)
+    FEValues <dim> fe_values(*this->fe,
+                             *this->quadrature,
+                             update_values | update_gradients | update_quadrature_points |
+                             update_JxW_values);
 
-        FEValues <dim> fe_values(*this->fe,
-                                 *this->quadrature,
-                                 update_values | update_gradients | update_quadrature_points |
-                                 update_JxW_values);
+    const unsigned int dofs_per_cell = this->fe->n_dofs_per_cell();
+    const unsigned int n_q_points = this->quadrature->size();
 
-        const unsigned int dofs_per_cell = this->fe->n_dofs_per_cell();
-        const unsigned int n_q_points = this->quadrature->size();
+    Vector<double> cell_rhs(dofs_per_cell);
+    std::vector<double> rhs_values(n_q_points);
+    std::vector <types::global_dof_index> local_dof_indices(dofs_per_cell);
 
-        Vector<double> cell_rhs(dofs_per_cell);
-        std::vector<double> rhs_values(n_q_points);
-        std::vector <types::global_dof_index> local_dof_indices(dofs_per_cell);
-
-        for (const auto &cell: this->dof_handler.active_cell_iterators()) {
-            cell_rhs = 0;
-
-            fe_values.reinit(cell);
-
-            rhs_function->value_list(fe_values.get_quadrature_points(),
-                                     rhs_values);
-
-
-            for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
-                for (unsigned int i = 0; i < dofs_per_cell; ++i)
-                    cell_rhs(i) += (fe_values.shape_value(i, q_point) * // phi_i(x_q)
-                                    rhs_values[q_point] *               // f((x_q)
-                                    fe_values.JxW(q_point));            // dx
-
-            cell->get_dof_indices(local_dof_indices);
+    for (const auto &cell: this->dof_handler.active_cell_iterators()) {
+        cell_rhs = 0;
+        fe_values.reinit(cell);
+        rhs_function->value_list(fe_values.get_quadrature_points(),
+                                 rhs_values);
+        // Compute f_loc
+        for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
             for (unsigned int i = 0; i < dofs_per_cell; ++i)
-                rhs(local_dof_indices[i]) += cell_rhs(i);
+                cell_rhs(i) += (fe_values.shape_value(i, q_point) * // phi_i(x_q)
+                                rhs_values[q_point] *               // f(x_q)
+                                fe_values.JxW(q_point));            // dx
+        // Local to Global
+        cell->get_dof_indices(local_dof_indices);
+        for (unsigned int i = 0; i < dofs_per_cell; ++i)
+            rhs(local_dof_indices[i]) += cell_rhs(i);
         }
 
+    // 2) ASSEMBLE   - a(Rg,v)
 
-    // -----------------------------
-
-    // -a(Rg,v)
-
+    // Setup
     QGauss<dim>          Rg_quadrature(4);
     FEValues<dim>        Rg_fe_values(*this->fe,
                                    Rg_quadrature,
                                    update_values | update_gradients | update_quadrature_points |
                                    update_JxW_values);
-
     const unsigned int Rg_n_q_points = Rg_quadrature.size();
 
     for (const auto &cell: this->dof_handler.active_cell_iterators()) {
         cell_rhs = 0;
         Rg_fe_values.reinit(cell);
-
-        // A(Rg,v)
+        // Cycle over quadrature nodes
         for (unsigned int q_point = 0; q_point < Rg_n_q_points; ++q_point){
-            // evaluate evaluate_grad_Rg
+            // evaluate grad_Rg
             auto & quad_point_coords = Rg_fe_values.get_quadrature_points()[q_point];
             auto grad_Rg_xq = evaluate_grad_Rg(quad_point_coords[0],quad_point_coords[1]);
-            // assemble a(Rg,v)
+            // assemble A_loc(Rg,v)
             for (unsigned int i = 0; i < dofs_per_cell; ++i)
                 cell_rhs(i) += 1.0006*eps0*
-                                (Rg_fe_values.shape_grad(i, q_point) *      // grad phi_i(x_q)
+                                (Rg_fe_values.shape_grad(i, q_point) *     // grad phi_i(x_q)
                                 grad_Rg_xq *                               // grad_Rg(x_q)
                                 Rg_fe_values.JxW(q_point));                // dx
         }
-
+        // Local to Global
         cell->get_dof_indices(local_dof_indices);
         for (unsigned int i = 0; i < dofs_per_cell; ++i)
             rhs(local_dof_indices[i]) += - cell_rhs(i);

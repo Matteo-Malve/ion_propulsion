@@ -18,4 +18,4 @@
 	grid_option = 1;
 
 [Ionization]
-	electical_field_intensity_threshold = 7;
+	electrical_field_intensity_threshold = 2e5;
