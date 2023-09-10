@@ -86,7 +86,7 @@ void DualSolver<dim>::solve_problem()
 
     int flag = 0;
     for(int i=0;i<this->system_rhs.size();i++)
-        if(this->system_rhs(i)>0)
+        if(this->system_rhs(i)!=0)
             flag++;
     cout<<"Nonzero elements of rhs BEFORE apply_boundary_conditions() = "<<flag<<endl;
 
@@ -95,7 +95,7 @@ void DualSolver<dim>::solve_problem()
 
     flag = 0;
     for(int i=0;i<this->system_rhs.size();i++)
-        if(this->system_rhs(i)>0)
+        if(this->system_rhs(i)!=0)
             flag++;
     cout<<"Nonzero elements of rhs AFTER apply_boundary_conditions() = "<<flag<<endl;
 
