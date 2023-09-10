@@ -15,7 +15,7 @@
 
 [Load]
     custom_mesh_to_be_loaded = ../gmsh_grids/horizontal_strip.msh
-	grid_option = 1;
+	grid_option = 2;
 
 [Ionization]
 	electrical_field_intensity_threshold = 2e5;

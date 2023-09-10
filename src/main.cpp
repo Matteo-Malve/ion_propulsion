@@ -11,7 +11,7 @@ int main()
         // Fix dim
         const unsigned int dim = 2;
         // Fix grid_option
-        unsigned int grid_option = redefined_2_datafile("Load/grid_option",1);
+        unsigned int grid_option = redefined_2_datafile("Load/grid_option",2);
         // Define DESCRIPTOR
         Functions::ZeroFunction<dim> zero_function;
         ProblemDescription<dim> descriptor(zero_function);
