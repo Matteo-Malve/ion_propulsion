@@ -19,7 +19,7 @@ public:
         double Re = 250e-6;
         double Rg = 0;
         if (r<2*Re)
-            Rg = Ve * (2 - r/Re);
+            Rg = Ve * (2 - r/Re) * (2 - r/Re);
         return Rg;
     }
 };

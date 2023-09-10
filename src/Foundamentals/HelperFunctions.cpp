@@ -12,7 +12,7 @@ double L2Norm(const Tensor<1,dim> &input)
 
 template <int dim>
 void ionization_area(const Triangulation<dim> &triangulation, const DoFHandler<dim> &dof_handler, const Vector<double> &solution) {
-    const double E_threshold = redefined_4_datafile("Ionization/electrical_field_intensity_threshold",2e+3);
+    const double E_threshold = redefined_4_datafile("Ionization/electrical_field_intensity_threshold",2e+5);
     for (const auto &cell : triangulation.active_cell_iterators()){
         Point<dim> c = cell->center();
         Tensor<1,dim>  E_ = VectorTools::point_gradient(dof_handler, solution, c);

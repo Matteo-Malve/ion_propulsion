@@ -14,8 +14,8 @@ static auto evaluate_grad_Rg = [](double x, double y) {
     grad_Rg[0] = 0;
     grad_Rg[1] = 0;
     if(r<2*Re) {
-        grad_Rg[0] = -Ve / Re * x / r;
-        grad_Rg[1] = -Ve / Re * y / r;
+        grad_Rg[0] = 2 * Ve * (2- r/Re) * (-1/Re) * x / r;
+        grad_Rg[1] = 2 * Ve * (2- r/Re) * (-1/Re) * y / r;
     }
     return grad_Rg;
 };

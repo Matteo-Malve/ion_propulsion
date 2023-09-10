@@ -2,21 +2,23 @@
 #include <sys/stat.h>
 
 template <int dim>
-void CreateInitialGrid( Triangulation<dim> &mesh)
+void CreateInitialGrid(Triangulation<dim> &mesh)
 {
     Assert(dim == 2, ExcNotImplemented());
 
     // Check if ground mesh file is present and retrieve it
     cout<<"[GridForge::CreateInitialGrid]Looking for Custom Ground Mesh built with Gmsh"<<endl;
     struct stat sb;
-    GetPot redefined_datafile("../data_setup");
-    int is_present = stat(redefined_datafile("Load/custom_mesh_to_be_loaded","file inesistente"),&sb);
+    //GetPot redefined_datafile("../data_setup");
+    //int is_present = stat(redefined_datafile("custom_mesh_to_be_loaded","file inesistente"),&sb);
+    int is_present = stat("../gmsh_grids/horizontal_strip.msh",&sb);
     if(is_present==-1) {
         std::cerr << " Mesh NOT found!" << std::endl;
     }
     else if(is_present==0){
         std::cerr<<" Mesh found"<<std::endl<<" Prepare import"<<endl;
-        std::ifstream input_file(redefined_datafile("Load/custom_mesh_to_be_loaded","file inesistente"));
+        //std::ifstream input_file(redefined_datafile("custom_mesh_to_be_loaded","file inesistente"));
+        std::ifstream input_file("../gmsh_grids/horizontal_strip.msh");
         GridIn<dim>       grid_in;
         grid_in.attach_triangulation(mesh);
         grid_in.read_msh(input_file);

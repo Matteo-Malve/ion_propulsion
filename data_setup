@@ -14,7 +14,7 @@
 
 
 [Load]
-	custom_mesh_to_be_loaded = ../gmsh_grids/horizontal_strip.msh
+    custom_mesh_to_be_loaded = ../gmsh_grids/horizontal_strip.msh
 	grid_option = 1;
 
 [Ionization]
