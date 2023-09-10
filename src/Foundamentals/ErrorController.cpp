@@ -203,7 +203,7 @@ void ErrorController<dim>::integrate_over_cell(
     // Numerically approximate the integral of the scalar product between the gradients of the two
     double sum = 0;
     for (unsigned int p = 0; p < quadrature_points.size(); ++p) {
-        sum +=  1.0006*eps0*1e-2*
+        sum +=  1.0006*eps0*
                 ((cell_data.cell_primal_gradients[p] * cell_data.cell_dual_gradients[p]  )   // Scalar product btw Tensors
                  * cell_data.fe_values.JxW(p));
     }
