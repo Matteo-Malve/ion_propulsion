@@ -11,16 +11,16 @@ int main()
         // Fix dim
         const unsigned int dim = 2;
         // Fix grid_option
-        unsigned int grid_option = redefined_2_datafile("Load/grid_option",2);
+        unsigned int grid_option = redefined_2_datafile("grid_option",3 );
         // Define DESCRIPTOR
         Functions::ZeroFunction<dim> zero_function;
         ProblemDescription<dim> descriptor(zero_function);
         // Fill DESCRIPTOR fields
-        descriptor.primal_fe_degree = redefined_2_datafile("Numerics/FE_choice/primal_fe_degree",1);
-        descriptor.dual_fe_degree = redefined_2_datafile("Numerics/FE_choice/dual_fe_degree",2);
+        descriptor.primal_fe_degree = redefined_2_datafile("primal_fe_degree",5);
+        descriptor.dual_fe_degree = redefined_2_datafile("dual_fe_degree",5);
         descriptor.dual_functional = std::make_unique<EmitterFlux<dim>>();
-        descriptor.max_degrees_of_freedom = redefined_2_datafile("Numerics/FEM_cycles/max_degrees_of_freedom",200000);
-        descriptor.max_number_of_refinements = redefined_2_datafile("Numerics/FEM_cycles/max_number_of_refinements",9);
+        descriptor.max_degrees_of_freedom = redefined_2_datafile("max_degrees_of_freedom",3000);
+        descriptor.max_number_of_refinements = redefined_2_datafile("max_number_of_refinements",5);
         cout<< "[Main] Data setup:" <<endl
             << "        - primal_fe_degree                   "<<descriptor.primal_fe_degree<<endl
             << "        - dual_fe_degree                     "<<descriptor.dual_fe_degree<<endl
