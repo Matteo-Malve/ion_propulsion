@@ -1,5 +1,5 @@
-#ifndef MESH_CC_GRIDFORGE_H
-#define MESH_CC_GRIDFORGE_H
+#ifndef ION_PROPULSION_GRIDFORGE_H
+#define ION_PROPULSION_GRIDFORGE_H
 
 #include "../includes&parameters_setup.h"
 
@@ -63,4 +63,4 @@ void CreateSecondGrid(Triangulation<2> & triangulation){
 }
 
 */
-#endif //MESH_CC_GRIDFORGE_H
+#endif //ION_PROPULSION_GRIDFORGE_H

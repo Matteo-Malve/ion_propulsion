@@ -6,19 +6,6 @@
 template <int dim>
 void PrimalSolver<dim>::output_solution(){
     if(grid_option==1) {
-        /*
-        DataOut<dim> data_out;
-        data_out.attach_dof_handler(this->dof_handler);
-        data_out.add_data_vector(this->solution, "solution");
-        data_out.build_patches();
-
-        std::ofstream out("solution-" + std::to_string(this->refinement_cycle) +
-                          ".vtu");
-        data_out.write(out, DataOutBase::vtu);
-        cout<<"Output solution done\n";
-        */
-
-        //-------------------------
         if (this->refinement_cycle == 0) {
             values.reinit(Nmax + 2);
             values(0) = 0;
@@ -30,17 +17,9 @@ void PrimalSolver<dim>::output_solution(){
         // Print sample V
         Evaluation::PointValueEvaluation<dim> postprocessor(evaluation_point);
         double x_ = postprocessor(this->dof_handler, this->solution);
-        std::cout << "   [PrimalSolver]Potential at (" << evaluation_point[0] << "," << evaluation_point[1] << "): "
+        std::cout << "   [PrimalSolver]Potential at sample point (" << evaluation_point[0] << "," << evaluation_point[1] << "): "
                   << std::scientific << x_ << std::defaultfloat << std::endl;
 
-        // Upon reaching of convergence, print results
-        if (this->refinement_cycle == Nmax) {
-
-            Point <dim> sample(wire_radius, 0.);
-            Tensor<1, dim> E = VectorTools::point_gradient(this->dof_handler, this->solution, sample);
-            std::cout << "   [PrimalSolver]Electric field in (" << sample[0] << "," << sample[1] << "): " << -E
-                      << ", magnitude: " << L2Norm(E) << std::endl;
-        }
     }
     if(this->grid_option==2)
         cout<<"   No point evaluations, grid 2"<<endl;

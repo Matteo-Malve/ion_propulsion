@@ -1,5 +1,5 @@
-#ifndef GETPOT_PRIMALSOLVER_H
-#define GETPOT_PRIMALSOLVER_H
+#ifndef ION_PROPULSION_PRIMALSOLVER_H
+#define ION_PROPULSION_PRIMALSOLVER_H
 
 #include "Solver.h"
 
@@ -49,4 +49,4 @@ PrimalSolver<dim>::PrimalSolver(Triangulation<dim> &       triangulation_,
 
 
 
-#endif //GETPOT_PRIMALSOLVER_H
+#endif //ION_PROPULSION_PRIMALSOLVER_H

@@ -1,5 +1,5 @@
-#ifndef GETPOT_SOLVER_H
-#define GETPOT_SOLVER_H
+#ifndef ION_PROPULSION_SOLVER_H
+#define ION_PROPULSION_SOLVER_H
 #include "Base.h"
 
 template <int dim>
@@ -59,4 +59,4 @@ Solver<dim>::Solver(Triangulation<dim> &       triangulation_,
 
 
 
-#endif //GETPOT_SOLVER_H
+#endif //ION_PROPULSION_SOLVER_H

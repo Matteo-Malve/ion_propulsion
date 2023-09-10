@@ -1,0 +1,255 @@
+dealii@2d96ae88d4ca:~/shared-folder/ion_propulsion/build$ make cleanmesh
+makeBuilt target cleanmesh
+dealii@2d96ae88d4ca:~/shared-folder/ion_propulsion/build$ make cleanres
+Built target cleanres
+mdealii@2d96ae88d4ca:~/shared-folder/ion_propulsion/build$ make run
+[ 11%] Built target DualFunctional
+[ 22%] Built target HelperFunctions
+[ 33%] Built target GridForge
+Consolidate compiler generated dependencies of target Framework
+[ 44%] Built target Framework
+Consolidate compiler generated dependencies of target ErrorController
+[ 55%] Building CXX object ../src/build/CMakeFiles/ErrorController.dir/Foundamentals/ErrorController.cpp.o
+In file included from /home/dealii/shared-folder/ion_propulsion/src/Foundamentals/ErrorController.h:6,
+                 from /home/dealii/shared-folder/ion_propulsion/src/Foundamentals/ErrorController.cpp:1:
+/home/dealii/shared-folder/ion_propulsion/src/Foundamentals/DualSolver.h: In instantiation of ‘void DualSolver<dim>::solve_problem() [with int dim = 2]’:
+/home/dealii/shared-folder/ion_propulsion/src/Foundamentals/ErrorController.cpp:71:41:   required from ‘void ErrorController<dim>::solve_problem() [with int dim = 2]’
+/home/dealii/shared-folder/ion_propulsion/src/Foundamentals/ErrorController.cpp:301:16:   required from here
+/home/dealii/shared-folder/ion_propulsion/src/Foundamentals/DualSolver.h:88:18: warning: comparison of integer expressions of different signedness: ‘int’ and ‘dealii::Vector<double>::size_type’ {aka ‘unsigned int’} [-Wsign-compare]
+   88 |     for(int i=0;i<this->system_rhs.size();i++)
+      |                 ~^~~~~~~~~~~~~~~~~~~~~~~~
+/home/dealii/shared-folder/ion_propulsion/src/Foundamentals/DualSolver.h:97:18: warning: comparison of integer expressions of different signedness: ‘int’ and ‘dealii::Vector<double>::size_type’ {aka ‘unsigned int’} [-Wsign-compare]
+   97 |     for(int i=0;i<this->system_rhs.size();i++)
+      |                 ~^~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/dealii/shared-folder/ion_propulsion/src/Foundamentals/ErrorController.cpp:2:
+/home/dealii/shared-folder/ion_propulsion/src/Foundamentals/Evaluate_Rg.h: In instantiation of ‘double Evaluate_Rg<dim>::value(const dealii::Point<dim>&, unsigned int) const [with int dim = 2]’:
+/home/dealii/shared-folder/ion_propulsion/src/Foundamentals/Evaluate_Rg.h:11:20:   required from here
+/home/dealii/shared-folder/ion_propulsion/src/Foundamentals/Evaluate_Rg.h:12:45: warning: unused parameter ‘component’ [-Wunused-parameter]
+   12 |                          const unsigned int component = 0) const override{
+      |                          ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+[ 55%] Built target ErrorController
+[ 66%] Built target Solver
+[ 77%] Built target PrimalSolver
+Consolidate compiler generated dependencies of target main
+[ 88%] Linking CXX executable /home/dealii/shared-folder/results/main
+[100%] Built target main
+   [Main] Data setup:
+           - primal_fe_degree                   1
+           - dual_fe_degree                     2
+           - max_degrees_of_freedom             200000
+           - max_number_of_refinement_cycles    9
+
+[GridForge::CreateGrid]Looking for an already existent mesh:
+   [GridForge::CreateGrid]File NOT found: proceed to generate initial mesh
+[GridForge::CreateInitialGrid]Looking for Custom Ground Mesh built with Gmsh
+ Mesh found
+ Prepare import
+ Grid imported
+
+Saving constructed mesh to file:
+ GridOutFlags::Vtu::serialize_triangulation  IS  true
+ Mesh written to vtu
+
+[Framework]Refinement cycle: 0
+   [Solver]Number of degrees of freedom: 8741
+   [Solver::assemble_system]Assembled the rhs
+   [Solver]184 CG iterations needed to obtain convergence.
+   [Solver]Number of degrees of freedom: 34145
+   [Solver::assemble_system]Assembled the rhs
+Nonzero elements of rhs BEFORE apply_boundary_conditions() = 351
+Nonzero elements of rhs AFTER apply_boundary_conditions() = 234
+   [Solver]726 CG iterations needed to obtain convergence.
+   [PrimalSolver]Potential at (0.01,0.002): 1.305563e+04
+ Mesh written to vtu
+
+   [Framework]Number of degrees of freedom=8741
+   [Framework]Prepare call to refine grid
+   [ErrorController::refine_grid]Build vector to store errors
+   Interpolated primal solution DOF 34145
+   [ErrorController::estimate_error]Interpolations done
+   [ErrorController::estimate_error]Instantiated CellData
+   [ErrorController::estimate_error]Loop integral over cells done
+   [ErrorController::refine_grid]Estimate errors
+   [ErrorController::global_estimate]Interpolated primal solution DOF 34145
+   [ErrorController::global_estimate]Interpolations done
+   [ErrorController::refine_grid]Global error = 0.000195323
+   [ErrorController::refine_grid]Global error as sum of cells' errors = 0.000195439
+   [ErrorController::refine_grid]Executed coarsening and refinement
+[Framework]Refinement cycle: 1
+   [Solver]Number of degrees of freedom: 9552
+   [Solver::assemble_system]Assembled the rhs
+   [Solver]186 CG iterations needed to obtain convergence.
+   [Solver]Number of degrees of freedom: 37317
+   [Solver::assemble_system]Assembled the rhs
+Nonzero elements of rhs BEFORE apply_boundary_conditions() = 699
+Nonzero elements of rhs AFTER apply_boundary_conditions() = 466
+   [Solver]723 CG iterations needed to obtain convergence.
+   [PrimalSolver]Potential at (0.01,0.002): 1.300564e+04
+ Mesh written to vtu
+
+   [Framework]Number of degrees of freedom=9552
+   [Framework]Prepare call to refine grid
+   [ErrorController::refine_grid]Build vector to store errors
+   Interpolated primal solution DOF 37317
+   [ErrorController::estimate_error]Interpolations done
+   [ErrorController::estimate_error]Instantiated CellData
+   [ErrorController::estimate_error]Loop integral over cells done
+   [ErrorController::refine_grid]Estimate errors
+   [ErrorController::global_estimate]Interpolated primal solution DOF 37317
+   [ErrorController::global_estimate]Interpolations done
+   [ErrorController::refine_grid]Global error = 8.85697e-05
+   [ErrorController::refine_grid]Global error as sum of cells' errors = 8.82656e-05
+   [ErrorController::refine_grid]Executed coarsening and refinement
+[Framework]Refinement cycle: 2
+   [Solver]Number of degrees of freedom: 12306
+   [Solver::assemble_system]Assembled the rhs
+   [Solver]203 CG iterations needed to obtain convergence.
+   [Solver]Number of degrees of freedom: 48199
+   [Solver::assemble_system]Assembled the rhs
+Nonzero elements of rhs BEFORE apply_boundary_conditions() = 1395
+Nonzero elements of rhs AFTER apply_boundary_conditions() = 930
+   [Solver]757 CG iterations needed to obtain convergence.
+   [PrimalSolver]Potential at (0.01,0.002): 1.296409e+04
+ Mesh written to vtu
+
+   [Framework]Number of degrees of freedom=12306
+   [Framework]Prepare call to refine grid
+   [ErrorController::refine_grid]Build vector to store errors
+   Interpolated primal solution DOF 48199
+   [ErrorController::estimate_error]Interpolations done
+   [ErrorController::estimate_error]Instantiated CellData
+   [ErrorController::estimate_error]Loop integral over cells done
+   [ErrorController::refine_grid]Estimate errors
+   [ErrorController::global_estimate]Interpolated primal solution DOF 48199
+   [ErrorController::global_estimate]Interpolations done
+   [ErrorController::refine_grid]Global error = 5.59325e-05
+   [ErrorController::refine_grid]Global error as sum of cells' errors = 5.60238e-05
+   [ErrorController::refine_grid]Executed coarsening and refinement
+[Framework]Refinement cycle: 3
+   [Solver]Number of degrees of freedom: 21844
+   [Solver::assemble_system]Assembled the rhs
+   [Solver]234 CG iterations needed to obtain convergence.
+   [Solver]Number of degrees of freedom: 86079
+   [Solver::assemble_system]Assembled the rhs
+Nonzero elements of rhs BEFORE apply_boundary_conditions() = 2787
+Nonzero elements of rhs AFTER apply_boundary_conditions() = 1858
+   [Solver]868 CG iterations needed to obtain convergence.
+   [PrimalSolver]Potential at (0.01,0.002): 1.293534e+04
+ Mesh written to vtu
+
+   [Framework]Number of degrees of freedom=21844
+   [Framework]Prepare call to refine grid
+   [ErrorController::refine_grid]Build vector to store errors
+   Interpolated primal solution DOF 86079
+   [ErrorController::estimate_error]Interpolations done
+   [ErrorController::estimate_error]Instantiated CellData
+   [ErrorController::estimate_error]Loop integral over cells done
+   [ErrorController::refine_grid]Estimate errors
+   [ErrorController::global_estimate]Interpolated primal solution DOF 86079
+   [ErrorController::global_estimate]Interpolations done
+   [ErrorController::refine_grid]Global error = 3.05931e-05
+   [ErrorController::refine_grid]Global error as sum of cells' errors = 3.05629e-05
+   [ErrorController::refine_grid]Executed coarsening and refinement
+[Framework]Refinement cycle: 4
+   [Solver]Number of degrees of freedom: 41917
+   [Solver::assemble_system]Assembled the rhs
+   [Solver]270 CG iterations needed to obtain convergence.
+   [Solver]Number of degrees of freedom: 165848
+   [Solver::assemble_system]Assembled the rhs
+Nonzero elements of rhs BEFORE apply_boundary_conditions() = 5571
+Nonzero elements of rhs AFTER apply_boundary_conditions() = 3714
+   [Solver]1007 CG iterations needed to obtain convergence.
+   [PrimalSolver]Potential at (0.01,0.002): 1.290475e+04
+ Mesh written to vtu
+
+   [Framework]Number of degrees of freedom=41917
+   [Framework]Prepare call to refine grid
+   [ErrorController::refine_grid]Build vector to store errors
+   Interpolated primal solution DOF 165848
+   [ErrorController::estimate_error]Interpolations done
+   [ErrorController::estimate_error]Instantiated CellData
+   [ErrorController::estimate_error]Loop integral over cells done
+   [ErrorController::refine_grid]Estimate errors
+   [ErrorController::global_estimate]Interpolated primal solution DOF 165848
+   [ErrorController::global_estimate]Interpolations done
+   [ErrorController::refine_grid]Global error = 1.86328e-05
+   [ErrorController::refine_grid]Global error as sum of cells' errors = 1.86367e-05
+   [ErrorController::refine_grid]Executed coarsening and refinement
+[Framework]Refinement cycle: 5
+   [Solver]Number of degrees of freedom: 55729
+   [Solver::assemble_system]Assembled the rhs
+   [Solver]297 CG iterations needed to obtain convergence.
+   [Solver]Number of degrees of freedom: 220119
+   [Solver::assemble_system]Assembled the rhs
+Nonzero elements of rhs BEFORE apply_boundary_conditions() = 11139
+Nonzero elements of rhs AFTER apply_boundary_conditions() = 7426
+   [Solver]1064 CG iterations needed to obtain convergence.
+   [PrimalSolver]Potential at (0.01,0.002): 1.289647e+04
+ Mesh written to vtu
+
+   [Framework]Number of degrees of freedom=55729
+   [Framework]Prepare call to refine grid
+   [ErrorController::refine_grid]Build vector to store errors
+   Interpolated primal solution DOF 220119
+   [ErrorController::estimate_error]Interpolations done
+   [ErrorController::estimate_error]Instantiated CellData
+   [ErrorController::estimate_error]Loop integral over cells done
+   [ErrorController::refine_grid]Estimate errors
+   [ErrorController::global_estimate]Interpolated primal solution DOF 220119
+   [ErrorController::global_estimate]Interpolations done
+   [ErrorController::refine_grid]Global error = 9.4473e-06
+   [ErrorController::refine_grid]Global error as sum of cells' errors = 9.44257e-06
+   [ErrorController::refine_grid]Executed coarsening and refinement
+[Framework]Refinement cycle: 6
+   [Solver]Number of degrees of freedom: 76115
+   [Solver::assemble_system]Assembled the rhs
+   [Solver]318 CG iterations needed to obtain convergence.
+   [Solver]Number of degrees of freedom: 299752
+   [Solver::assemble_system]Assembled the rhs
+Nonzero elements of rhs BEFORE apply_boundary_conditions() = 22275
+Nonzero elements of rhs AFTER apply_boundary_conditions() = 14850
+   [Solver]1037 CG iterations needed to obtain convergence.
+   [PrimalSolver]Potential at (0.01,0.002): 1.289222e+04
+ Mesh written to vtu
+
+   [Framework]Number of degrees of freedom=76115
+   [Framework]Prepare call to refine grid
+   [ErrorController::refine_grid]Build vector to store errors
+   Interpolated primal solution DOF 299752
+   [ErrorController::estimate_error]Interpolations done
+   [ErrorController::estimate_error]Instantiated CellData
+   [ErrorController::estimate_error]Loop integral over cells done
+   [ErrorController::refine_grid]Estimate errors
+   [ErrorController::global_estimate]Interpolated primal solution DOF 299752
+   [ErrorController::global_estimate]Interpolations done
+   [ErrorController::refine_grid]Global error = 4.85154e-06
+   [ErrorController::refine_grid]Global error as sum of cells' errors = 4.85023e-06
+   [ErrorController::refine_grid]Executed coarsening and refinement
+[Framework]Refinement cycle: 7
+   [Solver]Number of degrees of freedom: 218824
+   [Solver::assemble_system]Assembled the rhs
+   [Solver]427 CG iterations needed to obtain convergence.
+   [Solver]Number of degrees of freedom: 866706
+   [Solver::assemble_system]Assembled the rhs
+Nonzero elements of rhs BEFORE apply_boundary_conditions() = 44547
+Nonzero elements of rhs AFTER apply_boundary_conditions() = 29698
+   [Solver]1479 CG iterations needed to obtain convergence.
+   [PrimalSolver]Potential at (0.01,0.002): 1.287879e+04
+ Mesh written to vtu
+
+   [Framework]Number of degrees of freedom=218824
+   [Framework]Prepare call to refine grid
+   [ErrorController::refine_grid]Build vector to store errors
+   Interpolated primal solution DOF 866706
+   [ErrorController::estimate_error]Interpolations done
+   [ErrorController::estimate_error]Instantiated CellData
+   [ErrorController::estimate_error]Loop integral over cells done
+   [ErrorController::refine_grid]Estimate errors
+   [ErrorController::global_estimate]Interpolated primal solution DOF 866706
+   [ErrorController::global_estimate]Interpolations done
+   [ErrorController::refine_grid]Global error = 2.54274e-06
+   [ErrorController::refine_grid]Global error as sum of cells' errors = 2.54266e-06
+   [ErrorController::refine_grid]Executed coarsening and refinement
+
+[100%] Built target run
+dealii@2d96ae88d4ca:~/shared-folder/ion_propulsion/build$ 

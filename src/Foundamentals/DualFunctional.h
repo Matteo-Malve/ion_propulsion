@@ -1,5 +1,5 @@
-#ifndef GETPOT_DUALFUNCTIONAL_H
-#define GETPOT_DUALFUNCTIONAL_H
+#ifndef ION_PROPULSION_DUALFUNCTIONAL_H
+#define ION_PROPULSION_DUALFUNCTIONAL_H
 
 #include "../includes&parameters_setup.h"
 static GetPot redefined_3_datafile("../data_setup");
@@ -25,5 +25,6 @@ public:
                               Vector<double> &       rhs) const override;
 };
 
+// For details check the implementation in the corresponding .cpp file
 
-#endif //GETPOT_DUALFUNCTIONAL_H
+#endif //ION_PROPULSION_DUALFUNCTIONAL_H

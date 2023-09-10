@@ -1,5 +1,5 @@
-#ifndef MESH_CC_HELPERFUCTIONS_H
-#define MESH_CC_HELPERFUCTIONS_H
+#ifndef ION_PROPULSION_CC_HELPERFUCTIONS_H
+#define ION_PROPULSION_CC_HELPERFUCTIONS_H
 
 #include "../includes&parameters_setup.h"
 static GetPot redefined_4_datafile("../data_setup");
@@ -61,4 +61,4 @@ void check_boundary_ids(const Triangulation<dim> &triangulation);
 
 */
 
-#endif //MESH_CC_HELPERFUCTIONS_H
+#endif //ION_PROPULSION_CC_HELPERFUCTIONS_H

@@ -1,5 +1,5 @@
-#ifndef GETPOT_ERRORCONTROLLER_H
-#define GETPOT_ERRORCONTROLLER_H
+#ifndef ION_PROPULSION_ERRORCONTROLLER_H
+#define ION_PROPULSION_ERRORCONTROLLER_H
 
 #include "Framework.h"
 #include "PrimalSolver.h"
@@ -59,4 +59,4 @@ void ErrorController<dim>::output_solution()
     this->DualSolver<dim>::output_solution();
 }
 
-#endif //GETPOT_ERRORCONTROLLER_H
+#endif //ION_PROPULSION_ERRORCONTROLLER_H

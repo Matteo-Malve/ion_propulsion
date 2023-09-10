@@ -1,5 +1,5 @@
-#ifndef EVALUATE_RG_H
-#define EVALUATE_RG_H
+#ifndef ION_PROPULSION_EVALUATE_RG_H
+#define ION_PROPULSION_EVALUATE_RG_H
 
 #include "../includes&parameters_setup.h"
 
@@ -28,4 +28,4 @@ public:
     }
 };
 
-#endif //EVALUATE_RG_H
+#endif //ION_PROPULSION_EVALUATE_RG_H

@@ -67,7 +67,9 @@ ErrorController<dim>::CellData::CellData(const CellData &cell_data)
 template <int dim>
 void ErrorController<dim>::solve_problem()
 {
+    cout<<"   [ErrorController::solve_problem] Begin solving Primal Problem"<<endl;
     this->PrimalSolver<dim>::solve_problem();
+    cout<<"   [ErrorController::solve_problem] Begin solving Dual Dual"<<endl;
     this->DualSolver<dim>::solve_problem();
 }
 
@@ -83,10 +85,8 @@ void ErrorController<dim>::refine_grid(int step) {
 
     // Prepare vector to store error values
     Vector<float> error_indicators(this->triangulation->n_active_cells());
-    cout<<"   [ErrorController::refine_grid]Build vector to store errors"<<endl;
     // Compute local errors
     estimate_error(error_indicators);
-    cout<<"   [ErrorController::refine_grid]Estimate errors"<<endl;
 
     // Compute global error estimate
     double global_error=0.0;
@@ -129,13 +129,13 @@ void ErrorController<dim>::estimate_error(Vector<float> &error_indicators) const
 {
     // INTERPOLATION
 
-    // Project primal solution on dual solution FE space
+    // Project uh0 on dual solution FE space
     AffineConstraints<double> dual_hanging_node_constraints;
     DoFTools::make_hanging_node_constraints(DualSolver<dim>::dof_handler,
                                             dual_hanging_node_constraints);
     dual_hanging_node_constraints.close();
     Vector<double> primal_solution(DualSolver<dim>::dof_handler.n_dofs());
-    cout<<"   Interpolated primal solution DOF "<<primal_solution.size()<< endl;
+
     FETools::interpolate(PrimalSolver<dim>::dof_handler,
                          PrimalSolver<dim>::uh0,
                          DualSolver<dim>::dof_handler,
@@ -154,13 +154,11 @@ void ErrorController<dim>::estimate_error(Vector<float> &error_indicators) const
                                       PrimalSolver<dim>::dof_handler,
                                       primal_hanging_node_constraints,
                                       dual_weights);                            // zh-∏zh
-    cout<<"   [ErrorController::estimate_error]Interpolations done"<<endl;
 
     // Instance CELL DATA
     CellData cell_data(this->DualSolver<dim>::fe,               // Initialized
                        this->DualSolver<dim>::quadrature,       // Empty
                        this->PrimalSolver<dim>::rhs_function);  // Empty
-    cout<<"   [ErrorController::estimate_error]Instantiated CellData"<<endl;
 
     // Compute Rg_plus_uh0hat
     Vector<double> Rg_plus_uh0hat(primal_solution.size());
@@ -179,7 +177,6 @@ void ErrorController<dim>::estimate_error(Vector<float> &error_indicators) const
                             cell_data,
                             error_indicators);
     }
-    cout<<"   [ErrorController::estimate_error]Loop integral over cells done"<<endl;
 
 }
 
@@ -212,9 +209,9 @@ void ErrorController<dim>::integrate_over_cell(
 
 template <int dim>
 double ErrorController<dim>::global_estimate() const {
-    // INTERPOLATION
 
-    // Project primal solution on dual solution FE space
+    // INTERPOLATION
+    // Project uh0 on dual solution FE space
     AffineConstraints<double> dual_hanging_node_constraints;
     DoFTools::make_hanging_node_constraints(DualSolver<dim>::dof_handler,
                                             dual_hanging_node_constraints);
@@ -239,13 +236,12 @@ double ErrorController<dim>::global_estimate() const {
                                       PrimalSolver<dim>::dof_handler,
                                       primal_hanging_node_constraints,
                                       dual_weights);
-    cout<<"   [ErrorController::global_estimate]Interpolations done"<<endl;
 
     // EVALUATION
     Vector<double> temp(dual_weights.size());
     double dx = 0.0; double lx = 0.0;
 
-    // dx
+    // Compute   u' A z                             NOTE: z is actually the dual weights (zh-∏zh)
     DualSolver<dim>::system_matrix.vmult(temp,dual_weights);    // A z
     if(temp.size()!=primal_solution.size())
         cout<<"DIMENSIONALITY PROBLEM"<<endl;
@@ -254,12 +250,14 @@ double ErrorController<dim>::global_estimate() const {
 
     Vector<double> F(dual_weights.size());
 
-    // a(Rg,v)
+    // Compute   a(Rg,φ)
+
+    // NOTE: Almost identical to computation of a(Rg,v) in Primal Solver's rhs
+    //       Only here we use shape functions from the dual FE space
     const double eps0 = 8.854*1e-12; // [F/m]
     const unsigned int dofs_per_cell = DualSolver<dim>::dof_handler.get_fe().n_dofs_per_cell();
     Vector<double> cell_F(dofs_per_cell);
     std::vector <types::global_dof_index> local_dof_indices(dofs_per_cell);
-
     QGauss<dim>          Rg_quadrature(5);
     FEValues<dim>        Rg_fe_values(DualSolver<dim>::dof_handler.get_fe(),
                                       Rg_quadrature,
@@ -269,35 +267,39 @@ double ErrorController<dim>::global_estimate() const {
     for (const auto &cell: DualSolver<dim>::dof_handler.active_cell_iterators()) {
         cell_F = 0;
         Rg_fe_values.reinit(cell);
-
-
         for (unsigned int q_point = 0; q_point < Rg_n_q_points; ++q_point){
             // evaluate_grad_Rg
             auto & quad_point_coords = Rg_fe_values.get_quadrature_points()[q_point];
             auto grad_Rg_xq = evaluate_grad_Rg(quad_point_coords[0],quad_point_coords[1]);
-            // assemble a(Rg,v)
+            // assemble a(Rg,φ)
             for (unsigned int i = 0; i < dofs_per_cell; ++i)
                 cell_F(i) += 1.0006*eps0*
                                (Rg_fe_values.shape_grad(i, q_point) *      // grad phi_i(x_q)
                                 grad_Rg_xq *                               // grad_Rg(x_q)
                                 Rg_fe_values.JxW(q_point));                // dx
         }
-
+        // Local to Global
         cell->get_dof_indices(local_dof_indices);
         for (unsigned int i = 0; i < dofs_per_cell; ++i)
             F(local_dof_indices[i]) += cell_F(i);
     }
 
-    // lx
+    // Compute     z' F    or    z•F
     for(size_t i=0;i<dual_weights.size();i++)
         lx += dual_weights(i) * F(i);
 
+
+    // Return             r(z) = - z' F - u' A z
+    // or, precisely,     r(zk-∏zk) = - (zk-∏zk)' F - uh0' A (zk-∏zk)
     return -lx -dx;
 }
 
 
-// Instantiation
 
+
+// #######################################
+// Template initialization
+// #######################################
 template class ErrorController<2>;
 
 

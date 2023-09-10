@@ -1,5 +1,5 @@
-#ifndef GETPOT_FRAMEWORK_H
-#define GETPOT_FRAMEWORK_H
+#ifndef ION_PROPULSION_FRAMEWORK_H
+#define ION_PROPULSION_FRAMEWORK_H
 
 #include "../includes&parameters_setup.h"
 #include "ErrorController.h"
@@ -83,4 +83,4 @@ void framework_run(const ProblemDescription<dim> &descriptor,unsigned int grid_o
 }
 
 
-#endif //GETPOT_FRAMEWORK_H
+#endif //ION_PROPULSION_FRAMEWORK_H

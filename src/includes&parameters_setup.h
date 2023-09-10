@@ -1,5 +1,5 @@
-#ifndef MESH_CC_ICLUDES_PARAMETERS_SETUP_H
-#define MESH_CC_INCLUDES_PARAMETERS_SETUP_H
+#ifndef ION_PROPULSION_ICLUDES_PARAMETERS_SETUP_H
+#define ION_PROPULSION_INCLUDES_PARAMETERS_SETUP_H
 
 #include <deal.II/base/quadrature_lib.h>
 #include <deal.II/base/timer.h> // for the timer
@@ -53,4 +53,4 @@ using std::endl;
 
 
 
-#endif //MESH_CC_INCLUDES_PARAMETERS_SETUP_H
+#endif //ION_PROPULSION_INCLUDES_PARAMETERS_SETUP_H
