@@ -22,7 +22,7 @@ void PrimalSolver<dim>::output_solution(){
                   << std::scientific << x_ << std::defaultfloat << std::endl;
 
         // Identify ionization area and save it to .vtu file
-        ionization_area(*this->triangulation,this->dof_handler,this->solution);
+        //ionization_area(*this->triangulation,this->dof_handler,this->solution);
 
     }
     if(this->grid_option==2)

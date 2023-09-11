@@ -114,14 +114,15 @@ void ErrorController<dim>::refine_grid(int step) {
                                                           0.3);
     // Active (unique) refinement criteria
     else
-        /*
+        
         GridRefinement::refine_and_coarsen_optimize(*this->triangulation,
                                                     error_indicators,
-                                                    4);*/
+                                                    4);
+        /*
         GridRefinement::refine_and_coarsen_fixed_fraction(*this->triangulation,
                                                           error_indicators,
                                                           0.8,
-                                                          0.02);
+                                                          0.02);*/
 
     // Execute refinement
     this->triangulation->execute_coarsening_and_refinement();

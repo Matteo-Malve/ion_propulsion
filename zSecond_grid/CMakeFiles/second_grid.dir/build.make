@@ -92,7 +92,7 @@ second_grid_EXTERNAL_OBJECTS =
 
 second_grid: CMakeFiles/second_grid.dir/second_grid.cpp.o
 second_grid: CMakeFiles/second_grid.dir/build.make
-second_grid: /usr/local/lib/libdeal_II.g.so.9.5.0
+second_grid: /usr/local/lib/libdeal_II.g.so.9.4.2
 second_grid: /usr/lib/x86_64-linux-gnu/libtrilinos_pike-blackbox.so
 second_grid: /usr/lib/x86_64-linux-gnu/libtrilinos_trilinoscouplings.so
 second_grid: /usr/lib/x86_64-linux-gnu/libtrilinos_piro.so
@@ -278,14 +278,13 @@ second_grid: /usr/lib/x86_64-linux-gnu/libopenblas.so
 second_grid: /usr/lib/x86_64-linux-gnu/libmpi_usempif08.so
 second_grid: /usr/lib/x86_64-linux-gnu/libmpi_usempi_ignore_tkr.so
 second_grid: /usr/lib/x86_64-linux-gnu/libmpi_mpifh.so
+second_grid: /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so
 second_grid: /usr/lib/x86_64-linux-gnu/libopen-rte.so
 second_grid: /usr/lib/x86_64-linux-gnu/libopen-pal.so
 second_grid: /usr/lib/x86_64-linux-gnu/libhwloc.so
 second_grid: /usr/lib/x86_64-linux-gnu/libevent_core.so
 second_grid: /usr/lib/x86_64-linux-gnu/libevent_pthreads.so
-second_grid: /usr/lib/x86_64-linux-gnu/libm.so
 second_grid: /usr/lib/x86_64-linux-gnu/libz.so
-second_grid: /usr/lib/x86_64-linux-gnu/openmpi/lib/libmpi.so
 second_grid: /usr/lib/x86_64-linux-gnu/libslepc.so
 second_grid: /usr/lib/x86_64-linux-gnu/libpetsc.so
 second_grid: /usr/lib/x86_64-linux-gnu/libsundials_idas.so
