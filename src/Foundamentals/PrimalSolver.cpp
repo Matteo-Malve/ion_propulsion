@@ -124,7 +124,7 @@ void PrimalSolver<dim>::assemble_rhs(Vector<double> &rhs) const {
     // 2) ASSEMBLE   - a(Rg,v)
 
     // Setup
-    QGauss<dim>          Rg_quadrature(4);
+    QGauss<dim>          Rg_quadrature(2);
     FEValues<dim>        Rg_fe_values(*this->fe,
                                    Rg_quadrature,
                                    update_values | update_gradients | update_quadrature_points |

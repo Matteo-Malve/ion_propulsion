@@ -103,12 +103,6 @@ void DualSolver<dim>::output_solution()
     std::ofstream output("dual_solution-" + std::to_string(this->refinement_cycle) + ".vtu");
     data_out.write_vtu(output);
 
-    std::ofstream out("../mesh_storage/dual_mesh_cycle_" + std::to_string(this->refinement_cycle) + ".vtu");
-    GridOut       grid_out;
-    GridOutFlags::Vtu flags(true);
-    grid_out.set_flags(flags);
-    grid_out.write_vtu(*this->triangulation, out);
-
 }
 
 #endif //ION_PROPULSION_DUALSOLVER_H

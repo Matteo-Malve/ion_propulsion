@@ -25,8 +25,6 @@ private:
     Vector<float> values;
     unsigned int grid_option = datafile("grid_option",1);
     unsigned int Nmax = datafile("Nmax",10);
-    double wire_radius = datafile("wire_radius",250e-6);
-    const float conv_tol = datafile("global_tolerance",1e-4);
 
 
 };

@@ -1,4 +1,4 @@
-# Ion Propulsion
+# Ion Propulsion:
 ### Simulation of the electrical field with Goal Oriented adaptive refinement
 
 *A project by Claudia Mallimaci e Matteo Malvestiti*
@@ -17,20 +17,21 @@ Generate your Makefiles, and store them orderly inside the build directory, with
 
 ### Everyday use of the code
 
+To run the code, **move to subdirectory /build**
+> cd ion_propulsion/build
+
+Here just type
+> make run
+
 Before running this code you may want to open the **data_setup** file that you find in the root directory of the project.
 Here you can manipulate all the main parameters of the code, like:
 - Max number of refinements
 - FE degree
 - Path to the mesh to be loaded
 - Mesh geometrical information if you don't use a mesh of your own instead of the standard one
-- grid_option: 1. any grid, 2. doughnut grid for validation
-- refinement_algorithm: 1. (default) fixed_fraction, 2. optimize
+- grid_option:            1. any grid,                 2. doughnut grid for validation
+- refinement_algorithm:   1. (default) fixed_fraction, 2. optimize
 
-Then, to run the code, move to
-> cd ion_propulsion/build
-
-Here just type
-> make run
 
 ---
 ### Understanding the tree of folders
@@ -46,4 +47,9 @@ Still they can be of interest, and they don't burden a high computational cost t
 - **gmsh_grids**: Here you're supposed to place all the meshes you generate with Gmsh and want to be imported in the code.
 Our mesh is already present, under the name *horizontal_strip.msh*.
 NOTE: Put here only meshes in *.msh* format.
-- **src**: All the code
+- **src**: All the scripts, subdivided in root, **Foundamentals** and **Mesh**
+- **src/Foundamentals** contains most of the scripts
+- **src/Mesh** actually contains just one class, named GridForge, which is in charge of the loading of grids
+
+They were divided in the beginning because they worked independently. 
+This division lost much of its meaning, after the current inheritance structure was introduced.

@@ -13,18 +13,18 @@ void CreateInitialGrid(Triangulation<dim> &mesh)
     //int is_present = stat(redefined_datafile("custom_mesh_to_be_loaded","file inesistente"),&sb);
     int is_present = stat("../gmsh_grids/horizontal_strip.msh",&sb);
     if(is_present==-1) {
-        std::cerr << " Mesh NOT found!" << std::endl;
+        std::cerr << "   Mesh NOT found!" << std::endl;
     }
     else if(is_present==0){
-        std::cerr<<" Mesh found"<<std::endl<<" Prepare import"<<endl;
+        std::cerr<<"   Mesh found"<<std::endl<<"   Prepare import"<<endl;
         //std::ifstream input_file(redefined_datafile("custom_mesh_to_be_loaded","file inesistente"));
         std::ifstream input_file("../gmsh_grids/horizontal_strip.msh");
         GridIn<dim>       grid_in;
         grid_in.attach_triangulation(mesh);
         grid_in.read_msh(input_file);
-        std::cerr<<" Grid imported"<<std::endl;
+        std::cerr<<"   Grid imported"<<std::endl;
     } else
-        std::cerr<<" File not found nor not found. Anomaly."<<endl;
+        std::cerr<<"   File not found nor not found. Anomaly."<<endl;
 
     // Save initial mesh to file
     std::ofstream out("../mesh_storage/initial_mesh.vtu");
@@ -33,11 +33,11 @@ void CreateInitialGrid(Triangulation<dim> &mesh)
     grid_out.set_flags(flags);
     cout<<endl<<"Saving constructed mesh to file:"<<endl;
     if(flags.serialize_triangulation==true)
-        std::cout<<" GridOutFlags::Vtu::serialize_triangulation  IS  true"<<std::endl;
+        std::cout<<"   GridOutFlags::Vtu::serialize_triangulation  IS  true"<<std::endl;
     else
-        std::cout<<" GridOutFlags::Vtu::serialize_triangulation  IS  false"<<std::endl;
+        std::cout<<"   GridOutFlags::Vtu::serialize_triangulation  IS  false"<<std::endl;
     grid_out.write_vtu(mesh, out);
-    std::cout<<" Mesh written to vtu"<<endl<<endl;
+    std::cout<<"   Mesh written to .vtu"<<endl<<endl;
 
     // NOTE:  To clean the mesh_storage folder and import new grids, remember to type the command:
     //        > make cleanmesh

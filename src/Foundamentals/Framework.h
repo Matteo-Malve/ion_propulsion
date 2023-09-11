@@ -72,7 +72,6 @@ void framework_run(const ProblemDescription<dim> &descriptor,unsigned int grid_o
         solver->output_solution();
 
         // Refine grid
-        cout << "   [Framework]Prepare call to refine grid" << endl;
         solver->refine_grid(algorithm);
 
         // Update step

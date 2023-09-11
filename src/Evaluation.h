@@ -12,9 +12,6 @@ namespace Evaluation
     {
     public:
         virtual ~EvaluationBase() = default;
-
-        void set_refinement_cycle(const unsigned int refinement_cycle);
-
         virtual void operator()(const DoFHandler<dim> &dof_handler,
                                 const Vector<double> & solution) const = 0;
 
@@ -22,15 +19,6 @@ namespace Evaluation
     protected:
         unsigned int refinement_cycle;
     };
-
-
-
-    template <int dim>
-    void EvaluationBase<dim>::set_refinement_cycle(const unsigned int step)
-    {
-        refinement_cycle = step;
-    }
-
 
     template <int dim>
     class PointValueEvaluation : public EvaluationBase<dim>
@@ -113,7 +101,7 @@ namespace Evaluation
         return point_value;
     }
 
-} // namespace Evaluation
+} // end namespace Evaluation
 
 
 #endif //ION_PROPULSION_EVALUATION_H
