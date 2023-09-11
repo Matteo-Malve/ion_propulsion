@@ -6,8 +6,8 @@ EmitterFlux<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler,
                                Vector<double> &       rhs) const
 {
     // Retrieve geometrical data from datafile
-    double radius = redefined_3_datafile("Mesh/wire_radius",250e-6);
-    const Point<2> mesh_center(redefined_3_datafile("Mesh/wire_center_x_coord",0.0),redefined_3_datafile("Mesh/wire_center_y_coord",0.0));
+    double radius = redefined_3_datafile("wire_radius",250e-6);
+    const Point<2> mesh_center(redefined_3_datafile("wire_center_x_coord",0.0),redefined_3_datafile("wire_center_y_coord",0.0));
 
     // Set up:
     rhs.reinit(dof_handler.n_dofs());

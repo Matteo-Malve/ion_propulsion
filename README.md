@@ -27,9 +27,8 @@ Before running this code you may want to open the **data_setup** file that you f
 Here you can manipulate all the main parameters of the code, like:
 - Max number of refinements
 - FE degree
-- Path to the mesh to be loaded
 - Mesh geometrical information if you don't use a mesh of your own instead of the standard one
-- grid_option:            1. any grid,                 2. doughnut grid for validation
+- grid_option:            1. input_mesh                2. doughnut grid for validation
 - refinement_algorithm:   1. (default) fixed_fraction, 2. optimize
 
 
@@ -53,3 +52,14 @@ NOTE: Put here only meshes in *.msh* format.
 
 They were divided in the beginning because they worked independently. 
 This division lost much of its meaning, after the current inheritance structure was introduced.
+
+
+---
+
+To use another custom mesh:
+- It must have the same macroscopic shape: the emitter must be circular
+- Name it input_mesh.msh and save it in directory gmsh_grid
+- Or, if in .vtu, add it directly to directory mesh_storage
+- Select grid_option = 1
+
+Note: We didn't test such portability.

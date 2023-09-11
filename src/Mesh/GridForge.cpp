@@ -9,16 +9,13 @@ void CreateInitialGrid(Triangulation<dim> &mesh)
     // Check if ground mesh file is present and retrieve it
     cout<<"[GridForge::CreateInitialGrid]Looking for Custom Ground Mesh built with Gmsh"<<endl;
     struct stat sb;
-    //GetPot redefined_datafile("../data_setup");
-    //int is_present = stat(redefined_datafile("custom_mesh_to_be_loaded","file inesistente"),&sb);
-    int is_present = stat("../gmsh_grids/horizontal_strip.msh",&sb);
+    int is_present = stat("../gmsh_grids/input_mesh.msh",&sb);
     if(is_present==-1) {
         std::cerr << "   Mesh NOT found!" << std::endl;
     }
     else if(is_present==0){
         std::cerr<<"   Mesh found"<<std::endl<<"   Prepare import"<<endl;
-        //std::ifstream input_file(redefined_datafile("custom_mesh_to_be_loaded","file inesistente"));
-        std::ifstream input_file("../gmsh_grids/horizontal_strip.msh");
+        std::ifstream input_file("../gmsh_grids/input_mesh.msh");
         GridIn<dim>       grid_in;
         grid_in.attach_triangulation(mesh);
         grid_in.read_msh(input_file);
