@@ -72,7 +72,7 @@ void CreateGrid(Triangulation<dim> &mesh){
 template <int dim>
 void LoadSecondGrid(Triangulation<dim> &mesh){
     struct stat sb;
-    int is_present = stat("../zSecond_grid/circular_mesh.vtu",&sb);
+    int is_present = stat("../gmsh_grids/circular_mesh.msh",&sb);
     cout<<endl<<"[GridForge::LoadSecondGrid]Looking for an already existent mesh:"<<endl;
     if(is_present==-1) {
         std::cout << "   [GridForge::LoadSecondGrid]File NOT found: proceed to generate initial mesh" << std::endl;
@@ -80,10 +80,10 @@ void LoadSecondGrid(Triangulation<dim> &mesh){
     else if(is_present==0){
         std::cout<<"   [GridForge::LoadSecondGrid]File found"<<std::endl;
         std::cout<<"   [GridForge::LoadSecondGrid]Prepare import"<<std::endl;
-        std::ifstream input_file("../zSecond_grid/circular_mesh.vtu");
+        std::ifstream input_file("../gmsh_grids/circular_mesh.msh");
         GridIn<dim>       grid_in;
         grid_in.attach_triangulation(mesh);
-        grid_in.read_vtu(input_file);
+        grid_in.read_msh(input_file);
         std::cout<<"   [GridForge::LoadSecondGrid]Grid imported"<<std::endl;
 
     } else

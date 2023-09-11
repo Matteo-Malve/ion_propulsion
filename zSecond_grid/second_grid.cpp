@@ -7,7 +7,7 @@ int main()
     // BUILD TRIANGULATION
     Triangulation<2> triangulation;
     const Point<2> center(0, 0);
-    const double inner_radius = 250e-6, outer_radius = 0.001+250e-6;
+    const double inner_radius = 250e-6, outer_radius = 0.01+250e-6;
     GridGenerator::hyper_shell(
             triangulation, center, inner_radius, outer_radius, 10);
     for (unsigned int step = 0; step < 5; ++step)
@@ -39,9 +39,9 @@ int main()
         if (face->at_boundary())
         {
             const double distance_from_center = center.distance(face->center());
-            if (distance_from_center <= 1.00001 * inner_radius)
+            if (distance_from_center <= 1.01 * inner_radius)
                 face->set_boundary_id(emitter_id);
-            else if (distance_from_center >= 0.99999*outer_radius) {
+            else if (distance_from_center >= 0.99*outer_radius) {
                 face->set_boundary_id(collector_id);
             }
         }
