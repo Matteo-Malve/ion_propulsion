@@ -193,12 +193,8 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/lib/x86_64-linux-gnu/openmpi/include/openmpi/ompi/mpi/cxx/win_inln.h \
  /usr/lib/x86_64-linux-gnu/openmpi/include/openmpi/ompi/mpi/cxx/file_inln.h \
  /usr/local/include/deal.II/base/numbers.h \
- /usr/local/include/deal.II/base/types.h \
- /usr/include/trilinos/Kokkos_Macros.hpp \
- /usr/include/trilinos/KokkosCore_config.h \
- /usr/include/trilinos/KokkosCore_Config_SetupBackend.hpp \
- /usr/include/c++/11/cmath /usr/include/math.h \
- /usr/include/x86_64-linux-gnu/bits/math-vector.h \
+ /usr/local/include/deal.II/base/types.h /usr/include/c++/11/cmath \
+ /usr/include/math.h /usr/include/x86_64-linux-gnu/bits/math-vector.h \
  /usr/include/x86_64-linux-gnu/bits/libm-simd-decl-stubs.h \
  /usr/include/x86_64-linux-gnu/bits/flt-eval-method.h \
  /usr/include/x86_64-linux-gnu/bits/fp-logb.h \
@@ -221,46 +217,69 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/include/c++/11/tr1/poly_laguerre.tcc \
  /usr/include/c++/11/tr1/riemann_zeta.tcc /usr/include/c++/11/complex \
  /usr/include/c++/11/sstream /usr/include/c++/11/bits/sstream.tcc \
- /usr/include/c++/11/cstddef /usr/include/boost/version.hpp \
- /usr/local/include/deal.II/base/quadrature.h \
- /usr/local/include/deal.II/base/point.h \
- /usr/local/include/deal.II/base/exceptions.h \
- /usr/include/trilinos/Kokkos_Core.hpp \
- /usr/include/trilinos/Kokkos_Core_fwd.hpp \
- /usr/include/trilinos/impl/Kokkos_Error.hpp \
- /usr/include/trilinos/impl/Kokkos_Utilities.hpp \
- /usr/include/trilinos/Kokkos_MasterLock.hpp \
- /usr/include/trilinos/KokkosCore_Config_FwdBackend.hpp \
- /usr/include/trilinos/fwd/Kokkos_Fwd_SERIAL.hpp \
- /usr/include/trilinos/Kokkos_Half.hpp \
- /usr/include/trilinos/Cuda/Kokkos_Cuda_Half.hpp \
- /usr/include/trilinos/KokkosCore_Config_DeclareBackend.hpp \
- /usr/include/trilinos/decl/Kokkos_Declare_SERIAL.hpp \
- /usr/include/trilinos/Kokkos_Serial.hpp \
- /usr/include/trilinos/Kokkos_Parallel.hpp \
- /usr/include/trilinos/Kokkos_View.hpp /usr/include/c++/11/algorithm \
+ /usr/include/c++/11/cstddef \
+ /usr/local/include/deal.II/differentiation/ad/adolc_math.h \
+ /usr/include/adolc/adouble.h /usr/include/adolc/internal/common.h \
+ /usr/include/adolc/internal/usrparms.h \
+ /usr/include/adolc/internal/adolc_settings.h \
+ /usr/include/adolc/internal/adubfunc.h \
+ /usr/include/adolc/internal/paramfunc.h /usr/include/adolc/param.h \
+ /usr/include/adolc/advector.h /usr/include/c++/11/vector \
+ /usr/include/c++/11/bits/stl_uninitialized.h \
+ /usr/include/c++/11/bits/stl_vector.h \
+ /usr/include/c++/11/bits/stl_bvector.h \
+ /usr/include/c++/11/bits/vector.tcc /usr/include/adolc/adtl.h \
+ /usr/include/c++/11/list /usr/include/c++/11/bits/stl_list.h \
+ /usr/include/c++/11/bits/allocated_ptr.h \
+ /usr/include/c++/11/bits/list.tcc /usr/include/boost/pool/pool_alloc.hpp \
+ /usr/include/boost/limits.hpp /usr/include/boost/config.hpp \
+ /usr/include/boost/config/user.hpp \
+ /usr/include/boost/config/detail/select_compiler_config.hpp \
+ /usr/include/boost/config/compiler/gcc.hpp \
+ /usr/include/boost/config/detail/select_stdlib_config.hpp \
+ /usr/include/c++/11/version \
+ /usr/include/boost/config/stdlib/libstdcpp3.hpp /usr/include/unistd.h \
+ /usr/include/x86_64-linux-gnu/bits/posix_opt.h \
+ /usr/include/x86_64-linux-gnu/bits/environments.h \
+ /usr/include/x86_64-linux-gnu/bits/confname.h \
+ /usr/include/x86_64-linux-gnu/bits/getopt_posix.h \
+ /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
+ /usr/include/x86_64-linux-gnu/bits/unistd_ext.h \
+ /usr/include/linux/close_range.h \
+ /usr/include/boost/config/detail/select_platform_config.hpp \
+ /usr/include/boost/config/platform/linux.hpp \
+ /usr/include/boost/config/detail/posix_features.hpp \
+ /usr/include/boost/config/detail/suffix.hpp \
+ /usr/include/boost/config/helper_macros.hpp \
+ /usr/include/boost/throw_exception.hpp \
+ /usr/include/boost/assert/source_location.hpp \
+ /usr/include/boost/current_function.hpp /usr/include/boost/cstdint.hpp \
+ /usr/include/boost/config/workaround.hpp \
+ /usr/include/boost/exception/exception.hpp \
+ /usr/include/boost/pool/poolfwd.hpp \
+ /usr/include/boost/pool/detail/mutex.hpp /usr/include/c++/11/mutex \
+ /usr/include/c++/11/chrono /usr/include/c++/11/ratio \
+ /usr/include/c++/11/ctime /usr/include/c++/11/bits/parse_numbers.h \
+ /usr/include/c++/11/bits/std_mutex.h \
+ /usr/include/c++/11/bits/unique_lock.h \
+ /usr/include/boost/pool/singleton_pool.hpp \
+ /usr/include/boost/pool/pool.hpp /usr/include/c++/11/functional \
+ /usr/include/c++/11/bits/refwrap.h \
+ /usr/include/c++/11/bits/std_function.h \
+ /usr/include/c++/11/unordered_map /usr/include/c++/11/bits/hashtable.h \
+ /usr/include/c++/11/bits/hashtable_policy.h \
+ /usr/include/c++/11/bits/enable_special_members.h \
+ /usr/include/c++/11/bits/unordered_map.h \
  /usr/include/c++/11/bits/stl_algo.h \
  /usr/include/c++/11/bits/algorithmfwd.h \
  /usr/include/c++/11/bits/stl_heap.h \
  /usr/include/c++/11/bits/stl_tempbuf.h \
  /usr/include/c++/11/bits/uniform_int_dist.h \
+ /usr/include/c++/11/algorithm \
  /usr/include/c++/11/pstl/glue_algorithm_defs.h \
- /usr/include/c++/11/functional /usr/include/c++/11/bits/refwrap.h \
- /usr/include/c++/11/bits/std_function.h \
- /usr/include/c++/11/unordered_map /usr/include/c++/11/bits/hashtable.h \
- /usr/include/c++/11/bits/hashtable_policy.h \
- /usr/include/c++/11/bits/enable_special_members.h \
- /usr/include/c++/11/bits/unordered_map.h /usr/include/c++/11/vector \
- /usr/include/c++/11/bits/stl_uninitialized.h \
- /usr/include/c++/11/bits/stl_vector.h \
- /usr/include/c++/11/bits/stl_bvector.h \
- /usr/include/c++/11/bits/vector.tcc \
  /usr/include/c++/11/pstl/execution_defs.h \
- /usr/include/trilinos/Kokkos_HostSpace.hpp /usr/include/c++/11/cstring \
- /usr/include/trilinos/Kokkos_Concepts.hpp \
- /usr/include/trilinos/Kokkos_MemoryTraits.hpp \
- /usr/include/trilinos/impl/Kokkos_Traits.hpp \
- /usr/include/trilinos/impl/Kokkos_BitOps.hpp /usr/include/c++/11/climits \
+ /usr/include/boost/integer/common_factor_ct.hpp \
+ /usr/include/boost/integer_fwd.hpp /usr/include/c++/11/climits \
  /usr/lib/gcc/x86_64-linux-gnu/11/include/limits.h \
  /usr/lib/gcc/x86_64-linux-gnu/11/include/syslimits.h \
  /usr/include/limits.h /usr/include/x86_64-linux-gnu/bits/posix1_lim.h \
@@ -269,6 +288,85 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/include/x86_64-linux-gnu/bits/posix2_lim.h \
  /usr/include/x86_64-linux-gnu/bits/xopen_lim.h \
  /usr/include/x86_64-linux-gnu/bits/uio_lim.h \
+ /usr/include/boost/pool/simple_segregated_storage.hpp \
+ /usr/include/boost/type_traits/alignment_of.hpp \
+ /usr/include/boost/type_traits/intrinsics.hpp \
+ /usr/include/boost/type_traits/detail/config.hpp \
+ /usr/include/boost/version.hpp \
+ /usr/include/boost/type_traits/integral_constant.hpp \
+ /usr/include/boost/detail/workaround.hpp /usr/include/boost/assert.hpp \
+ /usr/include/assert.h /usr/include/boost/pool/detail/guard.hpp \
+ /usr/include/boost/type_traits/aligned_storage.hpp \
+ /usr/include/boost/type_traits/type_with_alignment.hpp \
+ /usr/include/boost/type_traits/is_pod.hpp \
+ /usr/include/boost/type_traits/is_void.hpp \
+ /usr/include/boost/type_traits/is_scalar.hpp \
+ /usr/include/boost/type_traits/is_arithmetic.hpp \
+ /usr/include/boost/type_traits/is_integral.hpp \
+ /usr/include/boost/type_traits/is_floating_point.hpp \
+ /usr/include/boost/type_traits/is_enum.hpp \
+ /usr/include/boost/type_traits/is_pointer.hpp \
+ /usr/include/boost/type_traits/is_member_pointer.hpp \
+ /usr/include/boost/type_traits/is_member_function_pointer.hpp \
+ /usr/include/boost/type_traits/detail/is_member_function_pointer_cxx_11.hpp \
+ /usr/include/boost/static_assert.hpp \
+ /usr/include/boost/type_traits/conditional.hpp \
+ /usr/include/trilinos/Sacado.hpp \
+ /usr/include/trilinos/Sacado_Version.hpp \
+ /usr/include/trilinos/Sacado_ConfigDefs.h \
+ /usr/include/trilinos/Sacado_config.h \
+ /usr/include/trilinos/Kokkos_Macros.hpp \
+ /usr/include/trilinos/KokkosCore_config.h \
+ /usr/include/trilinos/KokkosCore_Config_SetupBackend.hpp \
+ /usr/include/trilinos/Sacado_MathFunctions.hpp \
+ /usr/include/trilinos/Sacado_Base.hpp \
+ /usr/include/trilinos/Sacado_Fad_ExpressionFwd.hpp \
+ /usr/include/trilinos/Sacado_SFINAE_Macros.hpp \
+ /usr/include/trilinos/Sacado_mpl_enable_if.hpp \
+ /usr/include/trilinos/Sacado_mpl_disable_if.hpp \
+ /usr/include/trilinos/Sacado_mpl_is_same.hpp \
+ /usr/include/trilinos/Sacado_mpl_is_convertible.hpp \
+ /usr/include/trilinos/Sacado_mpl_type_wrap.hpp \
+ /usr/include/trilinos/Sacado_mpl_has_type.hpp \
+ /usr/include/trilinos/Sacado_Fad_Ops_Fwd.hpp \
+ /usr/include/trilinos/Sacado_Fad_Exp_MathFunctions.hpp \
+ /usr/include/trilinos/Sacado_cmath.hpp \
+ /usr/include/trilinos/Sacado_Fad_Exp_Ops_Fwd.hpp \
+ /usr/include/trilinos/Sacado_Fad_Exp_ExpressionTraits.hpp \
+ /usr/include/trilinos/Sacado_Traits.hpp \
+ /usr/include/trilinos/Sacado_dummy_arg.hpp \
+ /usr/include/trilinos/Sacado_Fad_Exp_Expression.hpp \
+ /usr/include/trilinos/Sacado_Fad_Exp_GeneralFadTraits.hpp \
+ /usr/include/trilinos/Teuchos_PromotionTraits.hpp \
+ /usr/include/trilinos/Teuchos_ConfigDefs.hpp \
+ /usr/include/trilinos/TeuchosCore_config.h \
+ /usr/include/trilinos/Teuchos_config.h /usr/include/c++/11/cstring \
+ /usr/include/c++/11/iomanip /usr/include/c++/11/locale \
+ /usr/include/c++/11/bits/locale_facets_nonio.h \
+ /usr/include/x86_64-linux-gnu/c++/11/bits/time_members.h \
+ /usr/include/x86_64-linux-gnu/c++/11/bits/messages_members.h \
+ /usr/include/libintl.h /usr/include/c++/11/bits/codecvt.h \
+ /usr/include/c++/11/bits/locale_facets_nonio.tcc \
+ /usr/include/c++/11/bits/locale_conv.h \
+ /usr/include/c++/11/bits/unique_ptr.h \
+ /usr/include/c++/11/bits/quoted_string.h /usr/include/c++/11/cassert \
+ /usr/include/trilinos/Teuchos_DLLExportMacro.h \
+ /usr/include/trilinos/Sacado_Fad_ScalarTraitsImp.hpp \
+ /usr/include/trilinos/Teuchos_ScalarTraits.hpp \
+ /usr/include/trilinos/Kokkos_Complex.hpp \
+ /usr/include/trilinos/Kokkos_Atomic.hpp \
+ /usr/include/trilinos/Kokkos_Macros.hpp \
+ /usr/include/trilinos/Kokkos_HostSpace.hpp \
+ /usr/include/trilinos/Kokkos_Core_fwd.hpp \
+ /usr/include/trilinos/impl/Kokkos_Error.hpp \
+ /usr/include/trilinos/impl/Kokkos_Utilities.hpp \
+ /usr/include/trilinos/Kokkos_MasterLock.hpp \
+ /usr/include/trilinos/KokkosCore_Config_FwdBackend.hpp \
+ /usr/include/trilinos/fwd/Kokkos_Fwd_SERIAL.hpp \
+ /usr/include/trilinos/Kokkos_Concepts.hpp \
+ /usr/include/trilinos/Kokkos_MemoryTraits.hpp \
+ /usr/include/trilinos/impl/Kokkos_Traits.hpp \
+ /usr/include/trilinos/impl/Kokkos_BitOps.hpp \
  /usr/include/trilinos/impl/Kokkos_Tags.hpp \
  /usr/include/trilinos/impl/Kokkos_SharedAlloc.hpp \
  /usr/include/trilinos/impl/Kokkos_Tools.hpp \
@@ -298,15 +396,7 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/include/x86_64-linux-gnu/bits/dl_find_object.h \
  /usr/include/trilinos/impl/Kokkos_Profiling_DeviceInfo.hpp \
  /usr/include/trilinos/impl/Kokkos_Profiling_C_Interface.h \
- /usr/include/c++/11/cassert /usr/include/assert.h \
  /usr/include/trilinos/impl/Kokkos_HostSpace_deepcopy.hpp \
- /usr/include/trilinos/impl/Kokkos_ViewMapping.hpp \
- /usr/include/trilinos/Kokkos_Pair.hpp \
- /usr/include/trilinos/Kokkos_Extents.hpp \
- /usr/include/trilinos/impl/Kokkos_ViewTracker.hpp \
- /usr/include/trilinos/impl/Kokkos_ViewCtor.hpp \
- /usr/include/trilinos/impl/Kokkos_Atomic_View.hpp \
- /usr/include/trilinos/Kokkos_Atomic.hpp \
  /usr/include/trilinos/impl/Kokkos_Atomic_Memory_Order.hpp \
  /usr/include/c++/11/atomic /usr/include/c++/11/bits/atomic_base.h \
  /usr/include/c++/11/bits/atomic_lockfree_defines.h \
@@ -331,21 +421,78 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/include/trilinos/impl/Kokkos_Atomic_Generic.hpp \
  /usr/include/trilinos/impl/Kokkos_Atomic_Store.hpp \
  /usr/include/trilinos/impl/Kokkos_Atomic_Generic_Secondary.hpp \
- /usr/include/trilinos/impl/Kokkos_ViewArray.hpp \
- /usr/include/trilinos/impl/Kokkos_ViewUniformType.hpp \
- /usr/include/trilinos/impl/Kokkos_FunctorAnalysis.hpp \
- /usr/include/trilinos/impl/Kokkos_FunctorAdapter.hpp \
- /usr/include/trilinos/Kokkos_Parallel_Reduce.hpp \
+ /usr/include/trilinos/Kokkos_MathematicalFunctions.hpp \
  /usr/include/trilinos/Kokkos_NumericTraits.hpp \
  /usr/include/c++/11/cfloat \
  /usr/lib/gcc/x86_64-linux-gnu/11/include/float.h \
+ /usr/include/trilinos/Teuchos_ScalarTraitsDecl.hpp \
+ /usr/include/trilinos/Teuchos_TestForException.hpp \
+ /usr/include/trilinos/Teuchos_TypeNameTraits.hpp \
+ /usr/include/trilinos/Teuchos_ConstTypeTraits.hpp \
+ /usr/include/trilinos/Teuchos_stacktrace.hpp \
+ /usr/include/trilinos/Sacado_mpl_apply.hpp \
+ /usr/include/trilinos/Sacado_mpl_apply_wrap.hpp \
+ /usr/include/trilinos/Sacado_mpl_none.hpp \
+ /usr/include/trilinos/Sacado_mpl_lambda.hpp \
+ /usr/include/trilinos/Sacado_mpl_bind.hpp \
+ /usr/include/trilinos/Sacado_mpl_placeholders.hpp \
+ /usr/include/trilinos/Sacado_mpl_quote.hpp \
+ /usr/include/trilinos/Sacado_mpl_if.hpp \
+ /usr/include/trilinos/Sacado_mpl_is_placeholder.hpp \
+ /usr/include/trilinos/Sacado_Fad_SerializationTraitsImp.hpp \
+ /usr/include/trilinos/Teuchos_SerializationTraits.hpp \
+ /usr/include/trilinos/Teuchos_SerializationTraitsHelpers.hpp \
+ /usr/include/trilinos/Teuchos_ArrayView.hpp \
+ /usr/include/trilinos/Teuchos_ArrayViewDecl.hpp \
+ /usr/include/trilinos/Teuchos_RCPNode.hpp \
+ /usr/include/trilinos/Teuchos_any.hpp \
+ /usr/include/trilinos/Teuchos_Assert.hpp \
+ /usr/include/trilinos/Teuchos_map.hpp \
+ /usr/include/trilinos/Teuchos_ENull.hpp \
+ /usr/include/trilinos/Teuchos_Exceptions.hpp \
+ /usr/include/trilinos/Teuchos_toString.hpp \
+ /usr/include/trilinos/Teuchos_getBaseObjVoidPtr.hpp \
+ /usr/include/trilinos/TeuchosCore_ConfigDefs.hpp \
+ /usr/include/trilinos/Teuchos_NullIteratorTraits.hpp \
+ /usr/include/trilinos/Teuchos_ArrayRCP.hpp \
+ /usr/include/trilinos/Teuchos_ArrayRCPDecl.hpp \
+ /usr/include/trilinos/Teuchos_RCP.hpp \
+ /usr/include/trilinos/Teuchos_RCPDecl.hpp \
+ /usr/include/trilinos/Teuchos_Ptr.hpp \
+ /usr/include/trilinos/Teuchos_PtrDecl.hpp \
+ /usr/include/trilinos/Teuchos_dyn_cast.hpp \
+ /usr/include/trilinos/Teuchos_as.hpp \
+ /usr/include/trilinos/Teuchos_Array.hpp \
+ /usr/include/trilinos/Teuchos_Tuple.hpp \
+ /usr/include/trilinos/Teuchos_Utils.hpp \
+ /usr/include/trilinos/KokkosExp_View_Fad.hpp \
+ /usr/include/trilinos/Kokkos_Core_fwd.hpp \
+ /usr/include/trilinos/Kokkos_Layout.hpp \
+ /usr/include/trilinos/Kokkos_View.hpp \
+ /usr/include/trilinos/impl/Kokkos_ViewMapping.hpp \
+ /usr/include/trilinos/Kokkos_Pair.hpp \
+ /usr/include/trilinos/Kokkos_Extents.hpp \
+ /usr/include/trilinos/impl/Kokkos_ViewTracker.hpp \
+ /usr/include/trilinos/impl/Kokkos_ViewCtor.hpp \
+ /usr/include/trilinos/impl/Kokkos_Atomic_View.hpp \
+ /usr/include/trilinos/impl/Kokkos_ViewArray.hpp \
+ /usr/include/trilinos/impl/Kokkos_ViewUniformType.hpp \
+ /usr/include/trilinos/Kokkos_Core.hpp \
+ /usr/include/trilinos/Kokkos_Half.hpp \
+ /usr/include/trilinos/Cuda/Kokkos_Cuda_Half.hpp \
+ /usr/include/trilinos/KokkosCore_Config_DeclareBackend.hpp \
+ /usr/include/trilinos/decl/Kokkos_Declare_SERIAL.hpp \
+ /usr/include/trilinos/Kokkos_Serial.hpp \
+ /usr/include/trilinos/Kokkos_Parallel.hpp \
+ /usr/include/trilinos/Kokkos_View.hpp \
+ /usr/include/trilinos/impl/Kokkos_FunctorAnalysis.hpp \
+ /usr/include/trilinos/impl/Kokkos_FunctorAdapter.hpp \
+ /usr/include/trilinos/Kokkos_Parallel_Reduce.hpp \
  /usr/include/trilinos/Kokkos_TaskScheduler.hpp \
  /usr/include/trilinos/Kokkos_TaskScheduler_fwd.hpp \
  /usr/include/trilinos/Kokkos_MemoryPool.hpp \
  /usr/include/trilinos/impl/Kokkos_ConcurrentBitset.hpp \
  /usr/include/trilinos/impl/Kokkos_ClockTic.hpp \
- /usr/include/c++/11/chrono /usr/include/c++/11/ratio \
- /usr/include/c++/11/ctime /usr/include/c++/11/bits/parse_numbers.h \
  /usr/include/trilinos/Kokkos_Future.hpp \
  /usr/include/trilinos/impl/Kokkos_TaskQueue.hpp \
  /usr/include/trilinos/impl/Kokkos_TaskBase.hpp \
@@ -379,7 +526,6 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/include/trilinos/Kokkos_AnonymousSpace.hpp \
  /usr/include/trilinos/Kokkos_LogicalSpaces.hpp \
  /usr/include/trilinos/impl/Kokkos_MemorySpace.hpp \
- /usr/include/trilinos/Kokkos_MathematicalFunctions.hpp \
  /usr/include/trilinos/Kokkos_Vectorization.hpp \
  /usr/include/trilinos/Kokkos_hwloc.hpp \
  /usr/include/trilinos/Kokkos_Timer.hpp \
@@ -387,10 +533,8 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/include/trilinos/Kokkos_CopyViews.hpp /usr/include/c++/11/memory \
  /usr/include/c++/11/bits/stl_raw_storage_iter.h \
  /usr/include/c++/11/bits/align.h /usr/include/c++/11/bit \
- /usr/include/c++/11/bits/unique_ptr.h \
  /usr/include/c++/11/bits/shared_ptr.h \
  /usr/include/c++/11/bits/shared_ptr_base.h \
- /usr/include/c++/11/bits/allocated_ptr.h \
  /usr/include/c++/11/ext/concurrence.h \
  /usr/include/c++/11/bits/shared_ptr_atomic.h \
  /usr/include/c++/11/backward/auto_ptr.h \
@@ -400,49 +544,188 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/include/trilinos/impl/Kokkos_Serial_WorkGraphPolicy.hpp \
  /usr/include/trilinos/impl/Kokkos_Combined_Reducer.hpp \
  /usr/include/trilinos/Kokkos_AcquireUniqueTokenImpl.hpp \
+ /usr/include/trilinos/Kokkos_Core.hpp \
  /usr/include/trilinos/KokkosCore_Config_PostInclude.hpp \
+ /usr/include/trilinos/Kokkos_LayoutContiguous.hpp \
+ /usr/include/trilinos/impl/Kokkos_ViewMapping.hpp \
+ /usr/include/trilinos/Kokkos_LayoutNatural.hpp \
+ /usr/include/trilinos/Kokkos_TeuchosCommAdapters.hpp \
+ /usr/include/trilinos/TeuchosKokkosComm_config.h \
+ /usr/include/trilinos/Teuchos_CommHelpers.hpp \
+ /usr/include/trilinos/Teuchos_Comm.hpp \
+ /usr/include/trilinos/Teuchos_ReductionOp.hpp \
+ /usr/include/trilinos/Teuchos_Describable.hpp \
+ /usr/include/trilinos/Teuchos_VerbosityLevel.hpp \
+ /usr/include/trilinos/Teuchos_iostream_helpers.hpp \
+ /usr/include/trilinos/Teuchos_FancyOStream.hpp \
+ /usr/include/trilinos/Teuchos_GlobalMPISession.hpp \
+ /usr/include/trilinos/Teuchos_oblackholestream.hpp \
+ /usr/include/trilinos/Teuchos_basic_oblackholestream.hpp \
+ /usr/include/c++/11/deque /usr/include/c++/11/bits/stl_deque.h \
+ /usr/include/c++/11/bits/deque.tcc \
+ /usr/include/trilinos/Teuchos_LabeledObject.hpp \
+ /usr/include/trilinos/Teuchos_CommUtilities.hpp \
+ /usr/include/trilinos/Teuchos_TimeMonitor.hpp \
+ /usr/include/trilinos/Teuchos_PerformanceMonitorBase.hpp \
+ /usr/include/trilinos/Teuchos_TableFormat.hpp \
+ /usr/include/trilinos/Teuchos_TableColumn.hpp \
+ /usr/include/trilinos/Teuchos_TableEntry.hpp \
+ /usr/include/trilinos/Teuchos_ParameterList.hpp \
+ /usr/include/trilinos/Teuchos_ParameterListExceptions.hpp \
+ /usr/include/trilinos/Teuchos_ParameterListModifier.hpp \
+ /usr/include/trilinos/Teuchos_ParameterEntryValidator.hpp \
+ /usr/include/trilinos/Teuchos_XMLObject.hpp \
+ /usr/include/trilinos/Teuchos_XMLObjectImplem.hpp \
+ /usr/include/trilinos/Teuchos_ParameterEntry.hpp \
+ /usr/include/trilinos/Teuchos_StringIndexedOrderedValueObjectContainer.hpp \
+ /usr/include/trilinos/Teuchos_FilteredIterator.hpp \
+ /usr/include/trilinos/Teuchos_Time.hpp \
+ /usr/include/trilinos/Teuchos_CommandLineProcessor.hpp \
+ /usr/include/trilinos/Teuchos_CompileTimeAssert.hpp \
+ /usr/include/trilinos/Teuchos_ReductionOpHelpers.hpp \
+ /usr/include/trilinos/Teuchos_SerializerHelpers.hpp \
+ /usr/include/trilinos/Teuchos_Serializer.hpp \
+ /usr/include/trilinos/Teuchos_OrdinalTraits.hpp \
+ /usr/include/trilinos/Teuchos_Workspace.hpp \
+ /usr/include/trilinos/Teuchos_DefaultMpiComm.hpp \
+ /usr/include/trilinos/Teuchos_ConfigDefs.hpp \
+ /usr/include/trilinos/Teuchos_OpaqueWrapper.hpp \
+ /usr/include/trilinos/Teuchos_MpiReductionOpSetter.hpp \
+ /usr/include/c++/11/iterator /usr/include/c++/11/bits/stream_iterator.h \
+ /usr/include/trilinos/Teuchos_DefaultSerialComm.hpp \
+ /usr/include/trilinos/Teuchos_EReductionType.hpp \
+ /usr/include/trilinos/KokkosCompat_View.hpp \
+ /usr/include/trilinos/TeuchosKokkosCompat_config.h \
+ /usr/include/trilinos/Teuchos_ArrayView.hpp \
+ /usr/include/trilinos/KokkosExp_View_Fad_Contiguous.hpp \
+ /usr/include/trilinos/Sacado_Fad_ExpressionTraits.hpp \
+ /usr/include/trilinos/Sacado_Fad_DFadTraits.hpp \
+ /usr/include/trilinos/Sacado_Fad_SFadTraits.hpp \
+ /usr/include/trilinos/Sacado_Fad_SLFadTraits.hpp \
+ /usr/include/trilinos/Sacado_ELRFad_ExpressionTraits.hpp \
+ /usr/include/trilinos/Sacado_ELRFad_DFadTraits.hpp \
+ /usr/include/trilinos/Sacado_ELRFad_SFadTraits.hpp \
+ /usr/include/trilinos/Sacado_ELRFad_SLFadTraits.hpp \
+ /usr/include/trilinos/Sacado_CacheFad_ExpressionTraits.hpp \
+ /usr/include/trilinos/Sacado_CacheFad_DFadTraits.hpp \
+ /usr/include/trilinos/Sacado_CacheFad_SFadTraits.hpp \
+ /usr/include/trilinos/Sacado_CacheFad_SLFadTraits.hpp \
+ /usr/include/trilinos/Sacado_ELRCacheFad_ExpressionTraits.hpp \
+ /usr/include/trilinos/Sacado_ELRCacheFad_DFadTraits.hpp \
+ /usr/include/trilinos/Sacado_ELRCacheFad_SFadTraits.hpp \
+ /usr/include/trilinos/Sacado_ELRCacheFad_SLFadTraits.hpp \
+ /usr/include/trilinos/Sacado_Fad_DVFadTraits.hpp \
+ /usr/include/trilinos/Sacado_LFad_LogicalSparseTraits.hpp \
+ /usr/include/trilinos/Sacado_ScalarFlopCounterTraits.hpp \
+ /usr/include/trilinos/Sacado_Tay_TaylorTraits.hpp \
+ /usr/include/trilinos/Sacado_Tay_ScalarTraitsImp.hpp \
+ /usr/include/trilinos/Sacado_Tay_SerializationTraitsImp.hpp \
+ /usr/include/trilinos/Sacado_trad_Traits.hpp \
+ /usr/include/trilinos/Sacado_trad2_Traits.hpp \
+ /usr/include/trilinos/Sacado_tradvec_Traits.hpp \
+ /usr/include/trilinos/Sacado_Fad_Exp_DFad.hpp \
+ /usr/include/trilinos/Sacado_Fad_Exp_GeneralFad.hpp \
+ /usr/include/trilinos/Sacado_Fad_Exp_Extender.hpp \
+ /usr/include/trilinos/Sacado_Fad_Expression.hpp \
+ /usr/include/trilinos/Sacado_Fad_Exp_ExprAssign.hpp \
+ /usr/include/trilinos/Sacado_Fad_Exp_Ops.hpp \
+ /usr/include/trilinos/Sacado_mpl_has_equal_to.hpp \
+ /usr/include/trilinos/Sacado_mpl_void.hpp \
+ /usr/include/trilinos/Kokkos_Atomic.hpp \
+ /usr/include/trilinos/impl/Kokkos_Error.hpp \
+ /usr/include/trilinos/Sacado_Fad_Exp_DynamicStorage.hpp \
+ /usr/include/trilinos/Sacado_DynamicArrayTraits.hpp \
+ /usr/include/trilinos/Kokkos_MemoryPool.hpp \
+ /usr/include/trilinos/Sacado_Fad_Exp_SFad.hpp \
+ /usr/include/trilinos/Sacado_Fad_Exp_StaticFixedStorage.hpp \
+ /usr/include/trilinos/Sacado_StaticArrayTraits.hpp \
+ /usr/include/trilinos/Sacado_Fad_Exp_SLFad.hpp \
+ /usr/include/trilinos/Sacado_Fad_Exp_StaticStorage.hpp \
+ /usr/include/trilinos/Sacado_Fad_Exp_ViewFad.hpp \
+ /usr/include/trilinos/Sacado_Fad_Exp_ViewStorage.hpp \
+ /usr/include/trilinos/Sacado_mpl_integral_nonzero_constant.hpp \
+ /usr/include/trilinos/Sacado_Fad_Exp_Atomic.hpp \
+ /usr/include/trilinos/Sacado_Fad_DFad.hpp \
+ /usr/include/trilinos/Sacado_Fad_ViewFad.hpp \
+ /usr/include/trilinos/Sacado_Fad_SFad.hpp \
+ /usr/include/trilinos/Sacado_Fad_SLFad.hpp \
+ /usr/include/trilinos/Sacado_ELRFad_DFad.hpp \
+ /usr/include/trilinos/Sacado_ELRFad_GeneralFadExpr.hpp \
+ /usr/include/trilinos/Sacado_ELRFad_GeneralFad.hpp \
+ /usr/include/trilinos/Sacado_ELRFad_Expression.hpp \
+ /usr/include/trilinos/Sacado_mpl_range_c.hpp \
+ /usr/include/trilinos/Sacado_mpl_size.hpp \
+ /usr/include/trilinos/Sacado_mpl_begin.hpp \
+ /usr/include/trilinos/Sacado_mpl_end.hpp \
+ /usr/include/trilinos/Sacado_mpl_next.hpp \
+ /usr/include/trilinos/Sacado_mpl_at.hpp \
+ /usr/include/trilinos/Sacado_mpl_deref.hpp \
+ /usr/include/trilinos/Sacado_mpl_integral_c.hpp \
+ /usr/include/trilinos/Sacado_mpl_for_each.hpp \
+ /usr/include/trilinos/Sacado_ELRFad_Ops.hpp \
+ /usr/include/trilinos/Sacado_Fad_DynamicStorage.hpp \
+ /usr/include/trilinos/Sacado_Fad_DFad_tmpl.hpp \
+ /usr/include/trilinos/Sacado_ELRFad_ViewFad.hpp \
+ /usr/include/trilinos/Sacado_ELRFad_ViewFadTraits.hpp \
+ /usr/include/trilinos/Sacado_Fad_ViewStorage.hpp \
+ /usr/include/trilinos/Sacado_Fad_ViewFad_tmpl.hpp \
+ /usr/include/trilinos/Sacado_ELRFad_SFad.hpp \
+ /usr/include/trilinos/Sacado_Fad_SFad_tmpl.hpp \
+ /usr/include/trilinos/Sacado_ELRFad_SLFad.hpp \
+ /usr/include/trilinos/Sacado_Fad_StaticStorage.hpp \
+ /usr/include/trilinos/Sacado_Fad_SLFad_tmpl.hpp \
+ /usr/include/trilinos/Sacado_CacheFad_DFad.hpp \
+ /usr/include/trilinos/Sacado_CacheFad_GeneralFadExpr.hpp \
+ /usr/include/trilinos/Sacado_CacheFad_GeneralFad.hpp \
+ /usr/include/trilinos/Sacado_CacheFad_Expression.hpp \
+ /usr/include/trilinos/Sacado_CacheFad_Ops.hpp \
+ /usr/include/trilinos/Sacado_CacheFad_ViewFad.hpp \
+ /usr/include/trilinos/Sacado_CacheFad_ViewFadTraits.hpp \
+ /usr/include/trilinos/Sacado_CacheFad_SFad.hpp \
+ /usr/include/trilinos/Sacado_CacheFad_SLFad.hpp \
+ /usr/include/trilinos/Sacado_ELRCacheFad_DFad.hpp \
+ /usr/include/trilinos/Sacado_ELRCacheFad_GeneralFadExpr.hpp \
+ /usr/include/trilinos/Sacado_ELRCacheFad_GeneralFad.hpp \
+ /usr/include/trilinos/Sacado_ELRCacheFad_Expression.hpp \
+ /usr/include/trilinos/Sacado_ELRCacheFad_Ops.hpp \
+ /usr/include/trilinos/Sacado_ELRCacheFad_ViewFad.hpp \
+ /usr/include/trilinos/Sacado_ELRCacheFad_ViewFadTraits.hpp \
+ /usr/include/trilinos/Sacado_ELRCacheFad_SFad.hpp \
+ /usr/include/trilinos/Sacado_ELRCacheFad_SLFad.hpp \
+ /usr/include/trilinos/Kokkos_View_Fad.hpp \
+ /usr/include/trilinos/Sacado_Fad_DVFad.hpp \
+ /usr/include/trilinos/Sacado_Fad_Exp_DVFad.hpp \
+ /usr/include/trilinos/Sacado_Fad_Exp_VectorDynamicStorage.hpp \
+ /usr/include/trilinos/Sacado_Fad_Vector.hpp \
+ /usr/include/trilinos/Sacado_Fad_VectorImp.hpp \
+ /usr/include/trilinos/Sacado_LFad_LogicalSparse.hpp \
+ /usr/include/trilinos/Sacado_LFad_ExpressionTraits.hpp \
+ /usr/include/trilinos/Sacado_LFad_LogicalSparseOps.hpp \
+ /usr/include/trilinos/Sacado_trad.hpp \
+ /usr/include/trilinos/Sacado_cmath.hpp \
+ /usr/include/trilinos/Sacado_trad2.hpp \
+ /usr/include/trilinos/Sacado_tradvec.hpp \
+ /usr/include/trilinos/Sacado_Tay_Taylor.hpp \
+ /usr/include/trilinos/Sacado_Handle.hpp \
+ /usr/include/trilinos/Sacado_Tay_TaylorImp.hpp \
+ /usr/include/trilinos/Sacado_ScalarFlopCounter.hpp \
+ /usr/local/include/deal.II/base/quadrature.h \
+ /usr/local/include/deal.II/base/point.h \
+ /usr/local/include/deal.II/base/exceptions.h \
  /usr/local/include/deal.II/base/tensor.h \
- /usr/local/include/deal.II/base/kokkos.h \
  /usr/local/include/deal.II/base/table_indices.h \
  /usr/local/include/deal.II/base/template_constraints.h \
  /usr/local/include/deal.II/base/complex_overloads.h \
- /usr/local/include/deal.II/base/std_cxx20/type_traits.h \
- /usr/include/c++/11/iterator /usr/include/c++/11/bits/stream_iterator.h \
  /usr/local/include/deal.II/base/tensor_accessors.h \
- /usr/include/adolc/adouble.h /usr/include/adolc/internal/common.h \
- /usr/include/adolc/internal/usrparms.h \
- /usr/include/adolc/internal/adolc_settings.h \
- /usr/include/adolc/internal/adubfunc.h \
- /usr/include/adolc/internal/paramfunc.h /usr/include/adolc/param.h \
- /usr/include/adolc/advector.h /usr/include/boost/geometry/core/cs.hpp \
+ /usr/include/boost/geometry/core/cs.hpp \
  /usr/include/boost/mpl/assert.hpp /usr/include/boost/mpl/not.hpp \
  /usr/include/boost/mpl/bool.hpp /usr/include/boost/mpl/bool_fwd.hpp \
  /usr/include/boost/mpl/aux_/adl_barrier.hpp \
  /usr/include/boost/mpl/aux_/config/adl.hpp \
  /usr/include/boost/mpl/aux_/config/msvc.hpp \
- /usr/include/boost/config.hpp /usr/include/boost/config/user.hpp \
- /usr/include/boost/config/detail/select_compiler_config.hpp \
- /usr/include/boost/config/compiler/gcc.hpp \
- /usr/include/boost/config/detail/select_stdlib_config.hpp \
- /usr/include/c++/11/version \
- /usr/include/boost/config/stdlib/libstdcpp3.hpp /usr/include/unistd.h \
- /usr/include/x86_64-linux-gnu/bits/posix_opt.h \
- /usr/include/x86_64-linux-gnu/bits/environments.h \
- /usr/include/x86_64-linux-gnu/bits/confname.h \
- /usr/include/x86_64-linux-gnu/bits/getopt_posix.h \
- /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
- /usr/include/x86_64-linux-gnu/bits/unistd_ext.h \
- /usr/include/linux/close_range.h \
- /usr/include/boost/config/detail/select_platform_config.hpp \
- /usr/include/boost/config/platform/linux.hpp \
- /usr/include/boost/config/detail/posix_features.hpp \
- /usr/include/boost/config/detail/suffix.hpp \
- /usr/include/boost/config/helper_macros.hpp \
  /usr/include/boost/mpl/aux_/config/intel.hpp \
  /usr/include/boost/mpl/aux_/config/gcc.hpp \
  /usr/include/boost/mpl/aux_/config/workaround.hpp \
- /usr/include/boost/detail/workaround.hpp \
- /usr/include/boost/config/workaround.hpp \
  /usr/include/boost/mpl/integral_c_tag.hpp \
  /usr/include/boost/mpl/aux_/config/static_constant.hpp \
  /usr/include/boost/mpl/aux_/nttp_decl.hpp \
@@ -542,7 +825,6 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/include/boost/range/const_iterator.hpp \
  /usr/include/boost/type_traits/remove_const.hpp \
  /usr/include/boost/type_traits/is_const.hpp \
- /usr/include/boost/type_traits/integral_constant.hpp \
  /usr/include/boost/mpl/eval_if.hpp /usr/include/boost/mpl/if.hpp \
  /usr/include/boost/geometry/core/ring_type.hpp \
  /usr/include/boost/geometry/core/tag.hpp \
@@ -552,52 +834,89 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/include/boost/geometry/geometries/point.hpp \
  /usr/include/boost/geometry/core/access.hpp \
  /usr/include/boost/core/ignore_unused.hpp \
- /usr/include/boost/type_traits/is_pointer.hpp \
  /usr/include/boost/geometry/core/coordinate_type.hpp \
  /usr/include/boost/geometry/util/promote_floating_point.hpp \
- /usr/include/boost/type_traits/is_integral.hpp \
  /usr/include/boost/geometry/core/assert.hpp \
- /usr/include/boost/assert.hpp \
  /usr/include/boost/geometry/core/coordinate_dimension.hpp \
- /usr/include/boost/static_assert.hpp \
- /usr/local/include/deal.II/base/subscriptor.h /usr/include/c++/11/mutex \
- /usr/include/c++/11/bits/std_mutex.h \
- /usr/include/c++/11/bits/unique_lock.h \
+ /usr/local/include/deal.II/base/subscriptor.h \
  /usr/local/include/deal.II/base/timer.h \
  /usr/local/include/deal.II/base/conditional_ostream.h \
  /usr/local/include/deal.II/base/mpi.h \
  /usr/local/include/deal.II/base/array_view.h \
  /usr/local/include/deal.II/base/memory_space.h \
  /usr/local/include/deal.II/base/symmetric_tensor.h \
- /usr/local/include/deal.II/base/mpi_stub.h \
- /usr/local/include/deal.II/base/mpi_tags.h \
+ /usr/local/include/deal.II/base/index_set.h \
+ /usr/local/include/deal.II/base/thread_management.h \
+ /usr/local/include/deal.II/base/multithread_info.h \
+ /usr/local/include/deal.II/base/std_cxx17/tuple.h \
+ /usr/include/c++/11/future /usr/include/c++/11/condition_variable \
+ /usr/include/c++/11/bits/atomic_futex.h \
+ /usr/include/c++/11/bits/std_thread.h /usr/include/c++/11/thread \
+ /usr/include/c++/11/bits/this_thread_sleep.h \
+ /usr/include/tbb/task_group.h \
+ /usr/include/tbb/internal/_warning_suppress_enable_notice.h \
+ /usr/include/tbb/tbb_config.h /usr/include/tbb/task.h \
+ /usr/include/tbb/internal/_deprecated_header_message_guard.h \
+ /usr/include/tbb/tbb_config.h /usr/include/tbb/tbb_stddef.h \
+ /usr/include/tbb/tbb_config.h /usr/include/tbb/tbb_machine.h \
+ /usr/include/tbb/machine/gcc_generic.h \
+ /usr/include/tbb/machine/gcc_ia32_common.h \
+ /usr/include/tbb/machine/gcc_itsx.h \
+ /usr/include/tbb/machine/linux_common.h \
+ /usr/include/x86_64-linux-gnu/sys/syscall.h \
+ /usr/include/x86_64-linux-gnu/asm/unistd.h \
+ /usr/include/x86_64-linux-gnu/asm/unistd_64.h \
+ /usr/include/x86_64-linux-gnu/bits/syscall.h /usr/include/linux/futex.h \
+ /usr/include/linux/types.h /usr/include/x86_64-linux-gnu/asm/types.h \
+ /usr/include/asm-generic/types.h /usr/include/asm-generic/int-ll64.h \
+ /usr/include/x86_64-linux-gnu/asm/bitsperlong.h \
+ /usr/include/asm-generic/bitsperlong.h /usr/include/linux/posix_types.h \
+ /usr/include/linux/stddef.h \
+ /usr/include/x86_64-linux-gnu/asm/posix_types.h \
+ /usr/include/x86_64-linux-gnu/asm/posix_types_64.h \
+ /usr/include/asm-generic/posix_types.h /usr/include/tbb/tbb_profiling.h \
+ /usr/include/tbb/internal/_tbb_strings.h /usr/include/tbb/atomic.h \
+ /usr/include/tbb/internal/_warning_suppress_disable_notice.h \
+ /usr/include/tbb/tbb_exception.h /usr/include/tbb/tbb_allocator.h \
+ /usr/include/tbb/internal/_template_helpers.h \
  /usr/local/include/deal.II/base/utilities.h \
+ /usr/include/trilinos/Epetra_Comm.h \
+ /usr/include/trilinos/Epetra_ConfigDefs.h \
+ /usr/include/trilinos/Epetra_config.h \
+ /usr/include/trilinos/Epetra_DLLExportMacro.h \
+ /usr/include/trilinos/Epetra_Object.h \
+ /usr/include/trilinos/Epetra_CombineMode.h \
+ /usr/include/trilinos/Epetra_DataAccess.h \
+ /usr/include/trilinos/Epetra_Map.h \
+ /usr/include/trilinos/Epetra_BlockMap.h \
+ /usr/include/trilinos/Epetra_BlockMapData.h \
+ /usr/include/trilinos/Epetra_Data.h \
+ /usr/include/trilinos/Epetra_IntSerialDenseVector.h \
+ /usr/include/trilinos/Epetra_IntSerialDenseMatrix.h \
+ /usr/include/trilinos/Epetra_LongLongSerialDenseVector.h \
+ /usr/include/trilinos/Epetra_LongLongSerialDenseMatrix.h \
+ /usr/include/trilinos/Teuchos_Comm.hpp \
+ /usr/include/trilinos/Teuchos_RCP.hpp \
+ /usr/include/trilinos/Epetra_MpiComm.h \
+ /usr/include/trilinos/Epetra_Comm.h \
+ /usr/include/trilinos/Epetra_MpiDistributor.h \
+ /usr/include/trilinos/Epetra_Distributor.h \
+ /usr/include/trilinos/Epetra_BasicDirectory.h \
+ /usr/include/trilinos/Epetra_Directory.h \
+ /usr/include/trilinos/Epetra_Map.h \
+ /usr/include/trilinos/Epetra_MpiCommData.h \
  /usr/include/boost/archive/binary_iarchive.hpp \
  /usr/include/boost/archive/binary_iarchive_impl.hpp \
  /usr/include/boost/archive/basic_binary_iprimitive.hpp \
- /usr/include/c++/11/locale \
- /usr/include/c++/11/bits/locale_facets_nonio.h \
- /usr/include/x86_64-linux-gnu/c++/11/bits/time_members.h \
- /usr/include/x86_64-linux-gnu/c++/11/bits/messages_members.h \
- /usr/include/libintl.h /usr/include/c++/11/bits/codecvt.h \
- /usr/include/c++/11/bits/locale_facets_nonio.tcc \
- /usr/include/c++/11/bits/locale_conv.h /usr/include/boost/cstdint.hpp \
  /usr/include/boost/serialization/throw_exception.hpp \
- /usr/include/boost/integer.hpp /usr/include/boost/integer_fwd.hpp \
- /usr/include/boost/limits.hpp /usr/include/boost/integer_traits.hpp \
+ /usr/include/boost/integer.hpp /usr/include/boost/integer_traits.hpp \
  /usr/include/boost/serialization/is_bitwise_serializable.hpp \
- /usr/include/boost/type_traits/is_arithmetic.hpp \
- /usr/include/boost/type_traits/is_floating_point.hpp \
  /usr/include/boost/serialization/array_wrapper.hpp \
  /usr/include/boost/serialization/nvp.hpp /usr/include/boost/core/nvp.hpp \
  /usr/include/boost/core/addressof.hpp \
  /usr/include/boost/preprocessor/stringize.hpp \
  /usr/include/boost/serialization/level.hpp \
  /usr/include/boost/type_traits/is_fundamental.hpp \
- /usr/include/boost/type_traits/is_void.hpp \
- /usr/include/boost/type_traits/is_enum.hpp \
- /usr/include/boost/type_traits/intrinsics.hpp \
- /usr/include/boost/type_traits/detail/config.hpp \
  /usr/include/boost/type_traits/is_array.hpp \
  /usr/include/boost/type_traits/is_class.hpp \
  /usr/include/boost/type_traits/is_base_and_derived.hpp \
@@ -725,10 +1044,6 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/include/boost/smart_ptr/detail/sp_counted_base_gcc_atomic.hpp \
  /usr/include/boost/smart_ptr/detail/sp_typeinfo_.hpp \
  /usr/include/boost/smart_ptr/detail/sp_counted_impl.hpp \
- /usr/include/boost/throw_exception.hpp \
- /usr/include/boost/assert/source_location.hpp \
- /usr/include/boost/current_function.hpp \
- /usr/include/boost/exception/exception.hpp \
  /usr/include/boost/smart_ptr/detail/sp_convertible.hpp \
  /usr/include/boost/smart_ptr/detail/spinlock_pool.hpp \
  /usr/include/boost/smart_ptr/detail/spinlock.hpp \
@@ -749,13 +1064,6 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/include/boost/move/detail/meta_utils.hpp \
  /usr/include/boost/move/detail/meta_utils_core.hpp \
  /usr/include/boost/smart_ptr/detail/sp_forward.hpp \
- /usr/include/boost/type_traits/type_with_alignment.hpp \
- /usr/include/boost/type_traits/alignment_of.hpp \
- /usr/include/boost/type_traits/is_pod.hpp \
- /usr/include/boost/type_traits/is_scalar.hpp \
- /usr/include/boost/type_traits/is_member_pointer.hpp \
- /usr/include/boost/type_traits/is_member_function_pointer.hpp \
- /usr/include/boost/type_traits/detail/is_member_function_pointer_cxx_11.hpp \
  /usr/include/boost/smart_ptr/make_shared_array.hpp \
  /usr/include/boost/core/default_allocator.hpp \
  /usr/include/boost/smart_ptr/allocate_shared_array.hpp \
@@ -808,8 +1116,6 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/include/boost/type_traits/is_virtual_base_of.hpp \
  /usr/include/boost/type_traits/is_base_of.hpp \
  /usr/include/boost/type_traits/make_void.hpp \
- /usr/include/boost/type_traits/aligned_storage.hpp \
- /usr/include/boost/type_traits/conditional.hpp \
  /usr/include/boost/archive/detail/basic_iserializer.hpp \
  /usr/include/boost/archive/detail/archive_serializer_map.hpp \
  /usr/include/boost/archive/detail/check.hpp \
@@ -837,8 +1143,7 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/include/boost/iostreams/detail/ios.hpp \
  /usr/include/boost/iostreams/detail/config/wide_streams.hpp \
  /usr/include/boost/iostreams/filtering_streambuf.hpp \
- /usr/include/boost/iostreams/chain.hpp /usr/include/c++/11/list \
- /usr/include/c++/11/bits/stl_list.h /usr/include/c++/11/bits/list.tcc \
+ /usr/include/boost/iostreams/chain.hpp \
  /usr/include/boost/core/typeinfo.hpp \
  /usr/include/boost/iostreams/constants.hpp \
  /usr/include/boost/iostreams/detail/access_control.hpp \
@@ -1020,7 +1325,9 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/include/boost/iostreams/detail/config/dyn_link.hpp \
  /usr/include/boost/iostreams/detail/config/zlib.hpp \
  /usr/include/boost/iostreams/filter/symmetric.hpp \
- /usr/include/boost/iostreams/putback.hpp /usr/include/boost/signals2.hpp \
+ /usr/include/boost/iostreams/putback.hpp \
+ /usr/local/include/deal.II/base/mpi_tags.h \
+ /usr/include/boost/signals2.hpp \
  /usr/include/boost/signals2/deconstruct.hpp \
  /usr/include/boost/signals2/deconstruct_ptr.hpp \
  /usr/include/boost/signals2/postconstructible.hpp \
@@ -1193,7 +1500,6 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/include/boost/detail/templated_streams.hpp \
  /usr/include/boost/type_traits/is_empty.hpp \
  /usr/include/boost/type_traits/is_stateless.hpp \
- /usr/include/boost/integer/common_factor_ct.hpp \
  /usr/include/boost/mpl/empty.hpp \
  /usr/include/boost/mpl/aux_/empty_impl.hpp \
  /usr/include/boost/mpl/find_if.hpp \
@@ -1338,19 +1644,67 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/include/c++/11/pstl/glue_numeric_defs.h /usr/include/c++/11/set \
  /usr/include/c++/11/bits/stl_set.h \
  /usr/include/c++/11/bits/stl_multiset.h \
- /usr/local/include/deal.II/base/mutex.h \
  /usr/local/include/deal.II/base/logstream.h \
  /usr/local/include/deal.II/base/smartpointer.h \
  /usr/local/include/deal.II/base/thread_local_storage.h \
- /usr/include/c++/11/shared_mutex /usr/include/c++/11/thread \
- /usr/include/c++/11/bits/std_thread.h \
- /usr/include/c++/11/bits/this_thread_sleep.h /usr/include/c++/11/stack \
- /usr/include/c++/11/deque /usr/include/c++/11/bits/stl_deque.h \
- /usr/include/c++/11/bits/deque.tcc /usr/include/c++/11/bits/stl_stack.h \
+ /usr/include/c++/11/shared_mutex /usr/include/c++/11/stack \
+ /usr/include/c++/11/bits/stl_stack.h \
  /usr/local/include/deal.II/dofs/dof_handler.h \
  /usr/local/include/deal.II/base/function.h \
  /usr/local/include/deal.II/base/function_time.h \
- /usr/local/include/deal.II/base/index_set.h \
+ /usr/local/include/deal.II/base/iterator_range.h \
+ /usr/local/include/deal.II/distributed/tria_base.h \
+ /usr/local/include/deal.II/base/partitioner.h \
+ /usr/local/include/deal.II/base/communication_pattern_base.h \
+ /usr/local/include/deal.II/lac/vector_operation.h \
+ /usr/local/include/deal.II/grid/tria.h \
+ /usr/local/include/deal.II/base/geometry_info.h \
+ /usr/local/include/deal.II/base/ndarray.h \
+ /usr/local/include/deal.II/base/std_cxx20/iota_view.h \
+ /usr/include/boost/range/irange.hpp \
+ /usr/local/include/deal.II/grid/cell_id.h \
+ /usr/local/include/deal.II/distributed/p4est_wrappers.h \
+ /usr/include/p4est_bits.h /usr/include/p4est.h \
+ /usr/include/p4est_connectivity.h /usr/include/sc_io.h /usr/include/sc.h \
+ /usr/include/sc_config.h /usr/include/c++/11/math.h \
+ /usr/include/libgen.h /usr/include/c++/11/stdlib.h /usr/include/sc_mpi.h \
+ /usr/include/sc_containers.h /usr/include/p4est_base.h \
+ /usr/include/p4est_config.h /usr/include/p4est_communication.h \
+ /usr/include/p4est_extended.h /usr/include/p4est_mesh.h \
+ /usr/include/p4est_ghost.h /usr/include/p4est_iterate.h \
+ /usr/include/p4est_lnodes.h /usr/include/p4est_search.h \
+ /usr/include/p4est_vtk.h /usr/include/p4est_geometry.h \
+ /usr/include/p8est_bits.h /usr/include/p8est.h \
+ /usr/include/p8est_connectivity.h /usr/include/p8est_communication.h \
+ /usr/include/p8est_extended.h /usr/include/p8est_mesh.h \
+ /usr/include/p8est_ghost.h /usr/include/p8est_iterate.h \
+ /usr/include/p8est_lnodes.h /usr/include/p8est_search.h \
+ /usr/include/p8est_vtk.h /usr/include/p8est_geometry.h \
+ /usr/local/include/deal.II/grid/tria_description.h \
+ /usr/local/include/deal.II/grid/reference_cell.h \
+ /usr/local/include/deal.II/lac/la_parallel_vector.h \
+ /usr/local/include/deal.II/base/memory_space_data.h \
+ /usr/local/include/deal.II/base/cuda.h \
+ /usr/local/include/deal.II/base/parallel.h \
+ /usr/local/include/deal.II/base/synchronous_iterator.h \
+ /usr/include/tbb/blocked_range.h /usr/include/tbb/parallel_for.h \
+ /usr/include/tbb/partitioner.h /usr/include/tbb/task_arena.h \
+ /usr/include/tbb/aligned_space.h /usr/include/tbb/blocked_range.h \
+ /usr/include/tbb/internal/_tbb_trace_impl.h \
+ /usr/include/tbb/tbb_profiling.h /usr/include/tbb/parallel_reduce.h \
+ /usr/include/tbb/partitioner.h \
+ /usr/local/include/deal.II/lac/vector_space_vector.h \
+ /usr/local/include/deal.II/lac/vector_type_traits.h \
+ /usr/local/include/deal.II/grid/tria_iterator_selector.h \
+ /usr/local/include/deal.II/grid/tria_levels.h \
+ /usr/local/include/deal.II/grid/tria_objects.h \
+ /usr/include/boost/serialization/utility.hpp \
+ /usr/include/boost/serialization/map.hpp \
+ /usr/include/boost/serialization/unique_ptr.hpp \
+ /usr/include/c++/11/bitset \
+ /usr/local/include/deal.II/grid/tria_accessor.h \
+ /usr/local/include/deal.II/base/bounding_box.h \
+ /usr/local/include/deal.II/grid/tria_iterator_base.h \
  /usr/include/boost/container/small_vector.hpp \
  /usr/include/boost/container/detail/config_begin.hpp \
  /usr/include/boost/container/detail/workaround.hpp \
@@ -1416,83 +1770,16 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/include/boost/move/algo/detail/is_sorted.hpp \
  /usr/include/boost/move/algo/unique.hpp \
  /usr/include/boost/move/algo/detail/set_difference.hpp \
- /usr/include/trilinos/Epetra_Map.h \
- /usr/include/trilinos/Epetra_ConfigDefs.h \
- /usr/include/trilinos/Epetra_config.h /usr/include/c++/11/iomanip \
- /usr/include/c++/11/bits/quoted_string.h \
- /usr/include/trilinos/Epetra_DLLExportMacro.h \
- /usr/include/trilinos/Epetra_BlockMap.h \
- /usr/include/trilinos/Epetra_Object.h \
- /usr/include/trilinos/Epetra_CombineMode.h \
- /usr/include/trilinos/Epetra_DataAccess.h \
- /usr/include/trilinos/Epetra_BlockMapData.h \
- /usr/include/trilinos/Epetra_Data.h \
- /usr/include/trilinos/Epetra_IntSerialDenseVector.h \
- /usr/include/trilinos/Epetra_IntSerialDenseMatrix.h \
- /usr/include/trilinos/Epetra_LongLongSerialDenseVector.h \
- /usr/include/trilinos/Epetra_LongLongSerialDenseMatrix.h \
- /usr/include/petsc/petscis.h /usr/include/petsc/petscsys.h \
- /usr/include/petsc/petscconf.h /usr/include/petsc/petscfix.h \
- /usr/include/petsc/petscsystypes.h \
- /usr/include/petsc/petsccxxcomplexfix.h \
- /usr/include/petsc/petscversion.h /usr/include/petsc/petscmath.h \
- /usr/include/c++/11/math.h /usr/include/petsc/petscerror.h \
- /usr/include/petsc/petscviewertypes.h /usr/include/petsc/petscoptions.h \
- /usr/include/petsc/petsclog.h /usr/include/petsc/petsctime.h \
- /usr/include/c++/11/stdlib.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/xmmintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/mmintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/mm_malloc.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/emmintrin.h \
- /usr/include/petsc/petscsftypes.h /usr/include/petsc/petscsectiontypes.h \
- /usr/include/petsc/petscistypes.h \
- /usr/local/include/deal.II/base/iterator_range.h \
+ /usr/local/include/deal.II/grid/tria_accessor.templates.h \
+ /usr/local/include/deal.II/grid/tria_faces.h \
+ /usr/local/include/deal.II/grid/tria_iterator.h \
+ /usr/local/include/deal.II/grid/tria_iterator.templates.h \
  /usr/local/include/deal.II/dofs/block_info.h \
  /usr/local/include/deal.II/base/memory_consumption.h \
  /usr/local/include/deal.II/lac/block_indices.h \
  /usr/local/include/deal.II/dofs/dof_accessor.h \
  /usr/local/include/deal.II/dofs/dof_iterator_selector.h \
- /usr/local/include/deal.II/grid/tria_accessor.h \
- /usr/local/include/deal.II/base/bounding_box.h \
- /usr/local/include/deal.II/base/geometry_info.h \
- /usr/local/include/deal.II/base/ndarray.h \
- /usr/local/include/deal.II/base/std_cxx20/iota_view.h \
- /usr/include/boost/range/irange.hpp \
- /usr/local/include/deal.II/grid/cell_id.h \
- /usr/local/include/deal.II/distributed/p4est_wrappers.h \
- /usr/include/p4est_bits.h /usr/include/p4est.h \
- /usr/include/p4est_connectivity.h /usr/include/sc_io.h /usr/include/sc.h \
- /usr/include/sc_config.h /usr/include/libgen.h /usr/include/sc_mpi.h \
- /usr/include/sc_containers.h /usr/include/p4est_base.h \
- /usr/include/p4est_config.h /usr/include/p4est_communication.h \
- /usr/include/p4est_extended.h /usr/include/p4est_mesh.h \
- /usr/include/p4est_ghost.h /usr/include/p4est_iterate.h \
- /usr/include/p4est_lnodes.h /usr/include/p4est_search.h \
- /usr/include/p4est_vtk.h /usr/include/p4est_geometry.h \
- /usr/include/p8est_bits.h /usr/include/p8est.h \
- /usr/include/p8est_connectivity.h /usr/include/p8est_communication.h \
- /usr/include/p8est_extended.h /usr/include/p8est_mesh.h \
- /usr/include/p8est_ghost.h /usr/include/p8est_iterate.h \
- /usr/include/p8est_lnodes.h /usr/include/p8est_search.h \
- /usr/include/p8est_vtk.h /usr/include/p8est_geometry.h \
- /usr/local/include/deal.II/grid/reference_cell.h \
- /usr/local/include/deal.II/grid/tria_iterator_base.h \
- /usr/local/include/deal.II/grid/tria_iterator_selector.h \
- /usr/local/include/deal.II/grid/tria_accessor.templates.h \
- /usr/local/include/deal.II/grid/tria.h \
- /usr/local/include/deal.II/base/partitioner.h \
- /usr/local/include/deal.II/base/communication_pattern_base.h \
- /usr/local/include/deal.II/lac/vector_operation.h \
- /usr/local/include/deal.II/grid/tria_description.h \
- /usr/local/include/deal.II/grid/tria_levels.h \
- /usr/local/include/deal.II/grid/tria_objects.h \
- /usr/local/include/deal.II/grid/tria_objects_orientations.h \
- /usr/include/boost/serialization/utility.hpp \
- /usr/include/boost/serialization/map.hpp \
- /usr/include/boost/serialization/unique_ptr.hpp \
- /usr/include/c++/11/bitset /usr/local/include/deal.II/grid/tria_faces.h \
- /usr/local/include/deal.II/grid/tria_iterator.h \
- /usr/local/include/deal.II/grid/tria_iterator.templates.h \
+ /usr/local/include/deal.II/hp/dof_handler.h \
  /usr/local/include/deal.II/dofs/dof_accessor.templates.h \
  /usr/local/include/deal.II/dofs/dof_faces.h \
  /usr/local/include/deal.II/dofs/dof_objects.h \
@@ -1500,48 +1787,81 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/local/include/deal.II/lac/affine_constraints.h \
  /usr/local/include/deal.II/base/table.h \
  /usr/local/include/deal.II/base/aligned_vector.h \
- /usr/local/include/deal.II/base/parallel.h \
- /usr/local/include/deal.II/base/synchronous_iterator.h \
- /usr/include/tbb/blocked_range.h /usr/include/tbb/tbb_stddef.h \
- /usr/include/tbb/tbb_config.h /usr/include/tbb/parallel_for.h \
- /usr/include/tbb/internal/_warning_suppress_enable_notice.h \
- /usr/include/tbb/tbb_config.h /usr/include/tbb/task.h \
- /usr/include/tbb/internal/_deprecated_header_message_guard.h \
- /usr/include/tbb/tbb_config.h /usr/include/tbb/tbb_machine.h \
- /usr/include/tbb/machine/gcc_generic.h \
- /usr/include/tbb/machine/gcc_ia32_common.h \
- /usr/include/tbb/machine/gcc_itsx.h \
- /usr/include/tbb/machine/linux_common.h \
- /usr/include/x86_64-linux-gnu/sys/syscall.h \
- /usr/include/x86_64-linux-gnu/asm/unistd.h \
- /usr/include/x86_64-linux-gnu/asm/unistd_64.h \
- /usr/include/x86_64-linux-gnu/bits/syscall.h /usr/include/linux/futex.h \
- /usr/include/linux/types.h /usr/include/x86_64-linux-gnu/asm/types.h \
- /usr/include/asm-generic/types.h /usr/include/asm-generic/int-ll64.h \
- /usr/include/x86_64-linux-gnu/asm/bitsperlong.h \
- /usr/include/asm-generic/bitsperlong.h /usr/include/linux/posix_types.h \
- /usr/include/linux/stddef.h \
- /usr/include/x86_64-linux-gnu/asm/posix_types.h \
- /usr/include/x86_64-linux-gnu/asm/posix_types_64.h \
- /usr/include/asm-generic/posix_types.h /usr/include/tbb/tbb_profiling.h \
- /usr/include/tbb/internal/_tbb_strings.h /usr/include/tbb/atomic.h \
- /usr/include/tbb/internal/_warning_suppress_disable_notice.h \
- /usr/include/tbb/partitioner.h /usr/include/tbb/task_arena.h \
- /usr/include/tbb/tbb_exception.h /usr/include/tbb/tbb_allocator.h \
- /usr/include/tbb/internal/_template_helpers.h \
- /usr/include/tbb/aligned_space.h /usr/include/tbb/blocked_range.h \
- /usr/include/tbb/internal/_tbb_trace_impl.h \
- /usr/include/tbb/tbb_profiling.h /usr/include/tbb/parallel_reduce.h \
- /usr/include/tbb/partitioner.h \
  /usr/local/include/deal.II/base/linear_index_iterator.h \
- /usr/local/include/deal.II/lac/sparsity_pattern_base.h \
  /usr/local/include/deal.II/lac/vector.h \
- /usr/local/include/deal.II/lac/vector_type_traits.h \
+ /usr/local/include/deal.II/differentiation/ad/ad_number_traits.h \
+ /usr/local/include/deal.II/differentiation/ad/ad_number_types.h \
+ /usr/include/boost/type_traits.hpp \
+ /usr/include/boost/type_traits/add_cv.hpp \
+ /usr/include/boost/type_traits/common_type.hpp \
+ /usr/include/boost/type_traits/detail/mp_defer.hpp \
+ /usr/include/boost/type_traits/conjunction.hpp \
+ /usr/include/boost/type_traits/disjunction.hpp \
+ /usr/include/boost/type_traits/floating_point_promotion.hpp \
+ /usr/include/boost/type_traits/has_bit_and.hpp \
+ /usr/include/boost/type_traits/has_bit_and_assign.hpp \
+ /usr/include/boost/type_traits/has_bit_or.hpp \
+ /usr/include/boost/type_traits/has_bit_or_assign.hpp \
+ /usr/include/boost/type_traits/has_bit_xor.hpp \
+ /usr/include/boost/type_traits/has_bit_xor_assign.hpp \
+ /usr/include/boost/type_traits/has_complement.hpp \
+ /usr/include/boost/type_traits/detail/has_prefix_operator.hpp \
+ /usr/include/boost/type_traits/has_dereference.hpp \
+ /usr/include/boost/type_traits/has_divides.hpp \
+ /usr/include/boost/type_traits/has_divides_assign.hpp \
+ /usr/include/boost/type_traits/has_equal_to.hpp \
+ /usr/include/boost/type_traits/has_greater.hpp \
+ /usr/include/boost/type_traits/has_greater_equal.hpp \
+ /usr/include/boost/type_traits/has_left_shift.hpp \
+ /usr/include/boost/type_traits/has_left_shift_assign.hpp \
+ /usr/include/boost/type_traits/has_less.hpp \
+ /usr/include/boost/type_traits/has_less_equal.hpp \
+ /usr/include/boost/type_traits/has_logical_and.hpp \
+ /usr/include/boost/type_traits/has_logical_not.hpp \
+ /usr/include/boost/type_traits/has_logical_or.hpp \
+ /usr/include/boost/type_traits/has_modulus.hpp \
+ /usr/include/boost/type_traits/has_modulus_assign.hpp \
+ /usr/include/boost/type_traits/has_multiplies.hpp \
+ /usr/include/boost/type_traits/has_multiplies_assign.hpp \
+ /usr/include/boost/type_traits/has_negate.hpp \
+ /usr/include/boost/type_traits/has_not_equal_to.hpp \
+ /usr/include/boost/type_traits/has_nothrow_destructor.hpp \
+ /usr/include/boost/type_traits/has_post_decrement.hpp \
+ /usr/include/boost/type_traits/detail/has_postfix_operator.hpp \
+ /usr/include/boost/type_traits/has_post_increment.hpp \
+ /usr/include/boost/type_traits/has_pre_decrement.hpp \
+ /usr/include/boost/type_traits/has_pre_increment.hpp \
+ /usr/include/boost/type_traits/has_right_shift.hpp \
+ /usr/include/boost/type_traits/has_right_shift_assign.hpp \
+ /usr/include/boost/type_traits/has_trivial_move_constructor.hpp \
+ /usr/include/boost/type_traits/has_unary_minus.hpp \
+ /usr/include/boost/type_traits/has_unary_plus.hpp \
+ /usr/include/boost/type_traits/has_virtual_destructor.hpp \
+ /usr/include/boost/type_traits/is_complex.hpp \
+ /usr/include/boost/type_traits/is_compound.hpp \
+ /usr/include/boost/type_traits/is_copy_assignable.hpp \
+ /usr/include/boost/type_traits/is_noncopyable.hpp \
+ /usr/include/boost/type_traits/is_final.hpp \
+ /usr/include/boost/type_traits/is_float.hpp \
+ /usr/include/boost/type_traits/is_list_constructible.hpp \
+ /usr/include/boost/type_traits/is_member_object_pointer.hpp \
+ /usr/include/boost/type_traits/is_nothrow_swappable.hpp \
+ /usr/include/boost/type_traits/is_object.hpp \
+ /usr/include/boost/type_traits/is_scoped_enum.hpp \
+ /usr/include/boost/type_traits/negation.hpp \
+ /usr/include/boost/type_traits/is_trivially_copyable.hpp \
+ /usr/include/boost/type_traits/is_unscoped_enum.hpp \
+ /usr/include/boost/type_traits/make_signed.hpp \
+ /usr/include/boost/type_traits/rank.hpp \
+ /usr/include/boost/type_traits/remove_all_extents.hpp \
+ /usr/include/boost/type_traits/remove_cv_ref.hpp \
+ /usr/include/boost/type_traits/remove_volatile.hpp \
+ /usr/include/boost/type_traits/integral_promotion.hpp \
+ /usr/include/boost/type_traits/promote.hpp \
  /usr/local/include/deal.II/lac/vector_element_access.h \
  /usr/local/include/deal.II/lac/trilinos_epetra_vector.h \
  /usr/local/include/deal.II/lac/trilinos_epetra_communication_pattern.h \
  /usr/include/trilinos/Epetra_Import.h \
- /usr/local/include/deal.II/lac/vector_space_vector.h \
  /usr/include/trilinos/Epetra_FEVector.h \
  /usr/include/trilinos/Epetra_ConfigDefs.h \
  /usr/include/trilinos/Epetra_CombineMode.h \
@@ -1560,10 +1880,9 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/local/include/deal.II/fe/block_mask.h \
  /usr/local/include/deal.II/fe/fe_data.h \
  /usr/local/include/deal.II/fe/fe_update_flags.h \
+ /usr/local/include/deal.II/base/derivative_form.h \
  /usr/local/include/deal.II/fe/fe_values_extractors.h \
  /usr/local/include/deal.II/fe/mapping.h \
- /usr/local/include/deal.II/base/derivative_form.h \
- /usr/local/include/deal.II/fe/mapping_related_data.h \
  /usr/local/include/deal.II/hp/q_collection.h \
  /usr/local/include/deal.II/hp/collection.h \
  /usr/local/include/deal.II/non_matching/immersed_surface_quadrature.h \
@@ -1572,20 +1891,33 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/local/include/deal.II/lac/identity_matrix.h \
  /usr/local/include/deal.II/dofs/dof_tools.h \
  /usr/local/include/deal.II/fe/fe_values.h /usr/include/petsc/petsc.h \
- /usr/include/petsc/petscbag.h /usr/include/petsc/petscbt.h \
- /usr/include/petsc/petscviewer.h /usr/include/petsc/petscdrawtypes.h \
- /usr/include/petsc/petscctable.h /usr/include/petsc/petscmatlab.h \
- /usr/include/petsc/petscdraw.h /usr/include/setjmp.h \
- /usr/include/petsc/petscsf.h /usr/include/petsc/petscvec.h \
- /usr/include/petsc/petscsection.h /usr/include/petsc/petscdmda.h \
- /usr/include/petsc/petscdm.h /usr/include/petsc/petscmat.h \
- /usr/include/petsc/petscdmtypes.h /usr/include/petsc/petscfetypes.h \
- /usr/include/petsc/petscdstypes.h /usr/include/petsc/petscdmlabel.h \
- /usr/include/petsc/petscdmdatypes.h /usr/include/petsc/petscpf.h \
- /usr/include/petsc/petscao.h /usr/include/petsc/petscfe.h \
- /usr/include/petsc/petscdt.h /usr/include/petsc/petscdmcomposite.h \
- /usr/include/petsc/petscdmpatch.h /usr/include/petsc/petscdmplex.h \
- /usr/include/petsc/petscpartitioner.h \
+ /usr/include/petsc/petscbag.h /usr/include/petsc/petscsys.h \
+ /usr/include/petsc/petscconf.h /usr/include/petsc/petscfix.h \
+ /usr/include/petsc/petscsystypes.h \
+ /usr/include/petsc/petsccxxcomplexfix.h \
+ /usr/include/petsc/petscversion.h /usr/include/petsc/petscmath.h \
+ /usr/include/petsc/petscerror.h /usr/include/petsc/petscviewertypes.h \
+ /usr/include/petsc/petscoptions.h /usr/include/petsc/petsclog.h \
+ /usr/include/petsc/petsctime.h \
+ /usr/lib/gcc/x86_64-linux-gnu/11/include/xmmintrin.h \
+ /usr/lib/gcc/x86_64-linux-gnu/11/include/mmintrin.h \
+ /usr/lib/gcc/x86_64-linux-gnu/11/include/mm_malloc.h \
+ /usr/lib/gcc/x86_64-linux-gnu/11/include/emmintrin.h \
+ /usr/include/petsc/petscbt.h /usr/include/petsc/petscviewer.h \
+ /usr/include/petsc/petscdrawtypes.h /usr/include/petsc/petscctable.h \
+ /usr/include/petsc/petscmatlab.h /usr/include/petsc/petscdraw.h \
+ /usr/include/setjmp.h /usr/include/petsc/petscsf.h \
+ /usr/include/petsc/petscsftypes.h /usr/include/petsc/petscvec.h \
+ /usr/include/petsc/petscis.h /usr/include/petsc/petscsectiontypes.h \
+ /usr/include/petsc/petscistypes.h /usr/include/petsc/petscsection.h \
+ /usr/include/petsc/petscdmda.h /usr/include/petsc/petscdm.h \
+ /usr/include/petsc/petscmat.h /usr/include/petsc/petscdmtypes.h \
+ /usr/include/petsc/petscfetypes.h /usr/include/petsc/petscdstypes.h \
+ /usr/include/petsc/petscdmlabel.h /usr/include/petsc/petscdmdatypes.h \
+ /usr/include/petsc/petscpf.h /usr/include/petsc/petscao.h \
+ /usr/include/petsc/petscfe.h /usr/include/petsc/petscdt.h \
+ /usr/include/petsc/petscdmcomposite.h /usr/include/petsc/petscdmpatch.h \
+ /usr/include/petsc/petscdmplex.h /usr/include/petsc/petscpartitioner.h \
  /usr/include/petsc/petscdmplextypes.h /usr/include/petsc/petscfv.h \
  /usr/include/petsc/petscfvtypes.h /usr/include/petsc/petscdmfield.h \
  /usr/include/petsc/petscdmredundant.h /usr/include/petsc/petscdmshell.h \
@@ -1604,11 +1936,142 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/local/include/deal.II/fe/fe_poly.h \
  /usr/local/include/deal.II/fe/fe_tools.h \
  /usr/local/include/deal.II/distributed/tria.h \
- /usr/local/include/deal.II/distributed/tria_base.h \
- /usr/local/include/deal.II/lac/la_parallel_vector.h \
- /usr/local/include/deal.II/base/memory_space_data.h \
- /usr/local/include/deal.II/base/cuda.h \
  /usr/local/include/deal.II/grid/grid_generator.h \
+ /usr/local/include/deal.II/base/parameter_handler.h \
+ /usr/local/include/deal.II/base/patterns.h \
+ /usr/include/boost/property_tree/ptree_fwd.hpp \
+ /usr/include/boost/property_tree/ptree_serialization.hpp \
+ /usr/include/boost/property_tree/ptree.hpp \
+ /usr/include/boost/property_tree/string_path.hpp \
+ /usr/include/boost/property_tree/id_translator.hpp \
+ /usr/include/boost/property_tree/exceptions.hpp \
+ /usr/include/boost/any.hpp \
+ /usr/include/boost/property_tree/detail/exception_implementation.hpp \
+ /usr/include/boost/property_tree/detail/ptree_utils.hpp \
+ /usr/include/boost/property_tree/stream_translator.hpp \
+ /usr/include/boost/optional/optional_io.hpp \
+ /usr/include/boost/multi_index_container.hpp \
+ /usr/include/boost/mpl/at.hpp /usr/include/boost/mpl/aux_/at_impl.hpp \
+ /usr/include/boost/mpl/contains.hpp \
+ /usr/include/boost/mpl/contains_fwd.hpp \
+ /usr/include/boost/mpl/aux_/contains_impl.hpp \
+ /usr/include/boost/multi_index_container_fwd.hpp \
+ /usr/include/boost/multi_index/identity.hpp \
+ /usr/include/boost/multi_index/identity_fwd.hpp \
+ /usr/include/boost/multi_index/indexed_by.hpp \
+ /usr/include/boost/mpl/vector.hpp \
+ /usr/include/boost/mpl/vector/vector20.hpp \
+ /usr/include/boost/mpl/vector/vector10.hpp \
+ /usr/include/boost/mpl/vector/vector0.hpp \
+ /usr/include/boost/mpl/vector/aux_/at.hpp \
+ /usr/include/boost/mpl/vector/aux_/tag.hpp \
+ /usr/include/boost/mpl/aux_/config/typeof.hpp \
+ /usr/include/boost/mpl/vector/aux_/front.hpp \
+ /usr/include/boost/mpl/vector/aux_/push_front.hpp \
+ /usr/include/boost/mpl/vector/aux_/item.hpp \
+ /usr/include/boost/mpl/vector/aux_/pop_front.hpp \
+ /usr/include/boost/mpl/vector/aux_/push_back.hpp \
+ /usr/include/boost/mpl/vector/aux_/pop_back.hpp \
+ /usr/include/boost/mpl/pop_back_fwd.hpp \
+ /usr/include/boost/mpl/vector/aux_/back.hpp \
+ /usr/include/boost/mpl/back_fwd.hpp \
+ /usr/include/boost/mpl/vector/aux_/clear.hpp \
+ /usr/include/boost/mpl/vector/aux_/vector0.hpp \
+ /usr/include/boost/mpl/vector/aux_/iterator.hpp \
+ /usr/include/boost/mpl/minus.hpp \
+ /usr/include/boost/mpl/aux_/preprocessed/gcc/minus.hpp \
+ /usr/include/boost/mpl/vector/aux_/O1_size.hpp \
+ /usr/include/boost/mpl/vector/aux_/size.hpp \
+ /usr/include/boost/mpl/vector/aux_/empty.hpp \
+ /usr/include/boost/mpl/vector/aux_/begin_end.hpp \
+ /usr/include/boost/mpl/vector/aux_/include_preprocessed.hpp \
+ /usr/include/boost/mpl/vector/aux_/preprocessed/typeof_based/vector10.hpp \
+ /usr/include/boost/mpl/vector/aux_/preprocessed/typeof_based/vector20.hpp \
+ /usr/include/boost/mpl/aux_/preprocessed/gcc/vector.hpp \
+ /usr/include/boost/multi_index/ordered_index_fwd.hpp \
+ /usr/include/boost/multi_index/detail/ord_index_args.hpp \
+ /usr/include/boost/multi_index/tag.hpp \
+ /usr/include/boost/multi_index/detail/no_duplicate_tags.hpp \
+ /usr/include/boost/mpl/set/set0.hpp \
+ /usr/include/boost/mpl/set/aux_/at_impl.hpp \
+ /usr/include/boost/mpl/set/aux_/has_key_impl.hpp \
+ /usr/include/boost/mpl/set/aux_/tag.hpp \
+ /usr/include/boost/mpl/aux_/overload_names.hpp \
+ /usr/include/boost/mpl/aux_/ptr_to_ref.hpp \
+ /usr/include/boost/mpl/aux_/config/operators.hpp \
+ /usr/include/boost/mpl/set/aux_/clear_impl.hpp \
+ /usr/include/boost/mpl/set/aux_/set0.hpp \
+ /usr/include/boost/mpl/set/aux_/size_impl.hpp \
+ /usr/include/boost/mpl/set/aux_/empty_impl.hpp \
+ /usr/include/boost/mpl/set/aux_/insert_impl.hpp \
+ /usr/include/boost/mpl/set/aux_/item.hpp /usr/include/boost/mpl/base.hpp \
+ /usr/include/boost/mpl/set/aux_/insert_range_impl.hpp \
+ /usr/include/boost/mpl/set/aux_/erase_impl.hpp \
+ /usr/include/boost/mpl/erase_fwd.hpp \
+ /usr/include/boost/mpl/set/aux_/erase_key_impl.hpp \
+ /usr/include/boost/mpl/erase_key_fwd.hpp \
+ /usr/include/boost/mpl/set/aux_/key_type_impl.hpp \
+ /usr/include/boost/mpl/set/aux_/value_type_impl.hpp \
+ /usr/include/boost/mpl/set/aux_/begin_end_impl.hpp \
+ /usr/include/boost/mpl/set/aux_/iterator.hpp \
+ /usr/include/boost/mpl/has_key.hpp \
+ /usr/include/boost/mpl/aux_/has_key_impl.hpp \
+ /usr/include/boost/multi_index/detail/ord_index_impl_fwd.hpp \
+ /usr/include/boost/multi_index/detail/access_specifier.hpp \
+ /usr/include/boost/multi_index/detail/adl_swap.hpp \
+ /usr/include/boost/multi_index/detail/allocator_traits.hpp \
+ /usr/include/boost/multi_index/detail/base_type.hpp \
+ /usr/include/boost/multi_index/detail/index_base.hpp \
+ /usr/include/boost/multi_index/detail/copy_map.hpp \
+ /usr/include/boost/multi_index/detail/auto_space.hpp \
+ /usr/include/boost/multi_index/detail/raw_ptr.hpp \
+ /usr/include/boost/multi_index/detail/do_not_copy_elements_tag.hpp \
+ /usr/include/boost/multi_index/detail/node_handle.hpp \
+ /usr/include/boost/multi_index/detail/define_if_constexpr_macro.hpp \
+ /usr/include/boost/multi_index/detail/ignore_wstrict_aliasing.hpp \
+ /usr/include/boost/multi_index/detail/restore_wstrict_aliasing.hpp \
+ /usr/include/boost/multi_index/detail/undef_if_constexpr_macro.hpp \
+ /usr/include/boost/multi_index/detail/node_type.hpp \
+ /usr/include/boost/mpl/reverse_iter_fold.hpp \
+ /usr/include/boost/mpl/aux_/reverse_iter_fold_impl.hpp \
+ /usr/include/boost/mpl/aux_/preprocessed/gcc/reverse_iter_fold_impl.hpp \
+ /usr/include/boost/multi_index/detail/header_holder.hpp \
+ /usr/include/boost/multi_index/detail/index_node_base.hpp \
+ /usr/include/boost/multi_index/detail/is_index_list.hpp \
+ /usr/include/boost/multi_index/detail/vartempl_support.hpp \
+ /usr/include/boost/tuple/tuple.hpp \
+ /usr/include/boost/tuple/detail/tuple_basic.hpp \
+ /usr/include/boost/type_traits/cv_traits.hpp \
+ /usr/include/boost/multi_index/detail/index_loader.hpp \
+ /usr/include/boost/multi_index/detail/index_saver.hpp \
+ /usr/include/boost/multi_index/detail/index_matcher.hpp \
+ /usr/include/boost/multi_index/detail/converter.hpp \
+ /usr/include/boost/multi_index/detail/has_tag.hpp \
+ /usr/include/boost/multi_index/detail/safe_mode.hpp \
+ /usr/include/boost/multi_index/detail/scope_guard.hpp \
+ /usr/include/boost/multi_index/detail/archive_constructed.hpp \
+ /usr/include/boost/multi_index/detail/serialization_version.hpp \
+ /usr/include/boost/multi_index/sequenced_index.hpp \
+ /usr/include/boost/foreach_fwd.hpp \
+ /usr/include/boost/multi_index/detail/bidir_node_iterator.hpp \
+ /usr/include/boost/multi_index/detail/seq_index_node.hpp \
+ /usr/include/boost/multi_index/detail/seq_index_ops.hpp \
+ /usr/include/boost/multi_index/sequenced_index_fwd.hpp \
+ /usr/include/boost/multi_index/ordered_index.hpp \
+ /usr/include/boost/multi_index/detail/ord_index_impl.hpp \
+ /usr/include/boost/multi_index/detail/modify_key_adaptor.hpp \
+ /usr/include/boost/multi_index/detail/ord_index_node.hpp \
+ /usr/include/boost/multi_index/detail/uintptr_type.hpp \
+ /usr/include/boost/multi_index/detail/ord_index_ops.hpp \
+ /usr/include/boost/multi_index/detail/promotes_arg.hpp \
+ /usr/include/boost/multi_index/detail/is_transparent.hpp \
+ /usr/include/boost/multi_index/detail/unbounded.hpp \
+ /usr/include/boost/multi_index/detail/value_compare.hpp \
+ /usr/include/boost/multi_index/detail/duplicates_iterator.hpp \
+ /usr/include/boost/multi_index/member.hpp \
+ /usr/include/boost/property_tree/detail/ptree_implementation.hpp \
+ /usr/include/c++/11/unordered_set \
+ /usr/include/c++/11/bits/unordered_set.h \
  /usr/local/include/deal.II/cgal/additional_data.h \
  /usr/include/CGAL/Mesh_facet_topology.h \
  /usr/include/CGAL/license/Mesh_3.h /usr/include/CGAL/config.h \
@@ -1743,10 +2206,8 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/include/boost/predef/hardware/simd/arm/versions.h \
  /usr/include/boost/predef/hardware/simd/ppc.h \
  /usr/include/boost/predef/hardware/simd/ppc/versions.h \
- /usr/include/boost/predef/version.h /usr/include/c++/11/unordered_set \
- /usr/include/c++/11/bits/unordered_set.h \
- /usr/include/CGAL/license/lgpl.h /usr/include/CGAL/license.h \
- /usr/include/c++/11/fstream \
+ /usr/include/boost/predef/version.h /usr/include/CGAL/license/lgpl.h \
+ /usr/include/CGAL/license.h /usr/include/c++/11/fstream \
  /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h \
  /usr/include/c++/11/bits/fstream.tcc \
@@ -1761,141 +2222,6 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/local/include/deal.II/numerics/data_component_interpretation.h \
  /usr/local/include/deal.II/grid/grid_refinement.h \
  /usr/local/include/deal.II/numerics/vector_tools_common.h \
- /usr/local/include/deal.II/base/patterns.h \
- /usr/include/boost/property_tree/ptree_fwd.hpp \
- /usr/include/boost/property_tree/ptree_serialization.hpp \
- /usr/include/boost/property_tree/ptree.hpp \
- /usr/include/boost/property_tree/string_path.hpp \
- /usr/include/boost/property_tree/id_translator.hpp \
- /usr/include/boost/property_tree/exceptions.hpp \
- /usr/include/boost/any.hpp \
- /usr/include/boost/property_tree/detail/exception_implementation.hpp \
- /usr/include/boost/property_tree/detail/ptree_utils.hpp \
- /usr/include/boost/property_tree/stream_translator.hpp \
- /usr/include/boost/optional/optional_io.hpp \
- /usr/include/boost/multi_index_container.hpp \
- /usr/include/boost/mpl/at.hpp /usr/include/boost/mpl/aux_/at_impl.hpp \
- /usr/include/boost/mpl/contains.hpp \
- /usr/include/boost/mpl/contains_fwd.hpp \
- /usr/include/boost/mpl/aux_/contains_impl.hpp \
- /usr/include/boost/multi_index_container_fwd.hpp \
- /usr/include/boost/multi_index/identity.hpp \
- /usr/include/boost/multi_index/identity_fwd.hpp \
- /usr/include/boost/multi_index/indexed_by.hpp \
- /usr/include/boost/mpl/vector.hpp \
- /usr/include/boost/mpl/vector/vector20.hpp \
- /usr/include/boost/mpl/vector/vector10.hpp \
- /usr/include/boost/mpl/vector/vector0.hpp \
- /usr/include/boost/mpl/vector/aux_/at.hpp \
- /usr/include/boost/mpl/vector/aux_/tag.hpp \
- /usr/include/boost/mpl/aux_/config/typeof.hpp \
- /usr/include/boost/mpl/vector/aux_/front.hpp \
- /usr/include/boost/mpl/vector/aux_/push_front.hpp \
- /usr/include/boost/mpl/vector/aux_/item.hpp \
- /usr/include/boost/mpl/vector/aux_/pop_front.hpp \
- /usr/include/boost/mpl/vector/aux_/push_back.hpp \
- /usr/include/boost/mpl/vector/aux_/pop_back.hpp \
- /usr/include/boost/mpl/pop_back_fwd.hpp \
- /usr/include/boost/mpl/vector/aux_/back.hpp \
- /usr/include/boost/mpl/back_fwd.hpp \
- /usr/include/boost/mpl/vector/aux_/clear.hpp \
- /usr/include/boost/mpl/vector/aux_/vector0.hpp \
- /usr/include/boost/mpl/vector/aux_/iterator.hpp \
- /usr/include/boost/mpl/minus.hpp \
- /usr/include/boost/mpl/aux_/preprocessed/gcc/minus.hpp \
- /usr/include/boost/mpl/vector/aux_/O1_size.hpp \
- /usr/include/boost/mpl/vector/aux_/size.hpp \
- /usr/include/boost/mpl/vector/aux_/empty.hpp \
- /usr/include/boost/mpl/vector/aux_/begin_end.hpp \
- /usr/include/boost/mpl/vector/aux_/include_preprocessed.hpp \
- /usr/include/boost/mpl/vector/aux_/preprocessed/typeof_based/vector10.hpp \
- /usr/include/boost/mpl/vector/aux_/preprocessed/typeof_based/vector20.hpp \
- /usr/include/boost/mpl/aux_/preprocessed/gcc/vector.hpp \
- /usr/include/boost/multi_index/ordered_index_fwd.hpp \
- /usr/include/boost/multi_index/detail/ord_index_args.hpp \
- /usr/include/boost/multi_index/tag.hpp \
- /usr/include/boost/multi_index/detail/no_duplicate_tags.hpp \
- /usr/include/boost/mpl/set/set0.hpp \
- /usr/include/boost/mpl/set/aux_/at_impl.hpp \
- /usr/include/boost/mpl/set/aux_/has_key_impl.hpp \
- /usr/include/boost/mpl/set/aux_/tag.hpp \
- /usr/include/boost/mpl/aux_/overload_names.hpp \
- /usr/include/boost/mpl/aux_/ptr_to_ref.hpp \
- /usr/include/boost/mpl/aux_/config/operators.hpp \
- /usr/include/boost/mpl/set/aux_/clear_impl.hpp \
- /usr/include/boost/mpl/set/aux_/set0.hpp \
- /usr/include/boost/mpl/set/aux_/size_impl.hpp \
- /usr/include/boost/mpl/set/aux_/empty_impl.hpp \
- /usr/include/boost/mpl/set/aux_/insert_impl.hpp \
- /usr/include/boost/mpl/set/aux_/item.hpp /usr/include/boost/mpl/base.hpp \
- /usr/include/boost/mpl/set/aux_/insert_range_impl.hpp \
- /usr/include/boost/mpl/set/aux_/erase_impl.hpp \
- /usr/include/boost/mpl/erase_fwd.hpp \
- /usr/include/boost/mpl/set/aux_/erase_key_impl.hpp \
- /usr/include/boost/mpl/erase_key_fwd.hpp \
- /usr/include/boost/mpl/set/aux_/key_type_impl.hpp \
- /usr/include/boost/mpl/set/aux_/value_type_impl.hpp \
- /usr/include/boost/mpl/set/aux_/begin_end_impl.hpp \
- /usr/include/boost/mpl/set/aux_/iterator.hpp \
- /usr/include/boost/mpl/has_key.hpp \
- /usr/include/boost/mpl/aux_/has_key_impl.hpp \
- /usr/include/boost/multi_index/detail/ord_index_impl_fwd.hpp \
- /usr/include/boost/multi_index/detail/access_specifier.hpp \
- /usr/include/boost/multi_index/detail/adl_swap.hpp \
- /usr/include/boost/multi_index/detail/allocator_traits.hpp \
- /usr/include/boost/multi_index/detail/base_type.hpp \
- /usr/include/boost/multi_index/detail/index_base.hpp \
- /usr/include/boost/multi_index/detail/copy_map.hpp \
- /usr/include/boost/multi_index/detail/auto_space.hpp \
- /usr/include/boost/multi_index/detail/raw_ptr.hpp \
- /usr/include/boost/multi_index/detail/do_not_copy_elements_tag.hpp \
- /usr/include/boost/multi_index/detail/node_handle.hpp \
- /usr/include/boost/multi_index/detail/define_if_constexpr_macro.hpp \
- /usr/include/boost/multi_index/detail/ignore_wstrict_aliasing.hpp \
- /usr/include/boost/multi_index/detail/restore_wstrict_aliasing.hpp \
- /usr/include/boost/multi_index/detail/undef_if_constexpr_macro.hpp \
- /usr/include/boost/multi_index/detail/node_type.hpp \
- /usr/include/boost/mpl/reverse_iter_fold.hpp \
- /usr/include/boost/mpl/aux_/reverse_iter_fold_impl.hpp \
- /usr/include/boost/mpl/aux_/preprocessed/gcc/reverse_iter_fold_impl.hpp \
- /usr/include/boost/multi_index/detail/header_holder.hpp \
- /usr/include/boost/multi_index/detail/index_node_base.hpp \
- /usr/include/boost/multi_index/detail/is_index_list.hpp \
- /usr/include/boost/multi_index/detail/vartempl_support.hpp \
- /usr/include/boost/tuple/tuple.hpp \
- /usr/include/boost/tuple/detail/tuple_basic.hpp \
- /usr/include/boost/type_traits/cv_traits.hpp \
- /usr/include/boost/type_traits/add_cv.hpp \
- /usr/include/boost/type_traits/remove_volatile.hpp \
- /usr/include/boost/multi_index/detail/index_loader.hpp \
- /usr/include/boost/multi_index/detail/index_saver.hpp \
- /usr/include/boost/multi_index/detail/index_matcher.hpp \
- /usr/include/boost/multi_index/detail/converter.hpp \
- /usr/include/boost/multi_index/detail/has_tag.hpp \
- /usr/include/boost/multi_index/detail/safe_mode.hpp \
- /usr/include/boost/multi_index/detail/scope_guard.hpp \
- /usr/include/boost/multi_index/detail/archive_constructed.hpp \
- /usr/include/boost/multi_index/detail/serialization_version.hpp \
- /usr/include/boost/multi_index/sequenced_index.hpp \
- /usr/include/boost/foreach_fwd.hpp \
- /usr/include/boost/multi_index/detail/bidir_node_iterator.hpp \
- /usr/include/boost/multi_index/detail/seq_index_node.hpp \
- /usr/include/boost/multi_index/detail/seq_index_ops.hpp \
- /usr/include/boost/multi_index/sequenced_index_fwd.hpp \
- /usr/include/boost/multi_index/ordered_index.hpp \
- /usr/include/boost/multi_index/detail/ord_index_impl.hpp \
- /usr/include/boost/multi_index/detail/modify_key_adaptor.hpp \
- /usr/include/boost/multi_index/detail/ord_index_node.hpp \
- /usr/include/boost/multi_index/detail/uintptr_type.hpp \
- /usr/include/boost/multi_index/detail/ord_index_ops.hpp \
- /usr/include/boost/multi_index/detail/promotes_arg.hpp \
- /usr/include/boost/multi_index/detail/is_transparent.hpp \
- /usr/include/boost/type_traits/is_final.hpp \
- /usr/include/boost/multi_index/detail/unbounded.hpp \
- /usr/include/boost/multi_index/detail/value_compare.hpp \
- /usr/include/boost/multi_index/detail/duplicates_iterator.hpp \
- /usr/include/boost/multi_index/member.hpp \
- /usr/include/boost/property_tree/detail/ptree_implementation.hpp \
  /usr/local/include/deal.II/lac/dynamic_sparsity_pattern.h \
  /usr/local/include/deal.II/lac/precondition.h \
  /usr/local/include/deal.II/base/cuda_size.h \
@@ -2009,23 +2335,15 @@ CMakeFiles/second_grid.dir/second_grid.cpp.o: \
  /usr/local/include/deal.II/numerics/vector_tools.h \
  /usr/local/include/deal.II/numerics/vector_tools_boundary.h \
  /usr/local/include/deal.II/numerics/vector_tools_constraints.h \
- /usr/local/include/deal.II/multigrid/mg_constrained_dofs.h \
- /usr/local/include/deal.II/multigrid/mg_tools.h \
  /usr/local/include/deal.II/numerics/vector_tools_evaluate.h \
  /usr/local/include/deal.II/base/mpi_remote_point_evaluation.h \
  /usr/local/include/deal.II/matrix_free/fe_point_evaluation.h \
  /usr/local/include/deal.II/base/signaling_nan.h \
- /usr/local/include/deal.II/matrix_free/evaluation_flags.h \
- /usr/local/include/deal.II/matrix_free/evaluation_kernels.h \
- /usr/local/include/deal.II/matrix_free/dof_info.h \
- /usr/local/include/deal.II/matrix_free/face_info.h \
- /usr/local/include/deal.II/matrix_free/vector_data_exchange.h \
- /usr/local/include/deal.II/matrix_free/fe_evaluation_data.h \
- /usr/local/include/deal.II/matrix_free/mapping_info_storage.h \
- /usr/local/include/deal.II/non_matching/mapping_info.h \
- /usr/local/include/deal.II/fe/fe_dgq.h \
  /usr/local/include/deal.II/fe/mapping_cartesian.h \
  /usr/local/include/deal.II/base/qprojector.h \
+ /usr/local/include/deal.II/matrix_free/evaluation_flags.h \
+ /usr/local/include/deal.II/non_matching/mapping_info.h \
+ /usr/local/include/deal.II/fe/fe_dgq.h \
  /usr/local/include/deal.II/numerics/vector_tools_integrate_difference.h \
  /usr/local/include/deal.II/numerics/vector_tools_interpolate.h \
  /usr/local/include/deal.II/numerics/vector_tools_mean_value.h \
