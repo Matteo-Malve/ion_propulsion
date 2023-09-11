@@ -20,10 +20,6 @@ void PrimalSolver<dim>::output_solution(){
         double x_ = postprocessor(this->dof_handler, this->solution);
         std::cout << "   [PrimalSolver]Potential at sample point (" << evaluation_point[0] << "," << evaluation_point[1] << "): "
                   << std::scientific << x_ << std::defaultfloat << std::endl;
-
-        // Identify ionization area and save it to .vtu file
-        //ionization_area(*this->triangulation,this->dof_handler,this->solution);
-
     }
     if(this->grid_option==2)
         cout<<"   No point evaluations, grid 2"<<endl;

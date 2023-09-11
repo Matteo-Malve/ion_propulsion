@@ -12,6 +12,10 @@ int main()
         const unsigned int dim = 2;
         // Fix grid_option
         unsigned int grid_option = redefined_2_datafile("grid_option",3 );
+        unsigned int refinement_algorithm = redefined_2_datafile("refinement_algorithm",1);
+        std::string algorithm_name = "fixed_fraction";
+        if(refinement_algorithm==2)
+            algorithm_name="optimize";
         // Define DESCRIPTOR
         Functions::ZeroFunction<dim> zero_function;
         ProblemDescription<dim> descriptor(zero_function);
@@ -25,10 +29,11 @@ int main()
             << "        - primal_fe_degree                   "<<descriptor.primal_fe_degree<<endl
             << "        - dual_fe_degree                     "<<descriptor.dual_fe_degree<<endl
             << "        - max_degrees_of_freedom             "<<descriptor.max_degrees_of_freedom<<endl
-            << "        - max_number_of_refinements          "<<descriptor.max_number_of_refinements<<endl;
+            << "        - max_number_of_refinements          "<<descriptor.max_number_of_refinements<<endl
+            << "        - refinement algorithm:              "<<algorithm_name<<endl;
 
         // RUN FRAMEWORK
-        framework_run(descriptor,grid_option);
+        framework_run(descriptor,grid_option,refinement_algorithm);
 
     }
 

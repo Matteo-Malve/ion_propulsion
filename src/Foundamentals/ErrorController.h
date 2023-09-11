@@ -23,7 +23,7 @@ public:
     // METHODS
     virtual void solve_problem() override;
     virtual unsigned int n_dofs() const override;
-    virtual void refine_grid(int step) override;
+    virtual void refine_grid(unsigned int algorithm) override;
     virtual void output_solution() override;
 private:
     void estimate_error(Vector<float> &error_indicators) const;

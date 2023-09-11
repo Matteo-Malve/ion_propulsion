@@ -34,7 +34,7 @@ ProblemDescription<dim>::ProblemDescription(Function<dim>& rhs_func)
           rhs_function(rhs_func) {}
 
 template<int dim>
-void framework_run(const ProblemDescription<dim> &descriptor,unsigned int grid_option){
+void framework_run(const ProblemDescription<dim> &descriptor,unsigned int grid_option, unsigned int algorithm){
         Triangulation<dim> triangulation(Triangulation<dim>::smoothing_on_refinement);
     // IMPORT correct grid
         if(grid_option<1.5)
@@ -70,11 +70,10 @@ void framework_run(const ProblemDescription<dim> &descriptor,unsigned int grid_o
         solver->set_refinement_cycle(step);
         solver->solve_problem();
         solver->output_solution();
-        std::cout << "   [Framework]Number of degrees of freedom=" << solver->n_dofs() << std::endl;
 
         // Refine grid
         cout << "   [Framework]Prepare call to refine grid" << endl;
-        solver->refine_grid(step);
+        solver->refine_grid(algorithm);
 
         // Update step
         step++;

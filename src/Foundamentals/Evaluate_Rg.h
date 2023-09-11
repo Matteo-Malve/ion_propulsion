@@ -2,6 +2,7 @@
 #define ION_PROPULSION_EVALUATE_RG_H
 
 #include "../includes&parameters_setup.h"
+static GetPot redefined_6_datafile("../data_setup");
 
 template <int dim>
 class Evaluate_Rg : public Function<dim>
@@ -16,7 +17,8 @@ public:
         double r = sqrt(x * x + y * y);
 
         double Ve = 20000;
-        double Re = 250e-6;
+        double Re = redefined_6_datafile("wire_radius",250e-6);
+
         double Rg = 0;
         if (r<2*Re)
             Rg = Ve * (2 - r/Re) * (2 - r/Re);

@@ -8,7 +8,7 @@ static auto evaluate_grad_Rg = [](double x, double y) {
     double r = sqrt(x * x + y * y);
     Tensor<1,2> grad_Rg;
     double Ve = 20000;
-    double Re = 250e-6;
+    double Re = redefined_4_datafile("wire_radius",250e-6);
 
     // Gradient computed analytically by hand. Check Evaluate_Rg.h for the primitive function.
     grad_Rg[0] = 0;
@@ -45,18 +45,12 @@ public:
     }
 };
 
-// Our target function, retrieves the potential area of ionized air, basing on a threshold
+// Next function retrieves the potential area of ionized air, basing on a user input threshold
+// NOTE: In the end, it revealed not to be useful for the sake of our project.
+//       Hence, it is never called, but we keep it for the sake of the continuation of this code by the colleague of
+//       the Department of Aeronautical Engineering
 template <int dim>
 void ionization_area(const Triangulation<dim> &triangulation, const DoFHandler<dim> &dof_handler, const Vector<double> &solution);
 
-
-/* Helper function, gives errors on less recent versions of deal.ii
- * It outputs a .vtu with a field dedicated to the boundary ids.
- * It is helpful to visualize if you've correctly set the desired BCs.
-
-template <int dim>
-void check_boundary_ids(const Triangulation<dim> &triangulation);
-
-*/
 
 #endif //ION_PROPULSION_CC_HELPERFUCTIONS_H

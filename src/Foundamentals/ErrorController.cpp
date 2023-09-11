@@ -81,7 +81,7 @@ unsigned int ErrorController<dim>::n_dofs() const
 
 
 template <int dim>
-void ErrorController<dim>::refine_grid(int step) {
+void ErrorController<dim>::refine_grid(unsigned int algorithm) {
 
     // Prepare vector to store error values
     Vector<float> error_indicators(this->triangulation->n_active_cells());
@@ -106,23 +106,15 @@ void ErrorController<dim>::refine_grid(int step) {
     for (float &error_indicator : error_indicators)
         error_indicator = std::fabs(error_indicator);
 
-    // Temporarily shut down, but would allow to make refinements with multiple criteria depending on refinement cycle
-    if(step<0)
-        GridRefinement::refine_and_coarsen_fixed_fraction(*this->triangulation,
-                                                          error_indicators,
-                                                          0.2,
-                                                          0.3);
-    // Active (unique) refinement criteria
-    else
-        
+    if(algorithm>1.5)
         GridRefinement::refine_and_coarsen_optimize(*this->triangulation,
                                                     error_indicators,
                                                     4);
-        /*
+    else
         GridRefinement::refine_and_coarsen_fixed_fraction(*this->triangulation,
-                                                          error_indicators,
-                                                          0.8,
-                                                          0.02);*/
+                                                        error_indicators,
+                                                        0.8,
+                                                        0.02);
 
     // Execute refinement
     this->triangulation->execute_coarsening_and_refinement();

@@ -14,7 +14,7 @@ public:
 
     // Pure virtual main methods
     virtual void solve_problem()                                  = 0;
-    virtual void refine_grid(int step)                            = 0;
+    virtual void refine_grid(unsigned int algorithm)              = 0;
     virtual unsigned int n_dofs() const                           = 0;
     virtual void output_solution()                                = 0;
 
