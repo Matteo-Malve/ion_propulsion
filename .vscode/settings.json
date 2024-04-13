@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "ranges": "cpp",
+        "tuple": "cpp"
+    }
+}
