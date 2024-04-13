@@ -47,10 +47,23 @@ using std::endl;
 #include <stdbool.h>
 
 #include <memory>
-#include "GetPot"
-
 #include <cmath>
 
+struct Constants {
+    // Physical Constants
+    double eps_0;
+    double eps_r;
+    double Vmax;
+    double E_ON;
+
+    // Geometry Data
+    double R;
+    double nn;
+    double L;
+    double X;
+    double g;
+    double mesh_height;
+};
 
 
 #endif //ION_PROPULSION_INCLUDES_PARAMETERS_SETUP_H
