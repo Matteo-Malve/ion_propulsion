@@ -148,16 +148,16 @@ class Problem
 public:
   Problem();
 
-  void run(indicators::ProgressBar & bar);
+  void run();
 
 private:
   void create_mesh();
 
-  void setup_primal_system();
+  void setup_primal_system(indicators::ProgressBar & bar);
   void setup_dual_system();
-  void assemble_primal_system();
+  void assemble_primal_system(indicators::ProgressBar & bar);
   void assemble_dual_system();
-  void solve_primal();
+  void solve_primal(indicators::ProgressBar & bar);
   void solve_dual();
   void output_primal_results();
   void output_dual_results();
@@ -451,14 +451,19 @@ void Problem<dim>::create_mesh()
 
 
 template <int dim>
-void Problem<dim>::setup_primal_system()
+void Problem<dim>::setup_primal_system(indicators::ProgressBar & bar)
 {
+  bar.set_option(indicators::option::PostfixText{"Setup: Distribute DoFs"});
   primal_dof_handler.distribute_dofs(primal_fe);
+  bar.set_progress(10);
 
+  bar.set_option(indicators::option::PostfixText{"Setup: Make hanging node constraints"});
   primal_constraints.clear();
 	DoFTools::make_hanging_node_constraints(primal_dof_handler, primal_constraints);
 	primal_constraints.close();
+  bar.set_progress(20);
 
+  bar.set_option(indicators::option::PostfixText{"Setup: Make sparsity pattern"});
   DynamicSparsityPattern dsp(primal_dof_handler.n_dofs());
   DoFTools::make_sparsity_pattern(primal_dof_handler, dsp, primal_constraints, false);
   primal_sparsity_pattern.copy_from(dsp);
@@ -468,8 +473,7 @@ void Problem<dim>::setup_primal_system()
   uh0.reinit(primal_dof_handler.n_dofs());
   primal_solution.reinit(primal_dof_handler.n_dofs());
   primal_rhs.reinit(primal_dof_handler.n_dofs());
-
-  //cout << "Primal problem DoFs: " << primal_dof_handler.n_dofs() << endl;
+  bar.set_progress(30);  
 }
 
 template <int dim>
@@ -495,8 +499,9 @@ void Problem<dim>::setup_dual_system()
 
 
 template <int dim>
-void Problem<dim>::assemble_primal_system()
+void Problem<dim>::assemble_primal_system(indicators::ProgressBar & bar)
 {
+  bar.set_option(indicators::option::PostfixText{"Assemble: Assembling linear system"});
 	const QGauss <dim> quadrature(dual_fe.degree + 1);
     FEValues<dim> fe_values(primal_fe,
                             quadrature,
@@ -577,7 +582,7 @@ void Problem<dim>::assemble_primal_system()
       MatrixTools::apply_boundary_values(collector_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
     }
 
-    cout<<"   Assembled primal system" <<endl;
+  bar.set_progress(60);  
 }
 
 template <int dim>
@@ -655,8 +660,9 @@ void Problem<dim>::assemble_dual_system()
 
 
 template <int dim>
-void Problem<dim>::solve_primal()
+void Problem<dim>::solve_primal(indicators::ProgressBar & bar)
 {
+  bar.set_option(indicators::option::PostfixText{"Solve: Solving linear system"});
   const unsigned int it_max = 1e+4;
   const double rel_tol = 1.e-6*primal_rhs.l2_norm();
   const double abs_tol = 1.e-12;
@@ -673,6 +679,7 @@ void Problem<dim>::solve_primal()
 
   primal_constraints.distribute(primal_solution);
 
+  bar.set_progress(100);  
   cout<<"   Solved primal problem: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<endl;
 }
 
@@ -896,25 +903,32 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
 }
 
 template <int dim>
-void Problem<dim>::run(indicators::ProgressBar & bar)
+void Problem<dim>::run()
 {  
-  // Initialise for bar updates
-  int progress = 0;
-  std::string postfix;
-
   // Create the mesh
   create_mesh();
 
 	while (cycle <= max_refinements) {
 
-    // Update Postfix in Progress Bar
-    //postfix = "Refinement cycle " + std::to_string(cycle) + "/" + std::to_string(max_refinements);
-    //bar.set_option(indicators::option::PostfixText{postfix});
-    bar.set_progress(floor(cycle/max_refinements*100)); 
+    cout<<"Primal Problem"<<endl;
+    // Create Progress bar
+    cout << endl;
+    indicators::show_console_cursor(true);
+    indicators::ProgressBar bar{
+    indicators::option::BarWidth{50},
+    indicators::option::Start{"["},
+    indicators::option::Fill{"■"},
+    indicators::option::Lead{"■"},
+    indicators::option::Remainder{"-"},
+    indicators::option::End{" ]"},
+    indicators::option::PostfixText{""},
+    indicators::option::ForegroundColor{indicators::Color::unspecified},
+    indicators::option::FontStyles{std::vector<indicators::FontStyle>{indicators::FontStyle::bold}}
+    };
 
-		setup_primal_system();  // make
-		assemble_primal_system();       // condense
-		solve_primal();         // distribute
+		setup_primal_system(bar);  // make
+		assemble_primal_system(bar);       // condense
+		solve_primal(bar);         // distribute
 		uh0 = primal_solution;
 
 		// Retrieve lifting
@@ -937,35 +951,14 @@ void Problem<dim>::run(indicators::ProgressBar & bar)
 		cout << " 	Elapsed CPU time: " << timer.cpu_time() << " seconds for " + Utilities::int_to_string(cycle,1) <<" cycles" << endl;
 		++cycle;
 	}
-  bar.set_progress(100);
-
-  // Show cursor
-  //indicators::show_console_cursor(true);
 }
-
-
 
 int main()
 {
   Problem<2> problem;
 
-  // Create Progress bar
-  cout << endl;
-  indicators::show_console_cursor(true);
-  indicators::ProgressBar bar{
-  indicators::option::BarWidth{50},
-  indicators::option::Start{"["},
-  indicators::option::Fill{"■"},
-  indicators::option::Lead{"■"},
-  indicators::option::Remainder{"-"},
-  indicators::option::End{" ]"},
-  indicators::option::PostfixText{""},
-  indicators::option::ForegroundColor{indicators::Color::unspecified},
-  indicators::option::FontStyles{std::vector<indicators::FontStyle>{indicators::FontStyle::bold}}
-  };
-
   // Run problem
-  problem.run(bar);
+  problem.run();
 
   return 0;
 }
