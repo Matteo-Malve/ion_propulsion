@@ -154,11 +154,11 @@ private:
   void create_mesh();
 
   void setup_primal_system(indicators::ProgressBar & bar);
-  void setup_dual_system();
+  void setup_dual_system(indicators::ProgressBar & bar);
   void assemble_primal_system(indicators::ProgressBar & bar);
-  void assemble_dual_system();
+  void assemble_dual_system(indicators::ProgressBar & bar);
   void solve_primal(indicators::ProgressBar & bar);
-  void solve_dual();
+  void solve_dual(indicators::ProgressBar & bar);
   void output_primal_results();
   void output_dual_results();
 
@@ -477,24 +477,30 @@ void Problem<dim>::setup_primal_system(indicators::ProgressBar & bar)
 }
 
 template <int dim>
-void Problem<dim>::setup_dual_system()
+void Problem<dim>::setup_dual_system(indicators::ProgressBar & bar)
 {
-    dual_dof_handler.distribute_dofs(dual_fe);
+  bar.set_option(indicators::option::PostfixText{"Setup: Distribute DoFs"});
+  dual_dof_handler.distribute_dofs(dual_fe);
+  bar.set_progress(10);
 
-    dual_constraints.clear();
+  bar.set_option(indicators::option::PostfixText{"Setup: Make hanging node constraints"});
+  dual_constraints.clear();
 	DoFTools::make_hanging_node_constraints(dual_dof_handler, dual_constraints);
 	dual_constraints.close();
+  bar.set_progress(20);
 
-    DynamicSparsityPattern dsp(dual_dof_handler.n_dofs());
-    DoFTools::make_sparsity_pattern(dual_dof_handler, dsp, dual_constraints, false);
-    dual_sparsity_pattern.copy_from(dsp);
+  bar.set_option(indicators::option::PostfixText{"Setup: Make sparsity pattern"});
+  DynamicSparsityPattern dsp(dual_dof_handler.n_dofs());
+  DoFTools::make_sparsity_pattern(dual_dof_handler, dsp, dual_constraints, false);
+  dual_sparsity_pattern.copy_from(dsp);
 
-    dual_system_matrix.reinit(dual_sparsity_pattern);
+  dual_system_matrix.reinit(dual_sparsity_pattern);
 
-    dual_solution.reinit(dual_dof_handler.n_dofs());
-    dual_rhs.reinit(dual_dof_handler.n_dofs());
+  dual_solution.reinit(dual_dof_handler.n_dofs());
+  dual_rhs.reinit(dual_dof_handler.n_dofs());
+  bar.set_progress(30);  
 
-    cout << "Dual problem DoFs: " << dual_dof_handler.n_dofs() << endl;
+  //cout << "Dual problem DoFs: " << dual_dof_handler.n_dofs() << endl;
 }
 
 
@@ -503,159 +509,157 @@ void Problem<dim>::assemble_primal_system(indicators::ProgressBar & bar)
 {
   bar.set_option(indicators::option::PostfixText{"Assemble: Assembling linear system"});
 	const QGauss <dim> quadrature(dual_fe.degree + 1);
-    FEValues<dim> fe_values(primal_fe,
-                            quadrature,
-                            update_values | update_gradients | update_quadrature_points |
-                            update_JxW_values);
+  FEValues<dim> fe_values(primal_fe,
+                          quadrature,
+                          update_values | update_gradients | update_quadrature_points |
+                          update_JxW_values);
 
-    const unsigned int dofs_per_cell = primal_fe.n_dofs_per_cell();
-    const unsigned int n_q_points = quadrature.size();
+  const unsigned int dofs_per_cell = primal_fe.n_dofs_per_cell();
+  const unsigned int n_q_points = quadrature.size();
 
-    FullMatrix<double> cell_matrix(dofs_per_cell, dofs_per_cell);
-    Vector<double> cell_rhs(dofs_per_cell);
-    std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
+  FullMatrix<double> cell_matrix(dofs_per_cell, dofs_per_cell);
+  Vector<double> cell_rhs(dofs_per_cell);
+  std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
 
-    std::vector<double> rhs_values(n_q_points);
+  std::vector<double> rhs_values(n_q_points);
 
-    QGauss<dim>          Rg_quadrature(2);
-    FEValues<dim>        Rg_fe_values(primal_fe,
-                                   Rg_quadrature,
-                                   update_values | update_gradients | update_quadrature_points |
-                                   update_JxW_values);
-    const unsigned int Rg_n_q_points = Rg_quadrature.size();
+  QGauss<dim>          Rg_quadrature(2);
+  FEValues<dim>        Rg_fe_values(primal_fe,
+                                  Rg_quadrature,
+                                  update_values | update_gradients | update_quadrature_points |
+                                  update_JxW_values);
+  const unsigned int Rg_n_q_points = Rg_quadrature.size();
 
-    for (const auto &cell : primal_dof_handler.active_cell_iterators())
-    {
-        fe_values.reinit(cell);
-        cell_matrix = 0;
-        cell_rhs = 0;
+  for (const auto &cell : primal_dof_handler.active_cell_iterators())
+  {
+      fe_values.reinit(cell);
+      cell_matrix = 0;
+      cell_rhs = 0;
 
-        // Compute A_loc
-        for (const unsigned int q_index : fe_values.quadrature_point_indices())
-        {
-            for (const unsigned int i : fe_values.dof_indices())
-                for (const unsigned int j : fe_values.dof_indices())
-                    cell_matrix(i, j) += eps_r*eps_0*
-                            (fe_values.shape_grad(i, q_index) * // grad phi_i(x_q)
-                             fe_values.shape_grad(j, q_index) * // grad phi_j(x_q)
-                             fe_values.JxW(q_index));           // dx
-        }
+      // Compute A_loc
+      for (const unsigned int q_index : fe_values.quadrature_point_indices())
+      {
+          for (const unsigned int i : fe_values.dof_indices())
+              for (const unsigned int j : fe_values.dof_indices())
+                  cell_matrix(i, j) += eps_r*eps_0*
+                          (fe_values.shape_grad(i, q_index) * // grad phi_i(x_q)
+                            fe_values.shape_grad(j, q_index) * // grad phi_j(x_q)
+                            fe_values.JxW(q_index));           // dx
+      }
 
-        // Compute RHS
-		rhs_function.value_list(fe_values.get_quadrature_points(),rhs_values);
-		// Compute f_loc
-		for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
-			for (unsigned int i = 0; i < dofs_per_cell; ++i)
-				cell_rhs(i) += (fe_values.shape_value(i, q_point) * // phi_i(x_q)
-								rhs_values[q_point] *               // f(x_q)
-								fe_values.JxW(q_point));            // dx
+      // Compute RHS
+  rhs_function.value_list(fe_values.get_quadrature_points(),rhs_values);
+  // Compute f_loc
+  for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
+    for (unsigned int i = 0; i < dofs_per_cell; ++i)
+      cell_rhs(i) += (fe_values.shape_value(i, q_point) * // phi_i(x_q)
+              rhs_values[q_point] *               // f(x_q)
+              fe_values.JxW(q_point));            // dx
 
-		Rg_fe_values.reinit(cell);
-		// Cycle over quadrature nodes
-		for (unsigned int q_point = 0; q_point < Rg_n_q_points; ++q_point){
-			// evaluate grad_Rg
-			auto & quad_point_coords = Rg_fe_values.get_quadrature_points()[q_point];
-			auto grad_Rg_xq = evaluate_grad_Rg(quad_point_coords[0],quad_point_coords[1]);
+  Rg_fe_values.reinit(cell);
+  // Cycle over quadrature nodes
+  for (unsigned int q_point = 0; q_point < Rg_n_q_points; ++q_point){
+    // evaluate grad_Rg
+    auto & quad_point_coords = Rg_fe_values.get_quadrature_points()[q_point];
+    auto grad_Rg_xq = evaluate_grad_Rg(quad_point_coords[0],quad_point_coords[1]);
 
-			// assemble A_loc(Rg,v)
-			for (unsigned int i = 0; i < dofs_per_cell; ++i)
-				cell_rhs(i) -= eps_r*eps_0*
-								(Rg_fe_values.shape_grad(i, q_point) *     // grad phi_i(x_q)
-								grad_Rg_xq *                               // grad_Rg(x_q)
-								Rg_fe_values.JxW(q_point));                // dx
+    // assemble A_loc(Rg,v)
+    for (unsigned int i = 0; i < dofs_per_cell; ++i)
+      cell_rhs(i) -= eps_r*eps_0*
+              (Rg_fe_values.shape_grad(i, q_point) *     // grad phi_i(x_q)
+              grad_Rg_xq *                               // grad_Rg(x_q)
+              Rg_fe_values.JxW(q_point));                // dx
+  }
+      // Local to global
+      cell->get_dof_indices(local_dof_indices);
+      primal_constraints.distribute_local_to_global(cell_matrix, cell_rhs, local_dof_indices, primal_system_matrix, primal_rhs);
+  }
 
-		}
+  // Apply boundary values
+  {
+    std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
 
-        // Local to global
-        cell->get_dof_indices(local_dof_indices);
-        primal_constraints.distribute_local_to_global(cell_matrix, cell_rhs, local_dof_indices, primal_system_matrix, primal_rhs);
-    }
+    VectorTools::interpolate_boundary_values(primal_dof_handler,1, Functions::ConstantFunction<dim>(0.), emitter_boundary_values);
+    MatrixTools::apply_boundary_values(emitter_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
 
-    // Apply boundary values
-    {
-      std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
-
-      VectorTools::interpolate_boundary_values(primal_dof_handler,1, Functions::ConstantFunction<dim>(0.), emitter_boundary_values);
-      MatrixTools::apply_boundary_values(emitter_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
-
-      VectorTools::interpolate_boundary_values(primal_dof_handler,2, Functions::ConstantFunction<dim>(0.), collector_boundary_values);
-      MatrixTools::apply_boundary_values(collector_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
-    }
+    VectorTools::interpolate_boundary_values(primal_dof_handler,2, Functions::ConstantFunction<dim>(0.), collector_boundary_values);
+    MatrixTools::apply_boundary_values(collector_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
+  }
 
   bar.set_progress(60);  
 }
 
 template <int dim>
-void Problem<dim>::assemble_dual_system()
+void Problem<dim>::assemble_dual_system(indicators::ProgressBar & bar)
 {
-    FEValues<dim> fe_values(dual_fe,
-                            dual_quadrature,
-                            update_gradients | update_quadrature_points | update_JxW_values);
+  bar.set_option(indicators::option::PostfixText{"Assemble: Assembling linear system"});
+  FEValues<dim> fe_values(dual_fe,
+                          dual_quadrature,
+                          update_gradients | update_quadrature_points | update_JxW_values);
 
-    const unsigned int dofs_per_cell = dual_fe.n_dofs_per_cell();
-    const unsigned int n_q_points = dual_quadrature.size();
+  const unsigned int dofs_per_cell = dual_fe.n_dofs_per_cell();
+  const unsigned int n_q_points = dual_quadrature.size();
 
-    FullMatrix<double> cell_matrix(dofs_per_cell, dofs_per_cell);
-    Vector<double> cell_rhs(dofs_per_cell);
-    std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
+  FullMatrix<double> cell_matrix(dofs_per_cell, dofs_per_cell);
+  Vector<double> cell_rhs(dofs_per_cell);
+  std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
 
-    for (const auto &cell : dual_dof_handler.active_cell_iterators())
-    {
-        fe_values.reinit(cell);
-        cell_matrix = 0;
+  for (const auto &cell : dual_dof_handler.active_cell_iterators())
+  {
+      fe_values.reinit(cell);
+      cell_matrix = 0;
+      cell_rhs = 0;
+
+      // Compute A_loc
+      for (const unsigned int q_index : fe_values.quadrature_point_indices())
+      {
+          for (const unsigned int i : fe_values.dof_indices())
+              for (const unsigned int j : fe_values.dof_indices())
+                  cell_matrix(i, j) += eps_r*eps_0*
+                          (fe_values.shape_grad(i, q_index) * // grad phi_i(x_q)
+                            fe_values.shape_grad(j, q_index) * // grad phi_j(x_q)
+                            fe_values.JxW(q_index));           // dx
+      }
+
+      // Compute RHS
+  for (const auto &face: cell->face_iterators()) {
+    if (face->at_boundary()) {
+      if (face->boundary_id() == 1) {
         cell_rhs = 0;
+        fe_values.reinit(cell);
 
-        // Compute A_loc
-        for (const unsigned int q_index : fe_values.quadrature_point_indices())
-        {
-            for (const unsigned int i : fe_values.dof_indices())
-                for (const unsigned int j : fe_values.dof_indices())
-                    cell_matrix(i, j) += eps_r*eps_0*
-                            (fe_values.shape_grad(i, q_index) * // grad phi_i(x_q)
-                             fe_values.shape_grad(j, q_index) * // grad phi_j(x_q)
-                             fe_values.JxW(q_index));           // dx
+        // Retrieve the components of the normal vector to the boundary face
+        Tensor<1, dim> n = emitter_normal(face->center());
+
+        // Compute the flux for this cell
+        for (unsigned int q = 0; q < n_q_points; ++q) {
+          for (unsigned int i = 0; i < dofs_per_cell; ++i) {
+            for (unsigned int k = 0; k < dim; ++k) {
+              cell_rhs[i] += fe_values.shape_grad(i, q)[k] * (-n[k]);
+            }
+            cell_rhs[i] *= fe_values.JxW(q);
+          }
         }
-
-        // Compute RHS
-		for (const auto &face: cell->face_iterators()) {
-			if (face->at_boundary()) {
-				if (face->boundary_id() == 1) {
-					cell_rhs = 0;
-					fe_values.reinit(cell);
-
-					// Retrieve the components of the normal vector to the boundary face
-					Tensor<1, dim> n = emitter_normal(face->center());
-
-					// Compute the flux for this cell
-					for (unsigned int q = 0; q < n_q_points; ++q) {
-						for (unsigned int i = 0; i < dofs_per_cell; ++i) {
-							for (unsigned int k = 0; k < dim; ++k) {
-								cell_rhs[i] += fe_values.shape_grad(i, q)[k] * (-n[k]);
-							}
-							cell_rhs[i] *= fe_values.JxW(q);
-						}
-					}
-				}
-			}
-		}
-
-        // Local to global
-        cell->get_dof_indices(local_dof_indices);
-        dual_constraints.distribute_local_to_global(cell_matrix, cell_rhs, local_dof_indices, dual_system_matrix, dual_rhs);
+      }
     }
+  }
 
-    // Apply boundary values
-    {
-      std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
+      // Local to global
+      cell->get_dof_indices(local_dof_indices);
+      dual_constraints.distribute_local_to_global(cell_matrix, cell_rhs, local_dof_indices, dual_system_matrix, dual_rhs);
+  }
 
-      VectorTools::interpolate_boundary_values(dual_dof_handler,1, Functions::ConstantFunction<dim>(0.), emitter_boundary_values);
-      MatrixTools::apply_boundary_values(emitter_boundary_values, dual_system_matrix, dual_solution, dual_rhs);
+  // Apply boundary values
+  {
+    std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
 
-      VectorTools::interpolate_boundary_values(dual_dof_handler,2, Functions::ConstantFunction<dim>(0.), collector_boundary_values);
-      MatrixTools::apply_boundary_values(collector_boundary_values, dual_system_matrix, dual_solution, dual_rhs);
-    }
+    VectorTools::interpolate_boundary_values(dual_dof_handler,1, Functions::ConstantFunction<dim>(0.), emitter_boundary_values);
+    MatrixTools::apply_boundary_values(emitter_boundary_values, dual_system_matrix, dual_solution, dual_rhs);
 
-    cout<<"   Assembled dual system" <<endl;
+    VectorTools::interpolate_boundary_values(dual_dof_handler,2, Functions::ConstantFunction<dim>(0.), collector_boundary_values);
+    MatrixTools::apply_boundary_values(collector_boundary_values, dual_system_matrix, dual_solution, dual_rhs);
+  }
+  bar.set_progress(60);  
 }
 
 
@@ -684,8 +688,9 @@ void Problem<dim>::solve_primal(indicators::ProgressBar & bar)
 }
 
 template <int dim>
-void Problem<dim>::solve_dual()
+void Problem<dim>::solve_dual(indicators::ProgressBar & bar)
 {
+  bar.set_option(indicators::option::PostfixText{"Solve: Solving linear system"});
   const unsigned int it_max = 1e+4;
   const double rel_tol = 1.e-6*dual_rhs.l2_norm();
   const double abs_tol = 1.e-12;
@@ -701,7 +706,7 @@ void Problem<dim>::solve_dual()
   solver.solve(dual_system_matrix, dual_solution, dual_rhs, preconditioner);
 
   dual_constraints.distribute(dual_solution);
-
+  bar.set_progress(100);  
   cout<<"   Solved dual problem: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<endl;
 }
 
@@ -912,7 +917,6 @@ void Problem<dim>::run()
 
     cout<<"Primal Problem"<<endl;
     // Create Progress bar
-    cout << endl;
     indicators::show_console_cursor(true);
     indicators::ProgressBar bar{
     indicators::option::BarWidth{50},
@@ -941,9 +945,24 @@ void Problem<dim>::run()
 		}
 		output_primal_results();
 
-		setup_dual_system();
-		assemble_dual_system();
-		solve_dual();
+    cout<<"Dual Problem"<<endl;
+    // Create Progress bar
+    indicators::show_console_cursor(true);
+    indicators::ProgressBar bar_dual{
+    indicators::option::BarWidth{50},
+    indicators::option::Start{"["},
+    indicators::option::Fill{"■"},
+    indicators::option::Lead{"■"},
+    indicators::option::Remainder{"-"},
+    indicators::option::End{" ]"},
+    indicators::option::PostfixText{""},
+    indicators::option::ForegroundColor{indicators::Color::unspecified},
+    indicators::option::FontStyles{std::vector<indicators::FontStyle>{indicators::FontStyle::bold}}
+    };
+
+		setup_dual_system(bar_dual);
+		assemble_dual_system(bar_dual);
+		solve_dual(bar_dual);
 		output_dual_results();
 
 		refine_mesh();
