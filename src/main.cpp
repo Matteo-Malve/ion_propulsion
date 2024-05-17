@@ -151,7 +151,7 @@ public:
   void run();
 
 private:
-  void create_mesh();
+  void create_mesh(const std::string filename);
 
   void setup_primal_system(indicators::ProgressBar & bar);
   void setup_dual_system(indicators::ProgressBar & bar);
@@ -369,9 +369,8 @@ Problem<dim>::Problem()
 {}
 
 template <int dim>
-void Problem<dim>::create_mesh()
+void Problem<dim>::create_mesh(const std::string filename)
 {
-	const std::string filename = "../mesh/input_mesh.msh";
 	cout << "Reading file: " << filename << endl;
 	std::ifstream input_file(filename);
 	GridIn<2>       grid_in;
@@ -714,27 +713,27 @@ void Problem<dim>::solve_dual(indicators::ProgressBar & bar)
 template <int dim>
 void Problem<dim>::output_primal_results()
 {
-    const Point<dim> evaluation_point(0.5*g, 0.1*g);
-    const double x = VectorTools::point_value(primal_dof_handler, primal_solution, evaluation_point);
-    cout << "   Potential at sample point (" << evaluation_point[0] << "," << evaluation_point[1] << "): " << x << endl;
+  const Point<dim> evaluation_point(0.5*g, 0.1*g);
+  const double x = VectorTools::point_value(primal_dof_handler, primal_solution, evaluation_point);
+  cout << "   Potential at sample point (" << evaluation_point[0] << "," << evaluation_point[1] << "): " << x << endl;
 
 	Gradient el_field;
 	IonizationArea ion_area;
 
-    DataOut<dim> data_out;
-    data_out.attach_dof_handler(primal_dof_handler);
-    data_out.add_data_vector(primal_solution, "Potential");
-    data_out.add_data_vector(primal_solution, el_field);
+  DataOut<dim> data_out;
+  data_out.attach_dof_handler(primal_dof_handler);
+  data_out.add_data_vector(primal_solution, "Potential");
+  data_out.add_data_vector(primal_solution, el_field);
 	data_out.add_data_vector(primal_solution, ion_area);
-    data_out.build_patches(); // mapping
+  data_out.build_patches(); // mapping
 
-    std::string filename;
-	filename = Utilities::int_to_string(nn, 1) + "R_test_solution-" + Utilities::int_to_string(cycle, 1) + ".vtk";
-    DataOutBase::VtkFlags vtk_flags;
-    vtk_flags.compression_level = DataOutBase::VtkFlags::ZlibCompressionLevel::best_speed;
-    data_out.set_flags(vtk_flags);
-    std::ofstream output(filename);
-    data_out.write_vtk(output);
+  std::string filename;
+	filename = Utilities::int_to_string(nn, 1) + "R_test_solution-REINITHANGIN-" + Utilities::int_to_string(cycle, 1) + ".vtk";
+  DataOutBase::VtkFlags vtk_flags;
+  vtk_flags.compression_level = DataOutBase::VtkFlags::ZlibCompressionLevel::best_speed;
+  data_out.set_flags(vtk_flags);
+  std::ofstream output(filename);
+  data_out.write_vtk(output);
 }
 
 template <int dim>
@@ -759,34 +758,52 @@ void Problem<dim>::output_dual_results()
 
 
 template <int dim>
-void Problem<dim>::refine_mesh()
-{
-    // Prepare vector to store error values
-    Vector<float> error_indicators(triangulation.n_active_cells());
+void Problem<dim>::refine_mesh(){
+  // Prepare vector to store error values
+  Vector<float> error_indicators(triangulation.n_active_cells());
 
-    // Compute local errors and global error estimate
-    double global_error = estimate_error(error_indicators);
+  // Compute local errors and global error estimate
+  double global_error = estimate_error(error_indicators);
 
-    // Sum contribution of each cell's local error to get a global estimate
-    double global_error_as_sum_of_cell_errors=0.0;
-    for(unsigned int i=0; i<error_indicators.size(); i++)
-        global_error_as_sum_of_cell_errors += error_indicators[i];
-    global_error_as_sum_of_cell_errors = std::abs(global_error_as_sum_of_cell_errors);
+  // Sum contribution of each cell's local error to get a global estimate
+  double global_error_as_sum_of_cell_errors=0.0;
+  for(unsigned int i=0; i<error_indicators.size(); i++)
+      global_error_as_sum_of_cell_errors += error_indicators[i];
+  global_error_as_sum_of_cell_errors = std::abs(global_error_as_sum_of_cell_errors);
 
-    // Output the two derived global estimates
-    cout<<"   Global error = " <<  global_error << endl
-        <<"   Global error as sum of cells' errors = " << global_error_as_sum_of_cell_errors << endl;
+  // Output the two derived global estimates
+  cout<<"   Global error = " <<  global_error << endl
+      <<"   Global error as sum of cells' errors = " << global_error_as_sum_of_cell_errors << endl;
 
-    // Take absolute value of each error
-    for (float &error_indicator : error_indicators) {
-        error_indicator = std::fabs(error_indicator);
-    }
+  // Take absolute value of each error
+  for (float &error_indicator : error_indicators) {
+      error_indicator = std::fabs(error_indicator);
+  }
 
 	GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators, 0.8, 0.0); // CHANGED FROM: 0.8, 0.02
 
-    // Execute refinement
-    triangulation.execute_coarsening_and_refinement();
-    cout<<"   Executed coarsening and refinement"<<endl;
+  // Execute refinement
+  triangulation.execute_coarsening_and_refinement();
+  cout<<"   Executed coarsening and refinement"<<endl;
+
+  // NEW: Try setting up hanging nodes after refinement
+  primal_constraints.reinit();
+  primal_dof_handler.reinit(triangulation);
+
+  primal_dof_handler.distribute_dofs(primal_fe);
+
+  primal_constraints.clear();
+  DoFTools::make_hanging_node_constraints(primal_dof_handler, primal_constraints);
+  primal_constraints.close();
+
+  DynamicSparsityPattern dsp(primal_dof_handler.n_dofs());
+  DoFTools::make_sparsity_pattern(primal_dof_handler, dsp, primal_constraints, false);
+  primal_sparsity_pattern.copy_from(dsp);
+
+  primal_system_matrix.reinit(primal_sparsity_pattern);
+  uh0.reinit(primal_dof_handler.n_dofs());
+  primal_solution.reinit(primal_dof_handler.n_dofs());
+  primal_rhs.reinit(primal_dof_handler.n_dofs());
 }
 
 template <int dim>
@@ -911,7 +928,7 @@ template <int dim>
 void Problem<dim>::run()
 {  
   // Create the mesh
-  create_mesh();
+  create_mesh("../mesh/input_mesh.msh");
 
 	while (cycle <= max_refinements) {
 
