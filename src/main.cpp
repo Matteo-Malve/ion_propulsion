@@ -728,7 +728,7 @@ void Problem<dim>::output_primal_results()
   data_out.build_patches(); // mapping
 
   std::string filename;
-	filename = Utilities::int_to_string(nn, 1) + "R_test_solution-REINITHANGIN-" + Utilities::int_to_string(cycle, 1) + ".vtk";
+	filename = Utilities::int_to_string(nn, 1) + "R_test_solution-" + Utilities::int_to_string(cycle, 1) + ".vtk";
   DataOutBase::VtkFlags vtk_flags;
   vtk_flags.compression_level = DataOutBase::VtkFlags::ZlibCompressionLevel::best_speed;
   data_out.set_flags(vtk_flags);
