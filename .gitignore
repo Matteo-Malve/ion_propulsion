@@ -3,4 +3,5 @@ results/
 build/
 src/cmake-build-debug/
 src/build/
+*/.DS_Store
 .idea/
