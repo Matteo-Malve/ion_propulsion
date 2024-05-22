@@ -22,7 +22,6 @@
 ## Experiments and deductions
 Legend:
 - ✅ : experiment complete
-- 🔄 : work in progress
 - 💢 : contraddictory results
 
 ### Experiment [1] ✅
@@ -43,7 +42,7 @@ No changes.
 💡 Hanging nodes' constraints are applied, problem is not that they are missing.
 (A more in-depth study will be necessary to really understand in which phase they should be imposed, but the reflection still holds.)
 
-### Experiment [3] 🔄
+### Experiment [3] 💢
 
 🔍 Radial plot-over-line of Gradient (obtained through Paraview) and Electric Field. (reviewing) They seem to show that there are some jumps in values, small but sudden, thus explaining the weird gradient magnitudes' distribution.
 
@@ -53,6 +52,7 @@ No changes.
 
 ### Experiment [4] 💢
 
+#### 4.a
 🔍 Removed manual lifting by:
 - deleting code for adding :  $uh = u0 +Rg$
 - deleting code in assembly of the primal system to compute the bilinear form : $a_{loc}(Rg, vh)$
@@ -65,8 +65,8 @@ No changes.
 
 💡 Problem perstist on a smaller scale, indicating that Rg function and maual lifting <span style="color: red">might not be</span> responsible.
 
-### Experiment [5] 💢
 
+#### 4.b
 🔍 Saved only Rg, deleting the solution of the system by replacing code for:
 - $uh = u0 +Rg$   \
 with
@@ -104,7 +104,14 @@ VectorTools::project(primal_dof,
 primal_constraints.clear()
 AffineConstraints::make_hanging_node_constraints(...)
 primal_constraints.close()
-VectorTools::project(..., primal_solution, ...)
-primal_constaints.distribute(primal_solution)
+VectorTools::project(..., Rg_vector, ...)
+primal_constaints.distribute(Rg_vector)
+// ... u_h = u_0 + R_g
 ```
 💡 No difference observed.
+
+
+## Other reflections
+
+- Il problema dovrebbe risolversi alla radice se si utilizzassero come FE dei dei “polinomi a tratti, globalmente C1” invece ch dei “polinomi a tratti, globalmente C0”. Conoscete qualche FE globalmente C1 che posso ricercare?
+- Qualsiasi altro sugerimento è molto ben accetto.
