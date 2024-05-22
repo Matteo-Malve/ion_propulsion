@@ -12,26 +12,26 @@
   Unfortunately, the electric field presents inconsistencies.
 </p>
 
-#### Immediate observations
+## Immediate observations
 💡 The problem arises only on cells with hanging nodes. So, hanging nodes play a role.
 
 💡 The error occurs in the FEM solution itself, nothing to do with the dual problem or the goal-oriented refinement of the mesh.
 
 💡 Zooming in, you can notice artefacts on the edges of split cells. I dont't know yet if it is a problem of the preview or a real inconsistency. Anyways, this shouldn't be contributing to the problem at hand.
 
-### Experiments and deductions
+## Experiments and deductions
 Legend:
 - ✅ : experiment complete
 - 🔄 : work in progress
 - 💢 : contraddictory results
 
-#### Experiment [1] ✅
+### Experiment [1] ✅
 
 🔍 Compute the Electric Field via the Gradient filter of Paraview on the voltage solution. Same result.
 
-💡 The problem doesn't lie in the function of the code that extrapolates the discrete gradient from the solition of the FEM, which is just the voltage.
+💡 The problem doesn't lie in the function of the code that extrapolates the discrete gradient from the solution of the FEM, which is just the voltage.
 
-#### Experiment [2] ✅
+### Experiment [2] ✅
 
 🔍 Tried to reinitialize and set up hanging nodes constraints after the first refinemnt.
 Specifically I:
@@ -43,7 +43,7 @@ No changes.
 💡 Hanging nodes' constraints are applied, problem is not that they are missing.
 (A more in-depth study will be necessary to really understand in which phase they should be imposed, but the reflection still holds.)
 
-#### Experiment [3] 🔄
+### Experiment [3] 🔄
 
 🔍 Radial plot-over-line of Gradient (obtained through Paraview) and Electric Field. (reviewing) They seem to show that there are some jumps in values, small but sudden, thus explaining the weird gradient magnitudes' distribution.
 
@@ -51,7 +51,7 @@ No changes.
 
 💡 Still to determine if problem also lies in the Voltage, implying in the solution of the system, or just in the ElectricField.
 
-#### Experiment [4] 💢
+### Experiment [4] 💢
 
 🔍 Removed manual lifting by:
 - deleting code for adding :  $uh = u0 +Rg$
@@ -65,7 +65,7 @@ No changes.
 
 💡 Problem perstist on a smaller scale, indicating that Rg function and maual lifting <span style="color: red">might not be</span> responsible.
 
-#### Experiment [5] 💢
+### Experiment [5] 💢
 
 🔍 Saved only Rg, deleting the solution of the system by replacing code for:
 - $uh = u0 +Rg$   \
@@ -77,3 +77,34 @@ with
 </p>
 
 💡 Problem perstist on a smaller scale, indicating that Rg function and maual lifting <span style="color: red">could be</span> responsible.
+
+## Attempted solutions on Rg
+Legend:
+- ✅ : success
+- ⏺️ : partial success
+- ❌ : fail
+
+
+### Attempt [1] ❌
+🔍 Project rater than interpolate. 
+
+Specifically, at line 961:
+```cpp
+VectorTools::project(primal_dof,
+                    primal_constraints,
+                    dual_quadrature, // Just bcs it's of higher order
+                    Evaluate_Rg<dim>(),
+                    Rg_vector)
+```
+💡 Problem on gradient of Rg persists. Also if ElectricField is obtained by Gradient filter on the Potential.
+
+### Attempt [2] ❌
+🔍 Reinitialize hanging nodes in the phase where the lifting is summed back $u_h=u_0+R_g$. Steps:
+```cpp
+primal_constraints.clear()
+AffineConstraints::make_hanging_node_constraints(...)
+primal_constraints.close()
+VectorTools::project(..., primal_solution, ...)
+primal_constaints.distribute(primal_solution)
+```
+💡 No difference observed.
