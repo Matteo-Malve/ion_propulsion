@@ -3,11 +3,11 @@
 
 #### Description of the problem:
 <p align="left">
-  <img src="results/closeup_voltage.png" width="800" />
+  <img src="images/closeup_voltage.png" width="800" />
 
   This is the voltage around the emitter after one refinement. Colours are rescaled in range 19.700-20.000V. All fine.
 
-  <img src="results/REFERENCE-ElectricField.png" width="800" />
+  <img src="images/REFERENCE-ElectricField.png" width="800" />
 
   Unfortunately, the electric field presents inconsistencies.
 </p>
@@ -59,7 +59,7 @@ No changes.
 - Set Dirichlet BC from 0V, 0V to 20.000V, 0V at the emitter and collector respectively.
 
 <p align="left">
-  <img src="results/Automatic-lifting-gradient-proper.png" width="800" />
+  <img src="images/Automatic-lifting-gradient-proper.png" width="800" />
 
 </p>
 
@@ -72,7 +72,7 @@ No changes.
 with
 - $uh = Rg$ 
 <p align="left">
-  <img src="results/Rg-gradient.png" width="800" />
+  <img src="images/Rg-gradient.png" width="800" />
 
 </p>
 
