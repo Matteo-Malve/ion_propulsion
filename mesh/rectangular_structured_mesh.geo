@@ -77,6 +77,14 @@ Line(25) = {19, 9};
 Line(26) = {20, 10};
 //+
 Line(27) = {18, 10};
+
+
+//+
+Physical Curve("Emitter", 1) = {17, 16, 15, 14, 13, 12, 11};
+//+
+Physical Curve("Collector", 2) = {4};
+
+
 //+
 Curve Loop(1) = {9, 2, 3, 4, 5, 6, 7, 8};
 //+
