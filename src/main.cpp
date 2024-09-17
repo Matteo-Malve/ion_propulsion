@@ -53,6 +53,8 @@ const double X = 0.;//-L/2.; // [m]
 const double g = 0.2; // [m]
 const double mesh_height = 0.1;; // [m]
 
+std::string PATH_TO_MESH = "../mesh/input_mesh.msh";
+
 // Emitter Manifold - START
 double get_emitter_height(const double &p)
 {
@@ -710,6 +712,18 @@ void Problem<dim>::solve_dual(indicators::ProgressBar & bar)
 }
 
 
+
+std::string extract_mesh_name() {
+  // Find the last '/' character to isolate the filename
+  size_t lastSlash = PATH_TO_MESH.rfind('/');
+  // Find the last '.' character to remove the file extension
+  size_t lastDot = PATH_TO_MESH.rfind('.');
+  // Extract the substring between the last '/' and the last '.'
+  std::string meshName = PATH_TO_MESH.substr(lastSlash + 1, lastDot - lastSlash - 1);
+  return meshName;
+}
+
+
 template <int dim>
 void Problem<dim>::output_primal_results()
 {
@@ -728,7 +742,8 @@ void Problem<dim>::output_primal_results()
   data_out.build_patches(); // mapping
 
   std::string filename;
-	filename = Utilities::int_to_string(nn, 1) + "R_test_solution-" + Utilities::int_to_string(cycle, 1) + ".vtk";
+  std::string meshName = extract_mesh_name();
+	filename = Utilities::int_to_string(nn, 1) + meshName + "-" + Utilities::int_to_string(cycle, 1) + ".vtk";
   DataOutBase::VtkFlags vtk_flags;
   vtk_flags.compression_level = DataOutBase::VtkFlags::ZlibCompressionLevel::best_speed;
   data_out.set_flags(vtk_flags);
@@ -741,19 +756,21 @@ void Problem<dim>::output_dual_results()
 {
 	Gradient el_field;
 
-    DataOut<dim> data_out;
-    data_out.attach_dof_handler(dual_dof_handler);
-    data_out.add_data_vector(dual_solution, "Potential");
-    data_out.add_data_vector(dual_solution, el_field);
-    data_out.build_patches(); // mapping
+  DataOut<dim> data_out;
+  data_out.attach_dof_handler(dual_dof_handler);
+  data_out.add_data_vector(dual_solution, "Potential");
+  data_out.add_data_vector(dual_solution, el_field);
+  data_out.build_patches(); // mapping
 
-    std::string filename;
-	filename =  Utilities::int_to_string(nn, 1) + "R_dual_test_solution-" + Utilities::int_to_string(cycle, 1) + ".vtk";
-    DataOutBase::VtkFlags vtk_flags;
-    vtk_flags.compression_level = DataOutBase::VtkFlags::ZlibCompressionLevel::best_speed;
-    data_out.set_flags(vtk_flags);
-    std::ofstream output(filename);
-    data_out.write_vtk(output);
+  std::string filename;
+  std::string meshName = extract_mesh_name();
+
+	filename =  Utilities::int_to_string(nn, 1) + meshName + "-" + Utilities::int_to_string(cycle, 1) + ".vtk";
+  DataOutBase::VtkFlags vtk_flags;
+  vtk_flags.compression_level = DataOutBase::VtkFlags::ZlibCompressionLevel::best_speed;
+  data_out.set_flags(vtk_flags);
+  std::ofstream output(filename);
+  data_out.write_vtk(output);
 }
 
 
@@ -928,7 +945,7 @@ template <int dim>
 void Problem<dim>::run()
 {  
   // Create the mesh
-  create_mesh("../mesh/input_mesh.msh");
+  create_mesh(PATH_TO_MESH);
 
 	while (cycle <= max_refinements) {
 
