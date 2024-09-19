@@ -80,7 +80,7 @@ Line(27) = {18, 10};
 
 
 //+
-Physical Curve("Emitter", 1) = {17, 16, 15, 14, 13, 12, 11};
+Physical Curve("Emitter", 1) = {20,21,22};
 //+
 Physical Curve("Collector", 2) = {4};
 
