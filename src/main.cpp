@@ -35,6 +35,8 @@
 #include <indicators/cursor_control.hpp>
 #include <indicators/progress_bar.hpp>
 
+#include <fstream>
+
 using namespace dealii;
 //using active_cell_iterator = typename DoFHandler<dim>::active_cell_iterator;
 using std::cout;
@@ -214,17 +216,15 @@ public:
   Gradient ():  DataPostprocessorVector<dim> ("Electric_Field", update_gradients) {}
 
   virtual void evaluate_scalar_field(const DataPostprocessorInputs::Scalar<dim> &input_data,
-									 std::vector<Vector<double> > &computed_quantities) const override {
-
-	AssertDimension (input_data.solution_gradients.size(), computed_quantities.size()); // size check
-
-	for (unsigned int p=0; p<input_data.solution_gradients.size(); ++p)
-	  {
-		AssertDimension (computed_quantities[p].size(), dim); // dimension check
-		for (unsigned int d=0; d<dim; ++d)
-		  computed_quantities[p][d] = -input_data.solution_gradients[p][d];
-	  }
-  }
+									 std::vector<Vector<double> > &computed_quantities) const override 
+    {
+    AssertDimension (input_data.solution_gradients.size(), computed_quantities.size()); // size check
+    for (unsigned int p=0; p<input_data.solution_gradients.size(); ++p){
+      AssertDimension (computed_quantities[p].size(), dim); // dimension check
+      for (unsigned int d=0; d<dim; ++d)
+        computed_quantities[p][d] = -input_data.solution_gradients[p][d];
+      }
+    }
 };
 
 template <int dim>
@@ -378,10 +378,10 @@ void Problem<dim>::create_mesh(const std::string filename)
 	GridIn<2>       grid_in;
 	grid_in.attach_triangulation(triangulation);
 	grid_in.read_msh(input_file);
-
+  /*
 	const types::manifold_id emitter = 1;
 	EmitterGeometry<2> emitter_manifold;
-
+  
 	for (auto &cell : triangulation.active_cell_iterators()) {
 		if (cell->at_boundary()) {
 			for (unsigned int f=0; f<4; ++f) {
@@ -743,12 +743,19 @@ void Problem<dim>::output_primal_results()
 
   std::string filename;
   std::string meshName = extract_mesh_name();
-	filename = Utilities::int_to_string(nn, 1) + meshName + "-" + Utilities::int_to_string(cycle, 1) + ".vtk";
+	filename = Utilities::int_to_string(nn, 1) + "R-primal-" + meshName + "-" + Utilities::int_to_string(cycle, 1) + ".vtk";
   DataOutBase::VtkFlags vtk_flags;
   vtk_flags.compression_level = DataOutBase::VtkFlags::ZlibCompressionLevel::best_speed;
   data_out.set_flags(vtk_flags);
   std::ofstream output(filename);
   data_out.write_vtk(output);
+
+  // Output the mesh in .msh format (Gmsh)
+  std::ofstream out(meshName+"-"+Utilities::int_to_string(cycle, 1)+".msh");
+  GridOut grid_out;
+  grid_out.write_msh(triangulation, out);
+
+  std::cout << "Mesh saved to mesh.msh" << std::endl;
 }
 
 template <int dim>
@@ -765,7 +772,7 @@ void Problem<dim>::output_dual_results()
   std::string filename;
   std::string meshName = extract_mesh_name();
 
-	filename =  Utilities::int_to_string(nn, 1) + meshName + "-" + Utilities::int_to_string(cycle, 1) + ".vtk";
+	filename =  Utilities::int_to_string(nn, 1) + "R-dual-" + meshName + "-" + Utilities::int_to_string(cycle, 1) + ".vtk";
   DataOutBase::VtkFlags vtk_flags;
   vtk_flags.compression_level = DataOutBase::VtkFlags::ZlibCompressionLevel::best_speed;
   data_out.set_flags(vtk_flags);
