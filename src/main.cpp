@@ -56,6 +56,7 @@ const double g = 0.2; // [m]
 const double mesh_height = 0.1;; // [m]
 
 std::string PATH_TO_MESH = "../mesh/input_mesh.msh";
+const unsigned int NUM_REFINEMENT_CYCLES = 3;
 
 // Emitter Manifold - START
 double get_emitter_height(const double &p)
@@ -157,12 +158,12 @@ public:
 private:
   void create_mesh(const std::string filename);
 
-  void setup_primal_system(indicators::ProgressBar & bar);
-  void setup_dual_system(indicators::ProgressBar & bar);
-  void assemble_primal_system(indicators::ProgressBar & bar);
-  void assemble_dual_system(indicators::ProgressBar & bar);
-  void solve_primal(indicators::ProgressBar & bar);
-  void solve_dual(indicators::ProgressBar & bar);
+  void setup_primal_system();
+  void setup_dual_system();
+  void assemble_primal_system();
+  void assemble_dual_system();
+  void solve_primal();
+  void solve_dual();
   void output_primal_results();
   void output_dual_results();
 
@@ -201,7 +202,7 @@ private:
   unsigned int cycle = 0;
 
   const unsigned int pre_refinement_steps = 0;
-  const unsigned int max_refinements = 9;
+  
 
   Timer timer;
 
@@ -373,12 +374,12 @@ Problem<dim>::Problem()
 template <int dim>
 void Problem<dim>::create_mesh(const std::string filename)
 {
-	cout << "Reading file: " << filename << endl;
+	cout << endl << "Reading file: " << filename << endl;
 	std::ifstream input_file(filename);
 	GridIn<2>       grid_in;
 	grid_in.attach_triangulation(triangulation);
 	grid_in.read_msh(input_file);
-  /*
+  
 	const types::manifold_id emitter = 1;
 	EmitterGeometry<2> emitter_manifold;
   
@@ -445,26 +446,26 @@ void Problem<dim>::create_mesh(const std::string filename)
 	GridRefinement::refine(triangulation, criteria, 0.5);
 	triangulation.execute_coarsening_and_refinement();*/
 
+  /*
 	cout  << "Final number of active cells: " << triangulation.n_active_cells() << endl;
 	cout <<"   Executed Pre-Refinement"<< endl;
-
+  */
 }
 
 
 template <int dim>
-void Problem<dim>::setup_primal_system(indicators::ProgressBar & bar)
+void Problem<dim>::setup_primal_system()
 {
-  bar.set_option(indicators::option::PostfixText{"Setup: Distribute DoFs"});
   primal_dof_handler.distribute_dofs(primal_fe);
-  bar.set_progress(10);
+  
 
-  bar.set_option(indicators::option::PostfixText{"Setup: Make hanging node constraints"});
+ 
   primal_constraints.clear();
 	DoFTools::make_hanging_node_constraints(primal_dof_handler, primal_constraints);
 	primal_constraints.close();
-  bar.set_progress(20);
+  
 
-  bar.set_option(indicators::option::PostfixText{"Setup: Make sparsity pattern"});
+
   DynamicSparsityPattern dsp(primal_dof_handler.n_dofs());
   DoFTools::make_sparsity_pattern(primal_dof_handler, dsp, primal_constraints, false);
   primal_sparsity_pattern.copy_from(dsp);
@@ -474,23 +475,20 @@ void Problem<dim>::setup_primal_system(indicators::ProgressBar & bar)
   uh0.reinit(primal_dof_handler.n_dofs());
   primal_solution.reinit(primal_dof_handler.n_dofs());
   primal_rhs.reinit(primal_dof_handler.n_dofs());
-  bar.set_progress(30);  
+
+  std::cout << "   Number of degrees of freedom: " << primal_dof_handler.n_dofs()<< "  [primal]"<<std::endl;
+  
 }
 
 template <int dim>
-void Problem<dim>::setup_dual_system(indicators::ProgressBar & bar)
+void Problem<dim>::setup_dual_system()
 {
-  bar.set_option(indicators::option::PostfixText{"Setup: Distribute DoFs"});
   dual_dof_handler.distribute_dofs(dual_fe);
-  bar.set_progress(10);
 
-  bar.set_option(indicators::option::PostfixText{"Setup: Make hanging node constraints"});
   dual_constraints.clear();
 	DoFTools::make_hanging_node_constraints(dual_dof_handler, dual_constraints);
 	dual_constraints.close();
-  bar.set_progress(20);
 
-  bar.set_option(indicators::option::PostfixText{"Setup: Make sparsity pattern"});
   DynamicSparsityPattern dsp(dual_dof_handler.n_dofs());
   DoFTools::make_sparsity_pattern(dual_dof_handler, dsp, dual_constraints, false);
   dual_sparsity_pattern.copy_from(dsp);
@@ -499,16 +497,14 @@ void Problem<dim>::setup_dual_system(indicators::ProgressBar & bar)
 
   dual_solution.reinit(dual_dof_handler.n_dofs());
   dual_rhs.reinit(dual_dof_handler.n_dofs());
-  bar.set_progress(30);  
 
-  //cout << "Dual problem DoFs: " << dual_dof_handler.n_dofs() << endl;
+  std::cout << "   Number of degrees of freedom: " << dual_dof_handler.n_dofs()<< "   [dual]"<< std::endl;
 }
 
 
 template <int dim>
-void Problem<dim>::assemble_primal_system(indicators::ProgressBar & bar)
+void Problem<dim>::assemble_primal_system()
 {
-  bar.set_option(indicators::option::PostfixText{"Assemble: Assembling linear system"});
 	const QGauss <dim> quadrature(dual_fe.degree + 1);
   FEValues<dim> fe_values(primal_fe,
                           quadrature,
@@ -587,13 +583,11 @@ void Problem<dim>::assemble_primal_system(indicators::ProgressBar & bar)
     MatrixTools::apply_boundary_values(collector_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
   }
 
-  bar.set_progress(60);  
 }
 
 template <int dim>
-void Problem<dim>::assemble_dual_system(indicators::ProgressBar & bar)
+void Problem<dim>::assemble_dual_system()
 {
-  bar.set_option(indicators::option::PostfixText{"Assemble: Assembling linear system"});
   FEValues<dim> fe_values(dual_fe,
                           dual_quadrature,
                           update_gradients | update_quadrature_points | update_JxW_values);
@@ -660,14 +654,12 @@ void Problem<dim>::assemble_dual_system(indicators::ProgressBar & bar)
     VectorTools::interpolate_boundary_values(dual_dof_handler,2, Functions::ConstantFunction<dim>(0.), collector_boundary_values);
     MatrixTools::apply_boundary_values(collector_boundary_values, dual_system_matrix, dual_solution, dual_rhs);
   }
-  bar.set_progress(60);  
 }
 
 
 template <int dim>
-void Problem<dim>::solve_primal(indicators::ProgressBar & bar)
+void Problem<dim>::solve_primal()
 {
-  bar.set_option(indicators::option::PostfixText{"Solve: Solving linear system"});
   const unsigned int it_max = 1e+4;
   const double rel_tol = 1.e-6*primal_rhs.l2_norm();
   const double abs_tol = 1.e-12;
@@ -684,14 +676,12 @@ void Problem<dim>::solve_primal(indicators::ProgressBar & bar)
 
   primal_constraints.distribute(primal_solution);
 
-  bar.set_progress(100);  
   cout<<"   Solved primal problem: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<endl;
 }
 
 template <int dim>
-void Problem<dim>::solve_dual(indicators::ProgressBar & bar)
+void Problem<dim>::solve_dual()
 {
-  bar.set_option(indicators::option::PostfixText{"Solve: Solving linear system"});
   const unsigned int it_max = 1e+4;
   const double rel_tol = 1.e-6*dual_rhs.l2_norm();
   const double abs_tol = 1.e-12;
@@ -707,7 +697,6 @@ void Problem<dim>::solve_dual(indicators::ProgressBar & bar)
   solver.solve(dual_system_matrix, dual_solution, dual_rhs, preconditioner);
 
   dual_constraints.distribute(dual_solution);
-  bar.set_progress(100);  
   cout<<"   Solved dual problem: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<endl;
 }
 
@@ -729,7 +718,7 @@ void Problem<dim>::output_primal_results()
 {
   const Point<dim> evaluation_point(0.5*g, 0.1*g);
   const double x = VectorTools::point_value(primal_dof_handler, primal_solution, evaluation_point);
-  cout << "   Potential at sample point (" << evaluation_point[0] << "," << evaluation_point[1] << "): " << x << endl;
+  //cout << "   Potential at sample point (" << evaluation_point[0] << "," << evaluation_point[1] << "): " << x << endl;
 
 	Gradient el_field;
 	IonizationArea ion_area;
@@ -750,12 +739,13 @@ void Problem<dim>::output_primal_results()
   std::ofstream output(filename);
   data_out.write_vtk(output);
 
-  // Output the mesh in .msh format (Gmsh)
+  /* Output the mesh in .msh format (Gmsh)
   std::ofstream out(meshName+"-"+Utilities::int_to_string(cycle, 1)+".msh");
   GridOut grid_out;
   grid_out.write_msh(triangulation, out);
 
   std::cout << "Mesh saved to mesh.msh" << std::endl;
+  */
 }
 
 template <int dim>
@@ -954,63 +944,44 @@ void Problem<dim>::run()
   // Create the mesh
   create_mesh(PATH_TO_MESH);
 
-	while (cycle <= max_refinements) {
+  // Cycles for refinement
+	while (cycle <= NUM_REFINEMENT_CYCLES) {
+    cout << "Cycle " << cycle << ':' << endl;
+    std::cout << "   Number of active cells:       "<< triangulation.n_active_cells() << std::endl;
 
-    cout<<"Primal Problem"<<endl;
-    // Create Progress bar
-    indicators::show_console_cursor(true);
-    indicators::ProgressBar bar{
-    indicators::option::BarWidth{50},
-    indicators::option::Start{"["},
-    indicators::option::Fill{"■"},
-    indicators::option::Lead{"■"},
-    indicators::option::Remainder{"-"},
-    indicators::option::End{" ]"},
-    indicators::option::PostfixText{""},
-    indicators::option::ForegroundColor{indicators::Color::unspecified},
-    indicators::option::FontStyles{std::vector<indicators::FontStyle>{indicators::FontStyle::bold}}
-    };
+    // Primal --------------
 
-		setup_primal_system(bar);  // make
-		assemble_primal_system(bar);       // condense
-		solve_primal(bar);         // distribute
+		setup_primal_system();
+		assemble_primal_system();
+		solve_primal();
 		uh0 = primal_solution;
 
 		// Retrieve lifting
-		{
-			Vector<double> Rg_vector(primal_solution.size());
-			VectorTools::interpolate(primal_dof_handler,Evaluate_Rg<dim>(),Rg_vector);
-			primal_constraints.distribute(Rg_vector);       // distribute
-			primal_solution += Rg_vector;               // uh = u0 + Rg
-			primal_constraints.distribute(primal_solution);     // distribute
-		}
+    Vector<double> Rg_vector(primal_solution.size());
+    VectorTools::interpolate(primal_dof_handler,Evaluate_Rg<dim>(),Rg_vector);
+    primal_constraints.distribute(Rg_vector);       // distribute
+    primal_solution += Rg_vector;               // uh = u0 + Rg
+    primal_constraints.distribute(primal_solution);     // distribute
+		
 		output_primal_results();
 
-    cout<<"Dual Problem"<<endl;
-    // Create Progress bar
-    indicators::show_console_cursor(true);
-    indicators::ProgressBar bar_dual{
-    indicators::option::BarWidth{50},
-    indicators::option::Start{"["},
-    indicators::option::Fill{"■"},
-    indicators::option::Lead{"■"},
-    indicators::option::Remainder{"-"},
-    indicators::option::End{" ]"},
-    indicators::option::PostfixText{""},
-    indicators::option::ForegroundColor{indicators::Color::unspecified},
-    indicators::option::FontStyles{std::vector<indicators::FontStyle>{indicators::FontStyle::bold}}
-    };
+    // Dual ---------------    
 
-		setup_dual_system(bar_dual);
-		assemble_dual_system(bar_dual);
-		solve_dual(bar_dual);
+		setup_dual_system();
+		assemble_dual_system();
+		solve_dual();
 		output_dual_results();
+
+    // --------------------  
 
 		refine_mesh();
 
-		cout << " 	Elapsed CPU time: " << timer.cpu_time() << " seconds for " + Utilities::int_to_string(cycle,1) <<" cycles" << endl;
 		++cycle;
 	}
+
+  // Cycles for solution
+  cout << "Cycle " << cycle << " [FINAL]" << ':' << endl;
+
 }
 
 int main()
