@@ -57,8 +57,8 @@ const double mesh_height = 0.1;; // [m]
 
 std::string PATH_TO_MESH = "../mesh/input_mesh.msh";
 const unsigned int NUM_REFINEMENT_CYCLES = 3;
+const unsigned int PRELIMINARY_REFINEMENT_STEPS = 0;
 
-// Emitter Manifold - START
 double get_emitter_height(const double &p)
 {
 	if (p <= X-L/2. || p >= X+L/2.)
@@ -81,70 +81,44 @@ double get_emitter_height(const double &p)
 	return y;
 }
 
-  template <int dim>
-  class EmitterGeometry : public ChartManifold<dim, dim, dim-1>
-  {
-  public:
-	virtual Point<dim-1> pull_back(const Point<dim> &space_point) const override;
-
-	virtual Point<dim> push_forward(const Point<dim-1> &chart_point) const override;
-
-	virtual std::unique_ptr<Manifold<dim, dim>> clone() const override;
-
-  };
-
-  template <int dim>
-  std::unique_ptr<Manifold<dim, dim>> EmitterGeometry<dim>::clone() const
-  {
-	return std::make_unique<EmitterGeometry<dim>>();
-  }
-
-  template <int dim>
-  Point<dim> EmitterGeometry<dim>::push_forward(const Point<dim-1>  &x) const
-  {
-	const double y = get_emitter_height(x[0]);
-
-	Point<dim> p;
-	p[0] = x[0]; p[1] = y;
-
-	if (dim == 3) {
-		p[2] = x[1];
-	}
-
-	return p;
-  }
-
-  template <int dim>
-  Point<dim-1>  EmitterGeometry<dim>::pull_back(const Point<dim> &p) const
-  {
+template <int dim>
+class EmitterGeometry : public ChartManifold<dim, dim, dim-1>
+{
+public:
+virtual Point<dim-1> pull_back(const Point<dim> &space_point) const override{		// space_point = p
 	Point<dim-1> x;
-	x[0] = p[0];
+	x[0] = space_point[0];
+	if (dim == 3) 
+		x[1] = space_point[2];
+	return x;
+}
 
-	if (dim == 3) {
-		x[1] = p[2];
+virtual Point<dim> push_forward(const Point<dim-1> &chart_point) const override{		// chart_point = x
+	const double y = get_emitter_height(chart_point[0]);
+	Point<dim> p;
+	p[0] = chart_point[0]; p[1] = y;
+	if (dim == 3)
+		p[2] = chart_point[1];
+	return p;
+}
+
+virtual std::unique_ptr<Manifold<dim, dim>> clone() const override{
+		return std::make_unique<EmitterGeometry<dim>>();
 	}
 
-	return x;
-  }
-// Emitter Manifold - END
+};
 
-  template <int dim>
-  class RightHandSide : public Function<dim>
-  {
-  public:
-	  virtual void value_list( 	const std::vector< Point<dim>> &point_list, std::vector<double> &values, const unsigned int component = 0 ) const override {
-
-		  (void)component;
-
-		  AssertDimension (point_list.size(), values.size()); // Size check
-
-          for (unsigned int p=0; p<point_list.size(); ++p)
-          {
-        	  values[p] = 0.;
-          }
-
-	  }
-  };
+template <int dim>
+class RightHandSide : public Function<dim>
+{
+public:
+	virtual void value_list( 	const std::vector< Point<dim>> &point_list, std::vector<double> &values, const unsigned int component = 0 ) const override {
+	(void)component;
+	AssertDimension (point_list.size(), values.size()); // Size check
+		for (unsigned int p=0; p<point_list.size(); ++p)
+			values[p] = 0.;
+	}
+};
 
 
 template <int dim>
@@ -177,9 +151,8 @@ private:
 
   QGauss<dim> dual_quadrature;
 
+	DoFHandler<dim> primal_dof_handler;
   DoFHandler<dim> dual_dof_handler;
-
-  DoFHandler<dim> primal_dof_handler;
 
   AffineConstraints<double> primal_constraints; // to deal with hanging nodes
   SparsityPattern      primal_sparsity_pattern;
@@ -199,10 +172,7 @@ private:
 
   RightHandSide<dim> rhs_function; // At the moment, this is equivalent to Functions::ZeroFunction<dim>()
 
-  unsigned int cycle = 0;
-
-  const unsigned int pre_refinement_steps = 0;
-  
+  unsigned int cycle = 0  
 
   Timer timer;
 
@@ -361,6 +331,7 @@ static auto evaluate_grad_Rg = [](const double x, const double y) {
 
 
 
+
 template <int dim>
 Problem<dim>::Problem()
   : primal_fe(1)
@@ -405,8 +376,8 @@ void Problem<dim>::create_mesh(const std::string filename)
 	triangulation.set_manifold(emitter, emitter_manifold);
 
 	cout <<"   Set Manifolds"<< endl;
-
-	for (unsigned int i = 0; i < pre_refinement_steps; ++i) {
+	
+	for (unsigned int i = 0; i < PRELIMINARY_REFINEMENT_STEPS; ++i) {
 
 		Vector<float> criteria(triangulation.n_active_cells());
 		cout  << "Active cells " << triangulation.n_active_cells() << endl;
@@ -417,13 +388,14 @@ void Problem<dim>::create_mesh(const std::string filename)
 			const Point<dim> c = cell->center();
 			const double d = std::sqrt( (c[0]-X)*(c[0]-X) + c[1]*c[1]);
 
-			if ( d <= pre_refinement_steps/(i+1)*2.*R)
+			if ( d <= PRELIMINARY_REFINEMENT_STEPS/(i+1)*2.*R)
 				criteria[ctr++] = 1;
 			else
 				criteria[ctr++] = 0;
 		}
 		GridRefinement::refine(triangulation, criteria, 0.5);
 		triangulation.execute_coarsening_and_refinement();
+		cout<<"   Executed preliminary coarsening and refinement"<<endl;
 	}
 
 	// Refine twice near the edges: only for custom meshes, if needed
@@ -476,7 +448,7 @@ void Problem<dim>::setup_primal_system()
   primal_solution.reinit(primal_dof_handler.n_dofs());
   primal_rhs.reinit(primal_dof_handler.n_dofs());
 
-  std::cout << "   Number of degrees of freedom: " << primal_dof_handler.n_dofs()<< "  [primal]"<<std::endl;
+  std::cout << "      Number of degrees of freedom: " << primal_dof_handler.n_dofs()<<std::endl;
   
 }
 
@@ -498,7 +470,7 @@ void Problem<dim>::setup_dual_system()
   dual_solution.reinit(dual_dof_handler.n_dofs());
   dual_rhs.reinit(dual_dof_handler.n_dofs());
 
-  std::cout << "   Number of degrees of freedom: " << dual_dof_handler.n_dofs()<< "   [dual]"<< std::endl;
+  std::cout << "      Number of degrees of freedom: " << dual_dof_handler.n_dofs()<< std::endl;
 }
 
 
@@ -676,7 +648,7 @@ void Problem<dim>::solve_primal()
 
   primal_constraints.distribute(primal_solution);
 
-  cout<<"   Solved primal problem: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<endl;
+  cout<<"      Solved system: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<endl;
 }
 
 template <int dim>
@@ -697,7 +669,7 @@ void Problem<dim>::solve_dual()
   solver.solve(dual_system_matrix, dual_solution, dual_rhs, preconditioner);
 
   dual_constraints.distribute(dual_solution);
-  cout<<"   Solved dual problem: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<endl;
+  cout<<"      Solved system: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<endl;
 }
 
 
@@ -716,9 +688,9 @@ std::string extract_mesh_name() {
 template <int dim>
 void Problem<dim>::output_primal_results()
 {
-  const Point<dim> evaluation_point(0.5*g, 0.1*g);
-  const double x = VectorTools::point_value(primal_dof_handler, primal_solution, evaluation_point);
-  //cout << "   Potential at sample point (" << evaluation_point[0] << "," << evaluation_point[1] << "): " << x << endl;
+  // const Point<dim> evaluation_point(0.5*g, 0.1*g);
+  // const double x = VectorTools::point_value(primal_dof_handler, primal_solution, evaluation_point);
+  // cout << "   Potential at sample point (" << evaluation_point[0] << "," << evaluation_point[1] << "): " << x << endl;
 
 	Gradient el_field;
 	IonizationArea ion_area;
@@ -786,8 +758,8 @@ void Problem<dim>::refine_mesh(){
   global_error_as_sum_of_cell_errors = std::abs(global_error_as_sum_of_cell_errors);
 
   // Output the two derived global estimates
-  cout<<"   Global error = " <<  global_error << endl
-      <<"   Global error as sum of cells' errors = " << global_error_as_sum_of_cell_errors << endl;
+  cout<<"      Global error = " <<  global_error << endl
+      <<"      Global error as sum of cells' errors = " << global_error_as_sum_of_cell_errors << endl;
 
   // Take absolute value of each error
   for (float &error_indicator : error_indicators) {
@@ -798,7 +770,7 @@ void Problem<dim>::refine_mesh(){
 
   // Execute refinement
   triangulation.execute_coarsening_and_refinement();
-  cout<<"   Executed coarsening and refinement"<<endl;
+  // cout<<"      Executed coarsening and refinement"<<endl;  // redundant message
 
   // NEW: Try setting up hanging nodes after refinement
   primal_constraints.reinit();
@@ -946,11 +918,11 @@ void Problem<dim>::run()
 
   // Cycles for refinement
 	while (cycle <= NUM_REFINEMENT_CYCLES) {
-    cout << "Cycle " << cycle << ':' << endl;
+    cout << endl << "Cycle " << cycle << ':' << endl;
     std::cout << "   Number of active cells:       "<< triangulation.n_active_cells() << std::endl;
 
     // Primal --------------
-
+		cout<<"   Primal:"<<endl;
 		setup_primal_system();
 		assemble_primal_system();
 		solve_primal();
@@ -966,14 +938,14 @@ void Problem<dim>::run()
 		output_primal_results();
 
     // Dual ---------------    
-
+		cout<<"   Dual:"<<endl;
 		setup_dual_system();
 		assemble_dual_system();
 		solve_dual();
 		output_dual_results();
 
     // --------------------  
-
+		cout<<"   Error estimation and Mesh refinement:"<<endl;
 		refine_mesh();
 
 		++cycle;
@@ -984,12 +956,35 @@ void Problem<dim>::run()
 
 }
 
-int main()
-{
-  Problem<2> problem;
+int main(){
+  try{
+    Problem<2> iprop_problem;
+    iprop_problem.run();
+    }
+  catch (std::exception &exc){
+    std::cerr << std::endl
+              << std::endl
+              << "----------------------------------------------------"
+              << std::endl;
+    std::cerr << "Exception on processing: " << std::endl
+              << exc.what() << std::endl
+              << "Aborting!" << std::endl
+              << "----------------------------------------------------"
+              << std::endl;
 
-  // Run problem
-  problem.run();
-
+    return 1;
+    }
+  catch (...){
+    std::cerr << std::endl
+              << std::endl
+              << "----------------------------------------------------"
+              << std::endl;
+    std::cerr << "Unknown exception!" << std::endl
+              << "Aborting!" << std::endl
+              << "----------------------------------------------------"
+              << std::endl;
+    return 1;
+    }
+ 
   return 0;
 }
