@@ -28,3 +28,8 @@ set(SOURCE_FILES
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 deal_ii_setup_target(${PROJECT_NAME})
+
+add_custom_target(run
+  COMMAND ${PROJECT_NAME}
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/../results
+  )
