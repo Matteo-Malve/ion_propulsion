@@ -56,7 +56,7 @@ const double g = 0.2; // [m]
 const double mesh_height = 0.1;; // [m]
 
 std::string PATH_TO_MESH = "../mesh/input_mesh.msh";
-const unsigned int NUM_REFINEMENT_CYCLES = 3;
+const unsigned int NUM_REFINEMENT_CYCLES = 4;
 const unsigned int PRELIMINARY_REFINEMENT_STEPS = 0;
 
 double get_emitter_height(const double &p)
@@ -138,11 +138,16 @@ private:
   void assemble_dual_system();
   void solve_primal();
   void solve_dual();
-  void output_primal_results();
-  void output_dual_results();
+  void output_primal_results(const unsigned int cycle);
+  void output_dual_results(const unsigned int cycle);
 
   double estimate_error(Vector<float> &error_indicators) const;
   void refine_mesh();
+
+	void SIMPLE_setup_system();
+  void SIMPLE_assemble_system();
+  void SIMPLE_solve();
+  void SIMPLE_output_results(const unsigned int cycle) const;
 
   Triangulation<dim> triangulation;
 
@@ -171,8 +176,6 @@ private:
   Vector<double> dual_rhs;
 
   RightHandSide<dim> rhs_function; // At the moment, this is equivalent to Functions::ZeroFunction<dim>()
-
-  unsigned int cycle = 0  
 
   Timer timer;
 
@@ -424,7 +427,6 @@ void Problem<dim>::create_mesh(const std::string filename)
   */
 }
 
-
 template <int dim>
 void Problem<dim>::setup_primal_system()
 {
@@ -554,7 +556,6 @@ void Problem<dim>::assemble_primal_system()
     VectorTools::interpolate_boundary_values(primal_dof_handler,2, Functions::ConstantFunction<dim>(0.), collector_boundary_values);
     MatrixTools::apply_boundary_values(collector_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
   }
-
 }
 
 template <int dim>
@@ -628,7 +629,6 @@ void Problem<dim>::assemble_dual_system()
   }
 }
 
-
 template <int dim>
 void Problem<dim>::solve_primal()
 {
@@ -672,8 +672,6 @@ void Problem<dim>::solve_dual()
   cout<<"      Solved system: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<endl;
 }
 
-
-
 std::string extract_mesh_name() {
   // Find the last '/' character to isolate the filename
   size_t lastSlash = PATH_TO_MESH.rfind('/');
@@ -684,9 +682,8 @@ std::string extract_mesh_name() {
   return meshName;
 }
 
-
 template <int dim>
-void Problem<dim>::output_primal_results()
+void Problem<dim>::output_primal_results(const unsigned int cycle)
 {
   // const Point<dim> evaluation_point(0.5*g, 0.1*g);
   // const double x = VectorTools::point_value(primal_dof_handler, primal_solution, evaluation_point);
@@ -721,7 +718,7 @@ void Problem<dim>::output_primal_results()
 }
 
 template <int dim>
-void Problem<dim>::output_dual_results()
+void Problem<dim>::output_dual_results(const unsigned int cycle)
 {
 	Gradient el_field;
 
@@ -771,25 +768,6 @@ void Problem<dim>::refine_mesh(){
   // Execute refinement
   triangulation.execute_coarsening_and_refinement();
   // cout<<"      Executed coarsening and refinement"<<endl;  // redundant message
-
-  // NEW: Try setting up hanging nodes after refinement
-  primal_constraints.reinit();
-  primal_dof_handler.reinit(triangulation);
-
-  primal_dof_handler.distribute_dofs(primal_fe);
-
-  primal_constraints.clear();
-  DoFTools::make_hanging_node_constraints(primal_dof_handler, primal_constraints);
-  primal_constraints.close();
-
-  DynamicSparsityPattern dsp(primal_dof_handler.n_dofs());
-  DoFTools::make_sparsity_pattern(primal_dof_handler, dsp, primal_constraints, false);
-  primal_sparsity_pattern.copy_from(dsp);
-
-  primal_system_matrix.reinit(primal_sparsity_pattern);
-  uh0.reinit(primal_dof_handler.n_dofs());
-  primal_solution.reinit(primal_dof_handler.n_dofs());
-  primal_rhs.reinit(primal_dof_handler.n_dofs());
 }
 
 template <int dim>
@@ -911,13 +889,124 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
 }
 
 template <int dim>
+void Problem<dim>::SIMPLE_setup_system()
+{
+  primal_dof_handler.distribute_dofs(primal_fe);
+ 
+  primal_solution.reinit(primal_dof_handler.n_dofs());
+  primal_rhs.reinit(primal_dof_handler.n_dofs());
+ 
+  primal_constraints.clear();   // clear from previous cycle
+
+  DoFTools::make_hanging_node_constraints(primal_dof_handler, primal_constraints);
+ 
+  VectorTools::interpolate_boundary_values(primal_dof_handler,
+                                           types::boundary_id(1),
+                                           Functions::ConstantFunction<dim>(20000.),
+                                           primal_constraints);
+  VectorTools::interpolate_boundary_values(primal_dof_handler,
+                                           types::boundary_id(2),
+                                           Functions::ZeroFunction<dim>(),
+                                           primal_constraints);                                         
+ 
+  primal_constraints.close();
+ 
+  DynamicSparsityPattern dsp(primal_dof_handler.n_dofs());
+  DoFTools::make_sparsity_pattern(primal_dof_handler,
+                                  dsp,
+                                  primal_constraints,
+                                  /*keep_constrained_dofs = */ false);
+ 
+  primal_sparsity_pattern.copy_from(dsp);
+ 
+  primal_system_matrix.reinit(primal_sparsity_pattern);
+}
+
+template <int dim>
+void Problem<dim>::SIMPLE_assemble_system(){
+  const QGauss<dim> quadrature_formula(primal_fe.degree + 1);
+ 
+  FEValues<dim> fe_values(primal_fe,
+                          quadrature_formula,
+                          update_values | update_gradients |
+                          update_quadrature_points | update_JxW_values);
+ 
+  const unsigned int dofs_per_cell = primal_fe.n_dofs_per_cell();
+ 
+  FullMatrix<double> cell_matrix(dofs_per_cell, dofs_per_cell);
+  Vector<double>     cell_rhs(dofs_per_cell);
+ 
+  std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
+ 
+  for (const auto &cell : primal_dof_handler.active_cell_iterators())
+    {
+      fe_values.reinit(cell);
+ 
+      cell_matrix = 0;
+      cell_rhs    = 0;
+ 
+      for (const unsigned int q_index : fe_values.quadrature_point_indices())
+        {
+          for (const unsigned int i : fe_values.dof_indices())
+            {
+              for (const unsigned int j : fe_values.dof_indices())
+                cell_matrix(i, j) +=
+                  (
+                   fe_values.shape_grad(i, q_index) * // grad phi_i(x_q)
+                   fe_values.shape_grad(j, q_index) * // grad phi_j(x_q)
+                   fe_values.JxW(q_index));           // dx
+ 
+              cell_rhs(i) += (fe_values.shape_value(i, q_index) * // phi_i(x_q)
+                              0.0 *                               // f(x)
+                              fe_values.JxW(q_index));            // dx
+            }
+        }
+ 
+      cell->get_dof_indices(local_dof_indices);
+      primal_constraints.distribute_local_to_global(
+        cell_matrix, cell_rhs, local_dof_indices, primal_system_matrix, primal_rhs);
+    }
+}
+
+template <int dim>
+void Problem<dim>::SIMPLE_solve()
+{
+  SolverControl            solver_control(1000, 1e-6 * primal_rhs.l2_norm());
+  SolverCG<Vector<double>> solver(solver_control);
+ 
+  PreconditionSSOR<SparseMatrix<double>> preconditioner;
+  preconditioner.initialize(primal_system_matrix, 1.2);
+ 
+  solver.solve(primal_system_matrix, primal_solution, primal_rhs, preconditioner);
+ 
+  primal_constraints.distribute(primal_solution);
+
+  //cout<<"   Solved primal problem: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<endl;
+}
+
+template <int dim>
+void Problem<dim>::SIMPLE_output_results(const unsigned int cycle) const
+{
+  Gradient el_field;
+  DataOut<dim> data_out;
+  data_out.attach_dof_handler(primal_dof_handler);
+  data_out.add_data_vector(primal_solution, "Potential");
+  data_out.add_data_vector(primal_solution, el_field);
+  data_out.build_patches();
+
+  std::ofstream output("primal_solution-" + std::to_string(cycle) + ".vtu");
+  data_out.write_vtu(output);
+}
+
+template <int dim>
 void Problem<dim>::run()
 {  
   // Create the mesh
   create_mesh(PATH_TO_MESH);
 
   // Cycles for refinement
-	while (cycle <= NUM_REFINEMENT_CYCLES) {
+	unsigned int cycle = 0;
+	while (cycle < NUM_REFINEMENT_CYCLES) {
     cout << endl << "Cycle " << cycle << ':' << endl;
     std::cout << "   Number of active cells:       "<< triangulation.n_active_cells() << std::endl;
 
@@ -935,14 +1024,14 @@ void Problem<dim>::run()
     primal_solution += Rg_vector;               // uh = u0 + Rg
     primal_constraints.distribute(primal_solution);     // distribute
 		
-		output_primal_results();
+		output_primal_results(cycle);
 
     // Dual ---------------    
 		cout<<"   Dual:"<<endl;
 		setup_dual_system();
 		assemble_dual_system();
 		solve_dual();
-		output_dual_results();
+		output_dual_results(cycle);
 
     // --------------------  
 		cout<<"   Error estimation and Mesh refinement:"<<endl;
@@ -953,7 +1042,10 @@ void Problem<dim>::run()
 
   // Cycles for solution
   cout << "Cycle " << cycle << " [FINAL]" << ':' << endl;
-
+	SIMPLE_setup_system();
+	SIMPLE_assemble_system();
+	SIMPLE_solve();
+	SIMPLE_output_results(cycle);
 }
 
 int main(){
