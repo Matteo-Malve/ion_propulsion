@@ -432,23 +432,19 @@ void Problem<dim>::setup_primal_system()
 {
   primal_dof_handler.distribute_dofs(primal_fe);
   
-
+	uh0.reinit(primal_dof_handler.n_dofs());
+  primal_solution.reinit(primal_dof_handler.n_dofs());
+  primal_rhs.reinit(primal_dof_handler.n_dofs());
  
   primal_constraints.clear();
 	DoFTools::make_hanging_node_constraints(primal_dof_handler, primal_constraints);
 	primal_constraints.close();
-  
-
 
   DynamicSparsityPattern dsp(primal_dof_handler.n_dofs());
   DoFTools::make_sparsity_pattern(primal_dof_handler, dsp, primal_constraints, false);
   primal_sparsity_pattern.copy_from(dsp);
 
   primal_system_matrix.reinit(primal_sparsity_pattern);
-
-  uh0.reinit(primal_dof_handler.n_dofs());
-  primal_solution.reinit(primal_dof_handler.n_dofs());
-  primal_rhs.reinit(primal_dof_handler.n_dofs());
 
   std::cout << "      Number of degrees of freedom: " << primal_dof_handler.n_dofs()<<std::endl;
   
@@ -550,10 +546,10 @@ void Problem<dim>::assemble_primal_system()
   {
     std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
 
-    VectorTools::interpolate_boundary_values(primal_dof_handler,1, Functions::ConstantFunction<dim>(0.), emitter_boundary_values);
+    VectorTools::interpolate_boundary_values(primal_dof_handler,1, Functions::ZeroFunction<dim>(), emitter_boundary_values);
     MatrixTools::apply_boundary_values(emitter_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
 
-    VectorTools::interpolate_boundary_values(primal_dof_handler,2, Functions::ConstantFunction<dim>(0.), collector_boundary_values);
+    VectorTools::interpolate_boundary_values(primal_dof_handler,2, Functions::ZeroFunction<dim>(), collector_boundary_values);
     MatrixTools::apply_boundary_values(collector_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
   }
 }
@@ -645,8 +641,15 @@ void Problem<dim>::solve_primal()
   preconditioner.initialize(primal_system_matrix, relaxation_parameter);
 
   solver.solve(primal_system_matrix, primal_solution, primal_rhs, preconditioner);
+	uh0 = primal_solution;
 
-  primal_constraints.distribute(primal_solution);
+	// Retrieve lifting
+  Vector<double> Rg_vector(primal_solution.size());
+  VectorTools::interpolate(primal_dof_handler,Evaluate_Rg<dim>(),Rg_vector);
+  primal_solution += Rg_vector;               // uh = u0 + Rg
+
+  primal_constraints.distribute(uh0);
+	primal_constraints.distribute(primal_solution);
 
   cout<<"      Solved system: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<endl;
 }
@@ -695,6 +698,7 @@ void Problem<dim>::output_primal_results(const unsigned int cycle)
   DataOut<dim> data_out;
   data_out.attach_dof_handler(primal_dof_handler);
   data_out.add_data_vector(primal_solution, "Potential");
+	data_out.add_data_vector(uh0, "uh0");
   data_out.add_data_vector(primal_solution, el_field);
 	data_out.add_data_vector(primal_solution, ion_area);
   data_out.build_patches(); // mapping
@@ -1015,15 +1019,6 @@ void Problem<dim>::run()
 		setup_primal_system();
 		assemble_primal_system();
 		solve_primal();
-		uh0 = primal_solution;
-
-		// Retrieve lifting
-    Vector<double> Rg_vector(primal_solution.size());
-    VectorTools::interpolate(primal_dof_handler,Evaluate_Rg<dim>(),Rg_vector);
-    primal_constraints.distribute(Rg_vector);       // distribute
-    primal_solution += Rg_vector;               // uh = u0 + Rg
-    primal_constraints.distribute(primal_solution);     // distribute
-		
 		output_primal_results(cycle);
 
     // Dual ---------------    
