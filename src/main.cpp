@@ -56,7 +56,7 @@ const double g = 0.2; // [m]
 const double mesh_height = 0.1;; // [m]
 
 std::string PATH_TO_MESH = "../mesh/input_mesh.msh";
-const unsigned int NUM_REFINEMENT_CYCLES = 4;
+const unsigned int NUM_REFINEMENT_CYCLES = 3;
 const unsigned int PRELIMINARY_REFINEMENT_STEPS = 0;
 
 double get_emitter_height(const double &p)
@@ -165,7 +165,9 @@ private:
 
   Vector<double> primal_rhs;
   Vector<double> uh0;
+	Vector<double> Rg_vector;
   Vector<double> primal_solution;
+
 
   AffineConstraints<double> dual_constraints; // to deal with hanging nodes
 
@@ -432,6 +434,7 @@ void Problem<dim>::setup_primal_system()
 {
   primal_dof_handler.distribute_dofs(primal_fe);
   
+	Rg_vector.reinit(primal_dof_handler.n_dofs());
 	uh0.reinit(primal_dof_handler.n_dofs());
   primal_solution.reinit(primal_dof_handler.n_dofs());
   primal_rhs.reinit(primal_dof_handler.n_dofs());
@@ -642,14 +645,14 @@ void Problem<dim>::solve_primal()
 
   solver.solve(primal_system_matrix, primal_solution, primal_rhs, preconditioner);
 	uh0 = primal_solution;
+	primal_constraints.distribute(uh0);
+	primal_constraints.distribute(primal_solution);
 
 	// Retrieve lifting
-  Vector<double> Rg_vector(primal_solution.size());
+  //Vector<double> Rg_vector(primal_solution.size());
   VectorTools::interpolate(primal_dof_handler,Evaluate_Rg<dim>(),Rg_vector);
+	primal_constraints.distribute(Rg_vector);		// NEW
   primal_solution += Rg_vector;               // uh = u0 + Rg
-
-  primal_constraints.distribute(uh0);
-	primal_constraints.distribute(primal_solution);
 
   cout<<"      Solved system: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<endl;
 }
@@ -699,6 +702,7 @@ void Problem<dim>::output_primal_results(const unsigned int cycle)
   data_out.attach_dof_handler(primal_dof_handler);
   data_out.add_data_vector(primal_solution, "Potential");
 	data_out.add_data_vector(uh0, "uh0");
+	data_out.add_data_vector(Rg_vector, "Rg");
   data_out.add_data_vector(primal_solution, el_field);
 	data_out.add_data_vector(primal_solution, ion_area);
   data_out.build_patches(); // mapping
@@ -903,7 +907,8 @@ void Problem<dim>::SIMPLE_setup_system()
   primal_constraints.clear();   // clear from previous cycle
 
   DoFTools::make_hanging_node_constraints(primal_dof_handler, primal_constraints);
- 
+	/* Alternative: Impose BCs as AffineConstraints rather than mapping
+	
   VectorTools::interpolate_boundary_values(primal_dof_handler,
                                            types::boundary_id(1),
                                            Functions::ConstantFunction<dim>(20000.),
@@ -911,7 +916,7 @@ void Problem<dim>::SIMPLE_setup_system()
   VectorTools::interpolate_boundary_values(primal_dof_handler,
                                            types::boundary_id(2),
                                            Functions::ZeroFunction<dim>(),
-                                           primal_constraints);                                         
+                                           primal_constraints);               */                          
  
   primal_constraints.close();
  
@@ -970,6 +975,16 @@ void Problem<dim>::SIMPLE_assemble_system(){
       primal_constraints.distribute_local_to_global(
         cell_matrix, cell_rhs, local_dof_indices, primal_system_matrix, primal_rhs);
     }
+		// Apply boundary values
+  {
+    std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
+
+    VectorTools::interpolate_boundary_values(primal_dof_handler,1, Functions::ConstantFunction<dim>(20000.), emitter_boundary_values);
+    MatrixTools::apply_boundary_values(emitter_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
+
+    VectorTools::interpolate_boundary_values(primal_dof_handler,2, Functions::ZeroFunction<dim>(), collector_boundary_values);
+    MatrixTools::apply_boundary_values(collector_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
+  }
 }
 
 template <int dim>
