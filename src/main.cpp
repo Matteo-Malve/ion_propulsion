@@ -183,50 +183,8 @@ private:
 
   class ElectricFieldPostprocessor;
   class IonizationAreaPostprocessor;
+  class RgGradientPostprocessor;
 };
-
-template <int dim>
-class Problem<dim>::ElectricFieldPostprocessor : public DataPostprocessorVector<dim>
-{
-public:
-  ElectricFieldPostprocessor ():  DataPostprocessorVector<dim> ("Electric_Field", update_gradients) {}
-
-  virtual void evaluate_scalar_field(const DataPostprocessorInputs::Scalar<dim> &input_data,
-									 std::vector<Vector<double> > &computed_quantities) const override 
-    {
-    AssertDimension (input_data.solution_gradients.size(), computed_quantities.size()); // size check
-    for (unsigned int p=0; p<input_data.solution_gradients.size(); ++p){
-      AssertDimension (computed_quantities[p].size(), dim); // dimension check
-      for (unsigned int d=0; d<dim; ++d)
-        computed_quantities[p][d] = -input_data.solution_gradients[p][d];
-      }
-    }
-};
-
-template <int dim>
-class Problem<dim>::IonizationAreaPostprocessor : public DataPostprocessorScalar<dim>
-{
-public:
-  IonizationAreaPostprocessor ():  DataPostprocessorScalar<dim> ("normalized_overfield", update_gradients) {}
-
-  virtual void evaluate_scalar_field(const DataPostprocessorInputs::Scalar<dim> &input_data,
-									 std::vector<Vector<double>> &computed_quantities) const override {
-	  AssertDimension (input_data.solution_values.size(), computed_quantities.size()); // Size check
-
-	  for (unsigned int p=0; p<input_data.solution_gradients.size(); ++p)
-	  {
-	AssertDimension(computed_quantities[p].size(), 1);
-		  double magnitude = 0;
-		  for (unsigned int d=0; d<dim; ++d)
-			  magnitude += input_data.solution_gradients[p][d] * input_data.solution_gradients[p][d];
-
-		  const double overfield = std::max(0., std::sqrt(magnitude) - E_ON);
-
-		  computed_quantities[p](0) = overfield/E_ON;
-	  }
-  }
-};
-
 
 template <int dim>
 class Evaluate_Rg : public Function<dim>
@@ -239,58 +197,35 @@ public:
 	  const auto y = p[1];
 	  const auto x = p[0];
 
-	if (x <= (X-L/2.-2.*R) || x >= (X+L/2.+2.*R) || y >= 3.*R)
-		return 0.;
+    if (x <= (X-L/2.-2.*R) || x >= (X+L/2.+2.*R) || y >= 3.*R)
+      return 0.;
 
-	double Rg = 0.;
-	double d = 0.;
-	const double left_center = X - L/2. + R;
-	const double right_center = X + L/2. - R;
+    double Rg = 0.;
+    double d = 0.;
+    const double left_center = X - L/2. + R;
+    const double right_center = X + L/2. - R;
 
-	if (x >= right_center)
-		d = sqrt((x-right_center)*(x-right_center) + y*y);
-	else if (x < right_center && x > left_center )
-		d = y;
-	else if (x <= left_center )
-		d = sqrt((x-left_center)*(x-left_center) + y*y);
-	else
-		cout << "ERROR! Not implemented!" << endl;
+    if (x >= right_center)
+      d = sqrt((x-right_center)*(x-right_center) + y*y);
+    else if (x < right_center && x > left_center )
+      d = y;
+    else if (x <= left_center )
+      d = sqrt((x-left_center)*(x-left_center) + y*y);
+    else
+      cout << "ERROR! Not implemented!" << endl;
 
-	d = std::max(d,R); /* As the boundary only approximates a circle,
-	* some points on the emitter edge will be inside the radius,
-	* and would produce an Rg higher than Vmax with the current function choice */
+    d = std::max(d,R); /* As the boundary only approximates a circle,
+    * some points on the emitter edge will be inside the radius,
+    * and would produce an Rg higher than Vmax with the current function choice */
 
-	if (d < 3.*R)
-		Rg = Vmax * (1. - (d-R)/(2.*R)) * (1. - (d-R)/(2.*R)); //* (1. - (d-R)/(2.*R))
+    if (d < 3.*R)
+      Rg = Vmax * (1. - (d-R)/(2.*R)) * (1. - (d-R)/(2.*R)); //* (1. - (d-R)/(2.*R))
 
-		  if (Rg > Vmax) cout << "Error! Rg is " << Rg << " in " << x << ", " << y << endl;
+        if (Rg > Vmax) cout << "Error! Rg is " << Rg << " in " << x << ", " << y << endl;
 
-		  return Rg;
-	  }
+        return Rg;
+      }
 };
-
-Tensor<1,2> emitter_normal(const Point<2> p) {
-	//Compute the normal at point p of a circular emitter of length L
-	// with circular edges of radius R centered in [-R,0] and in [-L+R,0]
-
-	Tensor<1,2> normal;
-	normal[0] = 0.;
-	normal[1] = p[1];
-
-	const double x = p[0];
-	const double left_center = X - L/2. + R;
-	const double right_center = X + L/2. - R;
-
-	if (x >= right_center)
-		normal[0] = x - right_center;
-	else if (x <= left_center)
-		normal[0] = x - left_center;
-
-	const double norm = std::sqrt(normal[0]*normal[0] + normal[1]*normal[1]); // The norm of this vector should always be nearly equal to R
-
-	return normal/norm;
-}
-
 
 static auto evaluate_grad_Rg = [](const double x, const double y) {
 
@@ -334,8 +269,89 @@ static auto evaluate_grad_Rg = [](const double x, const double y) {
 	  return grad_Rg;
 };
 
+template <int dim>
+class Problem<dim>::ElectricFieldPostprocessor : public DataPostprocessorVector<dim>
+{
+public:
+  ElectricFieldPostprocessor ():  DataPostprocessorVector<dim> ("Electric_Field", update_gradients) {}
 
+  virtual void evaluate_scalar_field(const DataPostprocessorInputs::Scalar<dim> &input_data,
+									 std::vector<Vector<double> > &computed_quantities) const override 
+    {
+    AssertDimension (input_data.solution_gradients.size(), computed_quantities.size()); // size check
+    for (unsigned int p=0; p<input_data.solution_gradients.size(); ++p){
+      AssertDimension (computed_quantities[p].size(), dim); // dimension check
+      for (unsigned int d=0; d<dim; ++d)
+        computed_quantities[p][d] = -input_data.solution_gradients[p][d];
+      }
+    }
+};
 
+template <int dim>
+class Problem<dim>::RgGradientPostprocessor : public DataPostprocessorVector<dim>
+{
+public:
+  RgGradientPostprocessor ():  DataPostprocessorVector<dim> ("RgGradient", update_gradients) {}
+
+  virtual void evaluate_scalar_field(const DataPostprocessorInputs::Scalar<dim> &input_data,
+									 std::vector<Vector<double> > &computed_quantities) const override 
+    {
+    const unsigned int n_quadrature_points = input_data.solution_gradients.size();
+    AssertDimension (n_quadrature_points, computed_quantities.size()); // size check
+    for (unsigned int q=0; q<n_quadrature_points; ++q){
+      AssertDimension (computed_quantities[q].size(), dim); // dimension check
+      auto grad_rg_at_p = evaluate_grad_Rg(input_data.evaluation_points[q][0],input_data.evaluation_points[q][1]);
+        computed_quantities[q][0] = grad_rg_at_p[0];
+        computed_quantities[q][1] = grad_rg_at_p[1];
+      }
+    }
+};
+
+template <int dim>
+class Problem<dim>::IonizationAreaPostprocessor : public DataPostprocessorScalar<dim>
+{
+public:
+  IonizationAreaPostprocessor ():  DataPostprocessorScalar<dim> ("normalized_overfield", update_gradients) {}
+
+  virtual void evaluate_scalar_field(const DataPostprocessorInputs::Scalar<dim> &input_data,
+									 std::vector<Vector<double>> &computed_quantities) const override {
+	  AssertDimension (input_data.solution_values.size(), computed_quantities.size()); // Size check
+
+	  for (unsigned int p=0; p<input_data.solution_gradients.size(); ++p)
+	  {
+	AssertDimension(computed_quantities[p].size(), 1);
+		  double magnitude = 0;
+		  for (unsigned int d=0; d<dim; ++d)
+			  magnitude += input_data.solution_gradients[p][d] * input_data.solution_gradients[p][d];
+
+		  const double overfield = std::max(0., std::sqrt(magnitude) - E_ON);
+
+		  computed_quantities[p](0) = overfield/E_ON;
+	  }
+  }
+};
+
+Tensor<1,2> emitter_normal(const Point<2> p) {
+	//Compute the normal at point p of a circular emitter of length L
+	// with circular edges of radius R centered in [-R,0] and in [-L+R,0]
+
+	Tensor<1,2> normal;
+	normal[0] = 0.;
+	normal[1] = p[1];
+
+	const double x = p[0];
+	const double left_center = X - L/2. + R;
+	const double right_center = X + L/2. - R;
+
+	if (x >= right_center)
+		normal[0] = x - right_center;
+	else if (x <= left_center)
+		normal[0] = x - left_center;
+
+	const double norm = std::sqrt(normal[0]*normal[0] + normal[1]*normal[1]); // The norm of this vector should always be nearly equal to R
+
+	return normal/norm;
+}
 
 template <int dim>
 Problem<dim>::Problem()
@@ -696,6 +712,7 @@ void Problem<dim>::output_primal_results(const unsigned int cycle)
 
 	ElectricFieldPostprocessor electric_field_postprocessor;
 	IonizationAreaPostprocessor ionization_area_postprocessor;
+  //RgGradientPostprocessor Rg_gradient_postprocessor;
 
   DataOut<dim> data_out;
   data_out.attach_dof_handler(primal_dof_handler);
@@ -704,6 +721,7 @@ void Problem<dim>::output_primal_results(const unsigned int cycle)
 	data_out.add_data_vector(Rg_vector, "Rg");
   data_out.add_data_vector(primal_solution, electric_field_postprocessor);
 	data_out.add_data_vector(primal_solution, ionization_area_postprocessor);
+  //data_out.add_data_vector(primal_solution, Rg_gradient_postprocessor);
   data_out.build_patches(); // mapping
 
   std::string filename;
