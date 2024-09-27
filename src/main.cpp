@@ -649,9 +649,8 @@ void Problem<dim>::solve_primal()
 	primal_constraints.distribute(primal_solution);
 
 	// Retrieve lifting
-  //Vector<double> Rg_vector(primal_solution.size());
   VectorTools::interpolate(primal_dof_handler,Evaluate_Rg<dim>(),Rg_vector);
-	primal_constraints.distribute(Rg_vector);		// NEW
+	//primal_constraints.distribute(Rg_vector);		// Does it make any sense?
   primal_solution += Rg_vector;               // uh = u0 + Rg
 
   cout<<"      Solved system: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<endl;
@@ -709,7 +708,7 @@ void Problem<dim>::output_primal_results(const unsigned int cycle)
 
   std::string filename;
   std::string meshName = extract_mesh_name();
-	filename = Utilities::int_to_string(nn, 1) + "R-primal-" + meshName + "-" + Utilities::int_to_string(cycle, 1) + ".vtk";
+	filename = Utilities::int_to_string(nn, 1) + "provaR-primal-" + meshName + "-" + Utilities::int_to_string(cycle, 1) + ".vtk";
   DataOutBase::VtkFlags vtk_flags;
   vtk_flags.compression_level = DataOutBase::VtkFlags::ZlibCompressionLevel::best_speed;
   data_out.set_flags(vtk_flags);
@@ -1013,7 +1012,7 @@ void Problem<dim>::SIMPLE_output_results(const unsigned int cycle) const
   data_out.add_data_vector(primal_solution, el_field);
   data_out.build_patches();
 
-  std::ofstream output("primal_solution-" + std::to_string(cycle) + ".vtu");
+  std::ofstream output("PROVAprimal_solution-" + std::to_string(cycle) + ".vtu");
   data_out.write_vtu(output);
 }
 
