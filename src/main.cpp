@@ -181,15 +181,15 @@ private:
 
   Timer timer;
 
-  class Gradient;
-  class IonizationArea;
+  class ElectricFieldPostprocessor;
+  class IonizationAreaPostprocessor;
 };
 
 template <int dim>
-class Problem<dim>::Gradient : public DataPostprocessorVector<dim>
+class Problem<dim>::ElectricFieldPostprocessor : public DataPostprocessorVector<dim>
 {
 public:
-  Gradient ():  DataPostprocessorVector<dim> ("Electric_Field", update_gradients) {}
+  ElectricFieldPostprocessor ():  DataPostprocessorVector<dim> ("Electric_Field", update_gradients) {}
 
   virtual void evaluate_scalar_field(const DataPostprocessorInputs::Scalar<dim> &input_data,
 									 std::vector<Vector<double> > &computed_quantities) const override 
@@ -204,10 +204,10 @@ public:
 };
 
 template <int dim>
-class Problem<dim>::IonizationArea : public DataPostprocessorScalar<dim>
+class Problem<dim>::IonizationAreaPostprocessor : public DataPostprocessorScalar<dim>
 {
 public:
-  IonizationArea ():  DataPostprocessorScalar<dim> ("normalized_overfield", update_gradients) {}
+  IonizationAreaPostprocessor ():  DataPostprocessorScalar<dim> ("normalized_overfield", update_gradients) {}
 
   virtual void evaluate_scalar_field(const DataPostprocessorInputs::Scalar<dim> &input_data,
 									 std::vector<Vector<double>> &computed_quantities) const override {
@@ -694,16 +694,16 @@ void Problem<dim>::output_primal_results(const unsigned int cycle)
   // const double x = VectorTools::point_value(primal_dof_handler, primal_solution, evaluation_point);
   // cout << "   Potential at sample point (" << evaluation_point[0] << "," << evaluation_point[1] << "): " << x << endl;
 
-	Gradient el_field;
-	IonizationArea ion_area;
+	ElectricFieldPostprocessor electric_field_postprocessor;
+	IonizationAreaPostprocessor ionization_area_postprocessor;
 
   DataOut<dim> data_out;
   data_out.attach_dof_handler(primal_dof_handler);
   data_out.add_data_vector(primal_solution, "Potential");
 	data_out.add_data_vector(uh0, "uh0");
 	data_out.add_data_vector(Rg_vector, "Rg");
-  data_out.add_data_vector(primal_solution, el_field);
-	data_out.add_data_vector(primal_solution, ion_area);
+  data_out.add_data_vector(primal_solution, electric_field_postprocessor);
+	data_out.add_data_vector(primal_solution, ionization_area_postprocessor);
   data_out.build_patches(); // mapping
 
   std::string filename;
@@ -727,12 +727,12 @@ void Problem<dim>::output_primal_results(const unsigned int cycle)
 template <int dim>
 void Problem<dim>::output_dual_results(const unsigned int cycle)
 {
-	Gradient el_field;
+	ElectricFieldPostprocessor electric_field_postprocessor;
 
   DataOut<dim> data_out;
   data_out.attach_dof_handler(dual_dof_handler);
   data_out.add_data_vector(dual_solution, "Potential");
-  data_out.add_data_vector(dual_solution, el_field);
+  data_out.add_data_vector(dual_solution, electric_field_postprocessor);
   data_out.build_patches(); // mapping
 
   std::string filename;
@@ -1005,11 +1005,11 @@ void Problem<dim>::SIMPLE_solve()
 template <int dim>
 void Problem<dim>::SIMPLE_output_results(const unsigned int cycle) const
 {
-  Gradient el_field;
+  ElectricFieldPostprocessor electric_field_postprocessor;
   DataOut<dim> data_out;
   data_out.attach_dof_handler(primal_dof_handler);
   data_out.add_data_vector(primal_solution, "Potential");
-  data_out.add_data_vector(primal_solution, el_field);
+  data_out.add_data_vector(primal_solution, electric_field_postprocessor);
   data_out.build_patches();
 
 	std::string filename;
