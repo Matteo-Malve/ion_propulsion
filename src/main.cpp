@@ -708,7 +708,7 @@ void Problem<dim>::output_primal_results(const unsigned int cycle)
 
   std::string filename;
   std::string meshName = extract_mesh_name();
-	filename = Utilities::int_to_string(nn, 1) + "provaR-primal-" + meshName + "-" + Utilities::int_to_string(cycle, 1) + ".vtk";
+	filename = std::string("Rg_manual") + "-" + "primal" + "-" + meshName + "-" + Utilities::int_to_string(cycle, 1) + ".vtk";
   DataOutBase::VtkFlags vtk_flags;
   vtk_flags.compression_level = DataOutBase::VtkFlags::ZlibCompressionLevel::best_speed;
   data_out.set_flags(vtk_flags);
@@ -738,7 +738,7 @@ void Problem<dim>::output_dual_results(const unsigned int cycle)
   std::string filename;
   std::string meshName = extract_mesh_name();
 
-	filename =  Utilities::int_to_string(nn, 1) + "R-dual-" + meshName + "-" + Utilities::int_to_string(cycle, 1) + ".vtk";
+	filename =  std::string("Rg_manual") + "-" + "dual-" + meshName + "-" + Utilities::int_to_string(cycle, 1) + ".vtk";
   DataOutBase::VtkFlags vtk_flags;
   vtk_flags.compression_level = DataOutBase::VtkFlags::ZlibCompressionLevel::best_speed;
   data_out.set_flags(vtk_flags);
@@ -1012,7 +1012,10 @@ void Problem<dim>::SIMPLE_output_results(const unsigned int cycle) const
   data_out.add_data_vector(primal_solution, el_field);
   data_out.build_patches();
 
-  std::ofstream output("PROVAprimal_solution-" + std::to_string(cycle) + ".vtu");
+	std::string filename;
+  std::string meshName = extract_mesh_name();
+	filename = std::string("automatic_lifting") + "-" + "primal" + "-" + meshName + "-" + Utilities::int_to_string(cycle, 1) + ".vtu";
+  std::ofstream output(filename);
   data_out.write_vtu(output);
 }
 
