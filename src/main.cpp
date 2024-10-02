@@ -335,8 +335,6 @@ static auto evaluate_grad_Rg = [](const double x, const double y) {
 };
 
 
-
-
 template <int dim>
 Problem<dim>::Problem()
   : primal_fe(1)
@@ -443,10 +441,15 @@ void Problem<dim>::setup_primal_system()
 	DoFTools::make_hanging_node_constraints(primal_dof_handler, primal_constraints);
 	primal_constraints.close();
 
+
+  DynamicSparsityPattern dsp(primal_dof_handler.n_dofs(),primal_dof_handler.n_dofs());
+  DoFTools::make_sparsity_pattern(primal_dof_handler, dsp);
+  primal_constraints.condense(dsp);
+  /*
   DynamicSparsityPattern dsp(primal_dof_handler.n_dofs());
   DoFTools::make_sparsity_pattern(primal_dof_handler, dsp, primal_constraints, false);
+  */
   primal_sparsity_pattern.copy_from(dsp);
-
   primal_system_matrix.reinit(primal_sparsity_pattern);
 
   std::cout << "      Number of degrees of freedom: " << primal_dof_handler.n_dofs()<<std::endl;
@@ -542,7 +545,14 @@ void Problem<dim>::assemble_primal_system()
   }
       // Local to global
       cell->get_dof_indices(local_dof_indices);
-      primal_constraints.distribute_local_to_global(cell_matrix, cell_rhs, local_dof_indices, primal_system_matrix, primal_rhs);
+      //primal_constraints.distribute_local_to_global(cell_matrix, cell_rhs, local_dof_indices, primal_system_matrix, primal_rhs);
+      for (const unsigned int i : fe_values.dof_indices()){
+        for (const unsigned int j : fe_values.dof_indices())
+          primal_system_matrix.add(local_dof_indices[i], 
+                            local_dof_indices[j],
+                            cell_matrix(i, j)); 
+        primal_rhs(local_dof_indices[i]) += cell_rhs(i);
+      }
   }
 
   // Apply boundary values
@@ -555,6 +565,9 @@ void Problem<dim>::assemble_primal_system()
     VectorTools::interpolate_boundary_values(primal_dof_handler,2, Functions::ZeroFunction<dim>(), collector_boundary_values);
     MatrixTools::apply_boundary_values(collector_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
   }
+  primal_constraints.condense(primal_system_matrix);
+  primal_constraints.condense(primal_rhs);
+
 }
 
 template <int dim>
@@ -631,26 +644,27 @@ void Problem<dim>::assemble_dual_system()
 template <int dim>
 void Problem<dim>::solve_primal()
 {
+  // Solver setup
   const unsigned int it_max = 1e+4;
   const double rel_tol = 1.e-6*primal_rhs.l2_norm();
   const double abs_tol = 1.e-12;
-
   const double tol = abs_tol + rel_tol;
   SolverControl            solver_control(it_max, tol);
   SolverCG<Vector<double>> solver(solver_control);
 
+  // Solve linear system
   double relaxation_parameter = 1.2;
   PreconditionSSOR<SparseMatrix<double>> preconditioner;
   preconditioner.initialize(primal_system_matrix, relaxation_parameter);
-
   solver.solve(primal_system_matrix, primal_solution, primal_rhs, preconditioner);
+
+  // uh0
 	uh0 = primal_solution;
 	primal_constraints.distribute(uh0);
-	primal_constraints.distribute(primal_solution);
+  primal_constraints.distribute(primal_solution);
 
 	// Retrieve lifting
   VectorTools::interpolate(primal_dof_handler,Evaluate_Rg<dim>(),Rg_vector);
-	//primal_constraints.distribute(Rg_vector);		// Does it make any sense?
   primal_solution += Rg_vector;               // uh = u0 + Rg
 
   cout<<"      Solved system: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<endl;
@@ -924,9 +938,7 @@ void Problem<dim>::SIMPLE_setup_system()
                                   dsp,
                                   primal_constraints,
                                   /*keep_constrained_dofs = */ false);
- 
   primal_sparsity_pattern.copy_from(dsp);
- 
   primal_system_matrix.reinit(primal_sparsity_pattern);
 }
 
