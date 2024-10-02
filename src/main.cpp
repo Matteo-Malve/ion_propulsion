@@ -183,6 +183,7 @@ private:
 
   class ElectricFieldPostprocessor;
   class IonizationAreaPostprocessor;
+  class HomogeneousFieldPostprocessor;
 };
 
 template <int dim>
@@ -202,6 +203,26 @@ public:
       }
     }
 };
+
+
+template <int dim>
+class Problem<dim>::HomogeneousFieldPostprocessor : public DataPostprocessorVector<dim>
+{
+public:
+  HomogeneousFieldPostprocessor ():  DataPostprocessorVector<dim> ("minus_grad_uh0", update_gradients) {}
+
+  virtual void evaluate_scalar_field(const DataPostprocessorInputs::Scalar<dim> &input_data,
+									 std::vector<Vector<double> > &computed_quantities) const override 
+    {
+    AssertDimension (input_data.solution_gradients.size(), computed_quantities.size()); // size check
+    for (unsigned int p=0; p<input_data.solution_gradients.size(); ++p){
+      AssertDimension (computed_quantities[p].size(), dim); // dimension check
+      for (unsigned int d=0; d<dim; ++d)
+        computed_quantities[p][d] = -input_data.solution_gradients[p][d];
+      }
+    }
+};
+
 
 template <int dim>
 class Problem<dim>::IonizationAreaPostprocessor : public DataPostprocessorScalar<dim>
@@ -710,6 +731,7 @@ void Problem<dim>::output_primal_results(const unsigned int cycle)
 
 	ElectricFieldPostprocessor electric_field_postprocessor;
 	IonizationAreaPostprocessor ionization_area_postprocessor;
+  HomogeneousFieldPostprocessor homogeneous_field_postprocessor;
 
   DataOut<dim> data_out;
   data_out.attach_dof_handler(primal_dof_handler);
@@ -717,7 +739,8 @@ void Problem<dim>::output_primal_results(const unsigned int cycle)
 	data_out.add_data_vector(uh0, "uh0");
 	data_out.add_data_vector(Rg_vector, "Rg");
   data_out.add_data_vector(primal_solution, electric_field_postprocessor);
-	data_out.add_data_vector(primal_solution, ionization_area_postprocessor);
+  data_out.add_data_vector(uh0, homogeneous_field_postprocessor);
+	//data_out.add_data_vector(primal_solution, ionization_area_postprocessor);
   data_out.build_patches(); // mapping
 
   std::string filename;
