@@ -24,3 +24,29 @@ output.PointData.append(RgGrad_y_Array, "RgGrad_y")
 output.PointData.append(dRgdr_Array, "dRgdr")
 
 # Then put components together in a vector with Calculator
+
+
+# Calcolo di alpha (angolo)
+# Step non necessario
+input0 = inputs[0]
+xDataArray = input0.PointData["x"]
+yDataArray = input0.PointData["y"]
+numPoints = input0.GetNumberOfPoints()
+alpha_Array=numpy.zeros(numPoints)
+for i in range(numPoints):
+  alpha_Array[i] = numpy.arctan2(yDataArray[i], xDataArray[i]) # importante arctan2
+output.PointData.append(alpha_Array, "alpha")
+
+# Calcolo E in cordinate cilindriche
+input0 = inputs[0]
+xDataArray = input0.PointData["x"]
+yDataArray = input0.PointData["y"]
+EDataArray = input0.PointData["E"]
+numPoints = input0.GetNumberOfPoints()
+E_r_array=numpy.zeros(numPoints)
+E_theta_array=numpy.zeros(numPoints)
+for i in range(numPoints):
+  E_r_array[i] = EDataArray[i][0]*numpy.cos(numpy.arctan2(yDataArray[i], xDataArray[i])) + EDataArray[i][1]*numpy.sin(numpy.arctan2(yDataArray[i], xDataArray[i]))
+  E_theta_array[i] = - EDataArray[i][0]*numpy.sin(numpy.arctan2(yDataArray[i], xDataArray[i])) + EDataArray[i][1]*numpy.cos(numpy.arctan2(yDataArray[i], xDataArray[i]))
+output.PointData.append(E_r_array, "E_r")
+output.PointData.append(E_theta_array, "E_theta")
