@@ -166,6 +166,8 @@ private:
   Vector<double> primal_rhs;
   Vector<double> uh0;
 	Vector<double> Rg_vector;
+  Vector<double> gradRg_x;
+  Vector<double> gradRg_y;
   Vector<double> primal_solution;
 
 
@@ -259,35 +261,14 @@ public:
 
 	  const auto y = p[1];
 	  const auto x = p[0];
+    double r = sqrt(x*x + y*y);
 
-	if (x <= (X-L/2.-2.*R) || x >= (X+L/2.+2.*R) || y >= 3.*R)
-		return 0.;
+    if(r <= 3*R)
+      return Vmax * ( 1 - ( (r-R) / (2.0*r) ) );
+    else
+      return 0.;
 
-	double Rg = 0.;
-	double d = 0.;
-	const double left_center = X - L/2. + R;
-	const double right_center = X + L/2. - R;
-
-	if (x >= right_center)
-		d = sqrt((x-right_center)*(x-right_center) + y*y);
-	else if (x < right_center && x > left_center )
-		d = y;
-	else if (x <= left_center )
-		d = sqrt((x-left_center)*(x-left_center) + y*y);
-	else
-		cout << "ERROR! Not implemented!" << endl;
-
-	d = std::max(d,R); /* As the boundary only approximates a circle,
-	* some points on the emitter edge will be inside the radius,
-	* and would produce an Rg higher than Vmax with the current function choice */
-
-	if (d < 3.*R)
-		Rg = Vmax * (1. - (d-R)/(2.*R)) * (1. - (d-R)/(2.*R)); //* (1. - (d-R)/(2.*R))
-
-		  if (Rg > Vmax) cout << "Error! Rg is " << Rg << " in " << x << ", " << y << endl;
-
-		  return Rg;
-	  }
+  }
 };
 
 Tensor<1,2> emitter_normal(const Point<2> p) {
@@ -321,38 +302,13 @@ static auto evaluate_grad_Rg = [](const double x, const double y) {
 	grad_Rg[0] = 0.;
 	grad_Rg[1] = 0.;
 
-	if (x <= (X-L/2.-2.*R) || x >= (X+L/2.+2.*R) || y >= 3.*R)
-		return grad_Rg;
-
-	double d = 0.;
-	const double left_center = X - L/2. + R;
-	const double right_center = X + L/2. - R;
-
-	if (x >= right_center )
-		d = std::sqrt((x-right_center)*(x-right_center) + y*y);
-	else if (x < right_center && x > left_center )
-		d = y;
-	else if (x <= left_center )
-		d = std::sqrt((x-left_center)*(x-left_center) + y*y);
-	else
-		cout << "ERROR! Not implemented!" << endl;
-
-	d = std::max(d,R);
-
-	if (d < 3.*R) {
-		if (x >= right_center ) {
-			grad_Rg[0] = - Vmax/R * (1. - (d-R)/(2.*R)) * (x-right_center)/d; //* (1. - (d-R)/(2.*R)) * 1.5
-			grad_Rg[1] = - Vmax/R * (1. - (d-R)/(2.*R)) * y/d;
-		} else if (x < right_center && x > left_center ) {
-			grad_Rg[0] = 0.;
-			grad_Rg[1] = - Vmax/R * (1. - (d-R)/(2.*R));
-		} else if (x <= left_center ) {
-			grad_Rg[0] = - Vmax/R * (1. - (d-R)/(2.*R)) * (x-left_center)/d;
-			grad_Rg[1] = - Vmax/R * (1. - (d-R)/(2.*R)) * y/d;
-		}
-	}
-
-	  return grad_Rg;
+  double r = sqrt(x*x + y*y);
+  if(r <= 3*R){
+    double dRgdr = - Vmax / (2.0*R);
+    grad_Rg[0] = dRgdr * x / r;
+    grad_Rg[1] = dRgdr * y / r;
+  }
+  return grad_Rg;
 };
 
 
@@ -733,6 +689,8 @@ void Problem<dim>::output_primal_results(const unsigned int cycle)
 	IonizationAreaPostprocessor ionization_area_postprocessor;
   HomogeneousFieldPostprocessor homogeneous_field_postprocessor;
 
+  
+
   DataOut<dim> data_out;
   data_out.attach_dof_handler(primal_dof_handler);
   data_out.add_data_vector(primal_solution, "Potential");
@@ -741,6 +699,25 @@ void Problem<dim>::output_primal_results(const unsigned int cycle)
   data_out.add_data_vector(primal_solution, electric_field_postprocessor);
   data_out.add_data_vector(uh0, homogeneous_field_postprocessor);
 	//data_out.add_data_vector(primal_solution, ionization_area_postprocessor);
+
+  Tensor<1,dim> temp_grad;
+  gradRg_x.reinit(primal_dof_handler.n_dofs());
+  gradRg_y.reinit(primal_dof_handler.n_dofs());
+  for (const auto &cell : triangulation.active_cell_iterators()){
+    for (unsigned int v = 0; v < GeometryInfo<dim>::vertices_per_cell; ++v){
+      // Get the global DoF index corresponding to the vertex
+      const unsigned int dof_index = cell->vertex_index(v);
+      // Get the coordinates of the vertex
+      const Point<dim> &vertex = cell->vertex(v);
+      // Evaluate the gradient of Rg at the vertex
+      temp_grad  = evaluate_grad_Rg(vertex[0], vertex[1]);
+      gradRg_x[dof_index] = temp_grad[0];
+      gradRg_y[dof_index] = temp_grad[1];
+    }
+  }
+  data_out.add_data_vector(gradRg_x, "gradRg_x");
+  data_out.add_data_vector(gradRg_y, "gradRg_y");
+
   data_out.build_patches(); // mapping
 
   std::string filename;
