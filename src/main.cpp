@@ -258,17 +258,18 @@ public:
   virtual double value(const Point<dim> & p,
 					   const unsigned int component = 0) const override{
 	  (void)component;
-
+    
 	  const auto y = p[1];
 	  const auto x = p[0];
-    double r = sqrt(x*x + y*y);
 
+    double r = sqrt(x*x + y*y);
     if(r <= 3*R)
-      return Vmax * ( 1 - ( (r-R) / (2.0*r) ) );
+      return Vmax * ( 1 - ( (r-R) / (2.0*R) ) ) * ( 1 - ( (r-R) / (2.0*R) ) );
     else
       return 0.;
-
   }
+  
+
 };
 
 Tensor<1,2> emitter_normal(const Point<2> p) {
@@ -296,18 +297,18 @@ Tensor<1,2> emitter_normal(const Point<2> p) {
 
 static auto evaluate_grad_Rg = [](const double x, const double y) {
 
+  // Actually we compute -gradRg
 	Tensor<1,2> grad_Rg;
-
-	// Gradient computed analytically by hand. Check Evaluate_Rg.h for the primitive function.
 	grad_Rg[0] = 0.;
 	grad_Rg[1] = 0.;
 
   double r = sqrt(x*x + y*y);
   if(r <= 3*R){
-    double dRgdr = - Vmax / (2.0*R);
+    double dRgdr = + Vmax / R * ( 1 - ( (r-R) / (2.0*R) ) ); // Actually we compute -gradRg
     grad_Rg[0] = dRgdr * x / r;
     grad_Rg[1] = dRgdr * y / r;
   }
+
   return grad_Rg;
 };
 
@@ -703,10 +704,13 @@ void Problem<dim>::output_primal_results(const unsigned int cycle)
   Tensor<1,dim> temp_grad;
   gradRg_x.reinit(primal_dof_handler.n_dofs());
   gradRg_y.reinit(primal_dof_handler.n_dofs());
-  for (const auto &cell : triangulation.active_cell_iterators()){
+  std::vector<types::global_dof_index> local_dof_indices(primal_dof_handler.get_fe().dofs_per_cell);
+  for (const auto &cell : primal_dof_handler.active_cell_iterators()){
+    cell->get_dof_indices(local_dof_indices);
     for (unsigned int v = 0; v < GeometryInfo<dim>::vertices_per_cell; ++v){
       // Get the global DoF index corresponding to the vertex
-      const unsigned int dof_index = cell->vertex_index(v);
+      // const unsigned int dof_index = cell->vertex_index(v);
+      const unsigned int dof_index = cell->vertex_dof_index(v, 0);  // 0 refers to the first component
       // Get the coordinates of the vertex
       const Point<dim> &vertex = cell->vertex(v);
       // Evaluate the gradient of Rg at the vertex
