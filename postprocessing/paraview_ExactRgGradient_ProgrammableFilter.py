@@ -64,3 +64,17 @@ for i in range(numPoints):
   E_theta_array[i] = - EDataArray[i][0]*numpy.sin(numpy.arctan2(yDataArray[i], xDataArray[i])) + EDataArray[i][1]*numpy.cos(numpy.arctan2(yDataArray[i], xDataArray[i]))
 output.PointData.append(E_r_array, "E_r")
 output.PointData.append(E_theta_array, "E_theta")
+
+# Soluzione esatta
+r = 2.5e-4
+R = 10 * r
+Vc = 0
+Ve = 20000
+input0 = inputs[0]
+rhoDataArray = input0.PointData["r"]
+numPoints = input0.GetNumberOfPoints()
+analyticalPotential_array=numpy.zeros(numPoints)
+for i in range(numPoints):
+  if rhoDataArray[i] < R:
+    analyticalPotential_array[i] = Vc + (Ve-Vc)*numpy.log(R)/numpy.log(R/r) - (Ve-Vc)/numpy.log(R/r)*numpy.log(rhoDataArray[i])
+output.PointData.append(analyticalPotential_array, "exaxt_P")
