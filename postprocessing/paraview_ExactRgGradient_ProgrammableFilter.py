@@ -51,6 +51,20 @@ for i in range(numPoints):
 output.PointData.append(E_r_array, "minus_grad_uh0_r")
 output.PointData.append(E_theta_array, "minus_grad_uh0_theta")
 
+# Calcolo minus_gradRg in cordinate cilindriche
+input0 = inputs[0]
+xDataArray = input0.PointData["x"]
+yDataArray = input0.PointData["y"]
+EDataArray = input0.PointData["gradRg-vector"]
+numPoints = input0.GetNumberOfPoints()
+E_r_array=numpy.zeros(numPoints)
+E_theta_array=numpy.zeros(numPoints)
+for i in range(numPoints):
+  E_r_array[i] = EDataArray[i][0]*numpy.cos(numpy.arctan2(yDataArray[i], xDataArray[i])) + EDataArray[i][1]*numpy.sin(numpy.arctan2(yDataArray[i], xDataArray[i]))
+  E_theta_array[i] = - EDataArray[i][0]*numpy.sin(numpy.arctan2(yDataArray[i], xDataArray[i])) + EDataArray[i][1]*numpy.cos(numpy.arctan2(yDataArray[i], xDataArray[i]))
+output.PointData.append(E_r_array, "minus_gradRg_r")
+output.PointData.append(E_theta_array, "minus_gradRg_theta")
+
 # Calcolo E in cordinate cilindriche
 input0 = inputs[0]
 xDataArray = input0.PointData["x"]

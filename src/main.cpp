@@ -549,16 +549,17 @@ void Problem<dim>::assemble_primal_system()
   }
 
   // Apply boundary values
-  std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values, ceiling_boundary_values;
+  std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
   // Emitter
   VectorTools::interpolate_boundary_values(primal_dof_handler,1, Functions::ZeroFunction<dim>(), emitter_boundary_values);
   MatrixTools::apply_boundary_values(emitter_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
   // Collector
   VectorTools::interpolate_boundary_values(primal_dof_handler,2, Functions::ZeroFunction<dim>(), collector_boundary_values);
   MatrixTools::apply_boundary_values(collector_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
-  // Ceiling
-  VectorTools::interpolate_boundary_values(primal_dof_handler,3, Functions::ZeroFunction<dim>(), ceiling_boundary_values);
-  MatrixTools::apply_boundary_values(ceiling_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
+  // Ceiling    : only to compare with analytical solution
+  // std::map<types::global_dof_index, double> ceiling_boundary_values;
+  // VectorTools::interpolate_boundary_values(primal_dof_handler,3, Functions::ZeroFunction<dim>(), ceiling_boundary_values);
+  // MatrixTools::apply_boundary_values(ceiling_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
   
   // Condense constraints
   primal_constraints.condense(primal_system_matrix);
