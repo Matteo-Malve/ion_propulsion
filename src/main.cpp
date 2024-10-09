@@ -49,6 +49,8 @@ const double Vmax = 2.e+4; // [V]
 const double E_ON = 3.31e+6; // [V/m] corona inception threshold
 
 const double R = 2.5e-4; // [m]
+const double Rc = 3.0*R;
+const double dR2 = Rc*Rc - R*R;
 const double nn = 2;
 const double L = nn*R; // [m]
 const double X = 0.;//-L/2.; // [m]
@@ -56,7 +58,7 @@ const double g = 0.2; // [m]
 const double mesh_height = 0.1;; // [m]
 
 std::string PATH_TO_MESH = "../mesh/input_mesh.msh";
-const unsigned int NUM_REFINEMENT_CYCLES = 2;
+const unsigned int NUM_REFINEMENT_CYCLES = 4;
 const unsigned int PRELIMINARY_REFINEMENT_STEPS = 0;
 
 double get_emitter_height(const double &p)
@@ -261,10 +263,15 @@ public:
     
 	  const auto y = p[1];
 	  const auto x = p[0];
-
+    /*
     double r = sqrt(x*x + y*y);
     if(r <= 3*R)
       return Vmax * ( 1 - ( (r-R) / (2.0*R) ) ) * ( 1 - ( (r-R) / (2.0*R) ) );
+    else
+      return 0.;*/
+    double r2 = x*x + y*y;
+    if(r2 <= Rc*Rc)
+      return 2.*Vmax/(dR2*dR2*dR2)*(pow((r2-R*R),3)) - 3.*Vmax/(dR2*dR2)*(pow((r2-R*R),2)) + Vmax;
     else
       return 0.;
   }
@@ -299,12 +306,17 @@ static auto evaluate_grad_Rg = [](const double x, const double y) {
 	Tensor<1,2> grad_Rg;
 	grad_Rg[0] = 0.;
 	grad_Rg[1] = 0.;
-
+  /*
   double r = sqrt(x*x + y*y);
   if(r <= 3*R){
     double dRgdr = - Vmax / R * ( 1 - ( (r-R) / (2.0*R) ) ); 
     grad_Rg[0] = dRgdr * x / r;
     grad_Rg[1] = dRgdr * y / r;
+  }*/
+  double r2 = x*x + y*y;
+  if(r2 <= Rc*Rc){
+    grad_Rg[0] = + ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*x - 3.*Vmax/(dR2*dR2)*2.*(pow((r2-R*R),1))*2.*x );
+    grad_Rg[1] = + ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*y - 3.*Vmax/(dR2*dR2)*2.*(pow((r2-R*R),1))*2.*y );
   }
 
   return grad_Rg;
@@ -315,12 +327,18 @@ static auto evaluate_minus_grad_Rg = [](const double x, const double y) {
 	Tensor<1,2> grad_Rg;
 	grad_Rg[0] = 0.;
 	grad_Rg[1] = 0.;
-
+  /*
   double r = sqrt(x*x + y*y);
   if(r <= 3*R){
     double dRgdr = + Vmax / R * ( 1 - ( (r-R) / (2.0*R) ) ); // Actually we compute -gradRg
     grad_Rg[0] = dRgdr * x / r;
     grad_Rg[1] = dRgdr * y / r;
+  }*/
+
+  double r2 = x*x + y*y;
+  if(r2 <= Rc*Rc){
+    grad_Rg[0] = - ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*x - 3.*Vmax/(dR2*dR2)*2.*(pow((r2-R*R),1))*2.*x );
+    grad_Rg[1] = - ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*y - 3.*Vmax/(dR2*dR2)*2.*(pow((r2-R*R),1))*2.*y );
   }
 
   return grad_Rg;
@@ -1066,7 +1084,7 @@ void Problem<dim>::run()
 
   // Cycles for refinement
 	unsigned int cycle = 0;
-	while (cycle < NUM_REFINEMENT_CYCLES) {
+	while (cycle <= NUM_REFINEMENT_CYCLES) {
     cout << endl << "Cycle " << cycle << ':' << endl;
     std::cout << "   Number of active cells:       "<< triangulation.n_active_cells() << std::endl;
 
@@ -1085,18 +1103,20 @@ void Problem<dim>::run()
 		output_dual_results(cycle);
 
     // --------------------  
-		cout<<"   Error estimation and Mesh refinement:"<<endl;
-		refine_mesh();
-
-		++cycle;
+    if(cycle==NUM_REFINEMENT_CYCLES){
+      cout << "Cycle " << cycle << " [FINAL]" << ':' << endl;
+      SIMPLE_setup_system();
+      SIMPLE_assemble_system();
+      SIMPLE_solve();
+      SIMPLE_output_results(cycle);
+    } else {
+      cout<<"   Error estimation and Mesh refinement:"<<endl;
+      refine_mesh();
+    }
+    ++cycle;
 	}
 
-  // Cycles for solution
-  cout << "Cycle " << cycle << " [FINAL]" << ':' << endl;
-	SIMPLE_setup_system();
-	SIMPLE_assemble_system();
-	SIMPLE_solve();
-	SIMPLE_output_results(cycle);
+  
 }
 
 int main(){
