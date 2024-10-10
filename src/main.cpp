@@ -498,20 +498,10 @@ void Problem<dim>::assemble_primal_system()
                           update_JxW_values);
 
   const unsigned int dofs_per_cell = primal_fe.n_dofs_per_cell();
-  const unsigned int n_q_points = quadrature.size();
 
   FullMatrix<double> cell_matrix(dofs_per_cell, dofs_per_cell);
   Vector<double> cell_rhs(dofs_per_cell);
   std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
-
-  std::vector<double> rhs_values(n_q_points);
-
-  QGauss<dim>          Rg_quadrature(primal_fe.degree + 2);
-  FEValues<dim>        Rg_fe_values(primal_fe,
-                                  Rg_quadrature,
-                                  update_values | update_gradients | update_quadrature_points |
-                                  update_JxW_values);
-  const unsigned int Rg_n_q_points = Rg_quadrature.size();
 
   for (const auto &cell : primal_dof_handler.active_cell_iterators())
   {
@@ -522,36 +512,21 @@ void Problem<dim>::assemble_primal_system()
     // Compute A_loc
     for (const unsigned int q_index : fe_values.quadrature_point_indices())
     {
-        for (const unsigned int i : fe_values.dof_indices())
-            for (const unsigned int j : fe_values.dof_indices())
-                cell_matrix(i, j) += eps_r*eps_0*
-                        (fe_values.shape_grad(i, q_index) * // grad phi_i(x_q)
-                          fe_values.shape_grad(j, q_index) * // grad phi_j(x_q)
-                          fe_values.JxW(q_index));           // dx
-    }
-
-    // Compute RHS
-    rhs_function.value_list(fe_values.get_quadrature_points(),rhs_values);
-    // Compute f_loc
-    for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
-      for (unsigned int i = 0; i < dofs_per_cell; ++i)
-        cell_rhs(i) += (fe_values.shape_value(i, q_point) * // phi_i(x_q)
-                rhs_values[q_point] *               // f(x_q)
-                fe_values.JxW(q_point));            // dx
-    
-    Rg_fe_values.reinit(cell);
-    // Cycle over quadrature nodes
-    for (unsigned int q_point = 0; q_point < Rg_n_q_points; ++q_point){
-      // evaluate grad_Rg
-      auto & quad_point_coords = Rg_fe_values.get_quadrature_points()[q_point];
-      auto grad_Rg_xq = evaluate_grad_Rg(quad_point_coords[0],quad_point_coords[1]);
-
-      // assemble A_loc(Rg,v)
-      for (unsigned int i = 0; i < dofs_per_cell; ++i)
-        cell_rhs(i) -= eps_r*eps_0*
-                (Rg_fe_values.shape_grad(i, q_point) *     // grad phi_i(x_q)
-                grad_Rg_xq *                               // grad_Rg(x_q)
-                Rg_fe_values.JxW(q_point));                // dx
+      // Evaluate grad_Rg at the current quadrature point
+      auto &quad_point_coords = fe_values.quadrature_point(q_index);
+      auto grad_Rg_xq = evaluate_grad_Rg(quad_point_coords[0], quad_point_coords[1]);
+      // Assemble A_loc and rhs_Loc
+      for (const unsigned int i : fe_values.dof_indices()){
+        for (const unsigned int j : fe_values.dof_indices())
+          cell_matrix(i, j) += eps_r*eps_0*
+                              (fe_values.shape_grad(i, q_index) * // grad phi_i(x_q)
+                                fe_values.shape_grad(j, q_index) * // grad phi_j(x_q)
+                                fe_values.JxW(q_index));           // dx
+        cell_rhs(i) -= eps_r * eps_0 *
+                        (fe_values.shape_grad(i, q_index) *  // grad phi_i(x_q)
+                          grad_Rg_xq *                        // grad_Rg(x_q)
+                          fe_values.JxW(q_index));            // dx
+      }
     }
 
     // Local to global
@@ -601,47 +576,43 @@ void Problem<dim>::assemble_dual_system()
 
   for (const auto &cell : dual_dof_handler.active_cell_iterators())
   {
-      fe_values.reinit(cell);
-      cell_matrix = 0;
-      cell_rhs = 0;
+    fe_values.reinit(cell);
+    cell_matrix = 0;
+    cell_rhs = 0;
 
-      // Compute A_loc
-      for (const unsigned int q_index : fe_values.quadrature_point_indices())
-      {
-          for (const unsigned int i : fe_values.dof_indices())
-              for (const unsigned int j : fe_values.dof_indices())
-                  cell_matrix(i, j) += eps_r*eps_0*
-                          (fe_values.shape_grad(i, q_index) * // grad phi_i(x_q)
-                            fe_values.shape_grad(j, q_index) * // grad phi_j(x_q)
-                            fe_values.JxW(q_index));           // dx
-      }
-
-      // Compute RHS
-  for (const auto &face: cell->face_iterators()) {
-    if (face->at_boundary()) {
-      if (face->boundary_id() == 1) {
-        cell_rhs = 0;
-        fe_values.reinit(cell);
-
-        // Retrieve the components of the normal vector to the boundary face
-        Tensor<1, dim> n = emitter_normal(face->center());
-
-        // Compute the flux for this cell
-        for (unsigned int q = 0; q < n_q_points; ++q) {
-          for (unsigned int i = 0; i < dofs_per_cell; ++i) {
-            for (unsigned int k = 0; k < dim; ++k) {
-              cell_rhs[i] += fe_values.shape_grad(i, q)[k] * (-n[k]);
-            }
-            cell_rhs[i] *= fe_values.JxW(q);
-          }
-        }
-      }
+    // Compute A_loc
+    for (const unsigned int q_index : fe_values.quadrature_point_indices())
+    {
+        for (const unsigned int i : fe_values.dof_indices())
+            for (const unsigned int j : fe_values.dof_indices())
+                cell_matrix(i, j) += eps_r*eps_0*
+                        (fe_values.shape_grad(i, q_index) * // grad phi_i(x_q)
+                          fe_values.shape_grad(j, q_index) * // grad phi_j(x_q)
+                          fe_values.JxW(q_index));           // dx
     }
-  }
 
-      // Local to global
-      cell->get_dof_indices(local_dof_indices);
-      dual_constraints.distribute_local_to_global(cell_matrix, cell_rhs, local_dof_indices, dual_system_matrix, dual_rhs);
+    // Compute RHS
+    for (const auto &face: cell->face_iterators())
+      if (face->at_boundary()) 
+        if (face->boundary_id() == 1) {
+          cell_rhs = 0;
+          fe_values.reinit(cell);
+
+          // Retrieve the components of the normal vector to the boundary face
+          Tensor<1, dim> n = emitter_normal(face->center());
+
+          // Compute the flux for this cell
+          for (unsigned int q = 0; q < n_q_points; ++q) 
+            for (unsigned int i = 0; i < dofs_per_cell; ++i) {
+              for (unsigned int k = 0; k < dim; ++k) 
+                cell_rhs[i] += fe_values.shape_grad(i, q)[k] * (-n[k]);
+              cell_rhs[i] *= fe_values.JxW(q);
+            }
+        }
+    
+    // Local to global
+    cell->get_dof_indices(local_dof_indices);
+    dual_constraints.distribute_local_to_global(cell_matrix, cell_rhs, local_dof_indices, dual_system_matrix, dual_rhs);
   }
 
   // Apply boundary values
