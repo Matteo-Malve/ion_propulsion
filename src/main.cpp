@@ -315,8 +315,8 @@ static auto evaluate_grad_Rg = [](const double x, const double y) {
   }*/
   double r2 = x*x + y*y;
   if(r2 <= Rc*Rc){
-    grad_Rg[0] = + ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*x - 3.*Vmax/(dR2*dR2)*2.*(pow((r2-R*R),1))*2.*x );
-    grad_Rg[1] = + ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*y - 3.*Vmax/(dR2*dR2)*2.*(pow((r2-R*R),1))*2.*y );
+    grad_Rg[0] = + ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*x - 3.*Vmax/(dR2*dR2)*2.*(r2-R*R)*2.*x );
+    grad_Rg[1] = + ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*y - 3.*Vmax/(dR2*dR2)*2.*(r2-R*R)*2.*y );
   }
 
   return grad_Rg;
@@ -337,8 +337,8 @@ static auto evaluate_minus_grad_Rg = [](const double x, const double y) {
 
   double r2 = x*x + y*y;
   if(r2 <= Rc*Rc){
-    grad_Rg[0] = - ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*x - 3.*Vmax/(dR2*dR2)*2.*(pow((r2-R*R),1))*2.*x );
-    grad_Rg[1] = - ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*y - 3.*Vmax/(dR2*dR2)*2.*(pow((r2-R*R),1))*2.*y );
+    grad_Rg[0] = - ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*x - 3.*Vmax/(dR2*dR2)*2.*(r2-R*R)*2.*x );
+    grad_Rg[1] = - ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*y - 3.*Vmax/(dR2*dR2)*2.*(r2-R*R)*2.*y );
   }
 
   return grad_Rg;
