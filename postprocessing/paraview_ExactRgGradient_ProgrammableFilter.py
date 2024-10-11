@@ -69,7 +69,7 @@ output.PointData.append(E_theta_array, "minus_gradRg_theta")
 input0 = inputs[0]
 xDataArray = input0.PointData["x"]
 yDataArray = input0.PointData["y"]
-EDataArray = input0.PointData["E"]
+EDataArray = input0.PointData["Electric_Field"]
 numPoints = input0.GetNumberOfPoints()
 E_r_array=numpy.zeros(numPoints)
 E_theta_array=numpy.zeros(numPoints)
