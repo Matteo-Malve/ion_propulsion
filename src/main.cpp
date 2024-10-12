@@ -49,7 +49,7 @@ const double Vmax = 2.e+4; // [V]
 const double E_ON = 3.31e+6; // [V/m] corona inception threshold
 
 const double R = 2.5e-4; // [m]
-const double Rc = 3.0*R;
+const double Rc = 10.0*R;
 const double dR2 = Rc*Rc - R*R;
 const double nn = 2;
 const double L = nn*R; // [m]
@@ -452,7 +452,6 @@ void Problem<dim>::setup_primal_system()
 	DoFTools::make_hanging_node_constraints(primal_dof_handler, primal_constraints);
 	primal_constraints.close();
 
-
   DynamicSparsityPattern dsp(primal_dof_handler.n_dofs(),primal_dof_handler.n_dofs());
   DoFTools::make_sparsity_pattern(primal_dof_handler, dsp);
   primal_constraints.condense(dsp);
@@ -472,18 +471,23 @@ void Problem<dim>::setup_dual_system()
 {
   dual_dof_handler.distribute_dofs(dual_fe);
 
+  dual_solution.reinit(dual_dof_handler.n_dofs());
+  dual_rhs.reinit(dual_dof_handler.n_dofs());
+
   dual_constraints.clear();
 	DoFTools::make_hanging_node_constraints(dual_dof_handler, dual_constraints);
 	dual_constraints.close();
 
-  DynamicSparsityPattern dsp(dual_dof_handler.n_dofs());
-  DoFTools::make_sparsity_pattern(dual_dof_handler, dsp, dual_constraints, false);
+  //DynamicSparsityPattern dsp(dual_dof_handler.n_dofs());
+  //DoFTools::make_sparsity_pattern(dual_dof_handler, dsp, dual_constraints, false);
+  //dual_sparsity_pattern.copy_from(dsp);
+
+  DynamicSparsityPattern dsp(dual_dof_handler.n_dofs(),dual_dof_handler.n_dofs());
+  DoFTools::make_sparsity_pattern(dual_dof_handler, dsp);
+  dual_constraints.condense(dsp);
+
   dual_sparsity_pattern.copy_from(dsp);
-
   dual_system_matrix.reinit(dual_sparsity_pattern);
-
-  dual_solution.reinit(dual_dof_handler.n_dofs());
-  dual_rhs.reinit(dual_dof_handler.n_dofs());
 
   std::cout << "      Number of degrees of freedom: " << dual_dof_handler.n_dofs()<< std::endl;
 }
@@ -491,7 +495,7 @@ void Problem<dim>::setup_dual_system()
 template <int dim>
 void Problem<dim>::assemble_primal_system()
 {
-	const QGauss <dim> quadrature(primal_fe.degree + 1);
+	const QGauss <dim> quadrature(/*primal_fe.degree + 1*/ 3);  // GradRg è poly4(x,y). Exactness of GaussLegendree = 2n-1
   FEValues<dim> fe_values(primal_fe,
                           quadrature,
                           update_values | update_gradients | update_quadrature_points |
@@ -522,8 +526,12 @@ void Problem<dim>::assemble_primal_system()
                               (fe_values.shape_grad(i, q_index) * // grad phi_i(x_q)
                                 fe_values.shape_grad(j, q_index) * // grad phi_j(x_q)
                                 fe_values.JxW(q_index));           // dx
+
+        cell_rhs(i) += (fe_values.shape_value(i, q_index) *       // phi_i(x_q)
+                              0.0 *                               // f(x)
+                              fe_values.JxW(q_index));            // dx
         cell_rhs(i) -= eps_r * eps_0 *
-                        (fe_values.shape_grad(i, q_index) *  // grad phi_i(x_q)
+                        (fe_values.shape_grad(i, q_index) *   // grad phi_i(x_q)
                           grad_Rg_xq *                        // grad_Rg(x_q)
                           fe_values.JxW(q_index));            // dx
       }
@@ -550,9 +558,9 @@ void Problem<dim>::assemble_primal_system()
   VectorTools::interpolate_boundary_values(primal_dof_handler,2, Functions::ZeroFunction<dim>(), collector_boundary_values);
   MatrixTools::apply_boundary_values(collector_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
   // Ceiling    : only to compare with analytical solution
-  // std::map<types::global_dof_index, double> ceiling_boundary_values;
-  // VectorTools::interpolate_boundary_values(primal_dof_handler,3, Functions::ZeroFunction<dim>(), ceiling_boundary_values);
-  // MatrixTools::apply_boundary_values(ceiling_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
+  //std::map<types::global_dof_index, double> ceiling_boundary_values;
+  //VectorTools::interpolate_boundary_values(primal_dof_handler,3, Functions::ZeroFunction<dim>(), ceiling_boundary_values);
+  //MatrixTools::apply_boundary_values(ceiling_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
   
   // Condense constraints
   primal_constraints.condense(primal_system_matrix);
@@ -612,19 +620,27 @@ void Problem<dim>::assemble_dual_system()
     
     // Local to global
     cell->get_dof_indices(local_dof_indices);
-    dual_constraints.distribute_local_to_global(cell_matrix, cell_rhs, local_dof_indices, dual_system_matrix, dual_rhs);
+    //dual_constraints.distribute_local_to_global(cell_matrix, cell_rhs, local_dof_indices, dual_system_matrix, dual_rhs);
+    for (const unsigned int i : fe_values.dof_indices()){
+      for (const unsigned int j : fe_values.dof_indices())
+        dual_system_matrix.add(local_dof_indices[i], 
+                          local_dof_indices[j],
+                          cell_matrix(i, j)); 
+      dual_rhs(local_dof_indices[i]) += cell_rhs(i);
+    }
   }
-
   // Apply boundary values
-  {
-    std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
+  std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
 
-    VectorTools::interpolate_boundary_values(dual_dof_handler,1, Functions::ConstantFunction<dim>(0.), emitter_boundary_values);
-    MatrixTools::apply_boundary_values(emitter_boundary_values, dual_system_matrix, dual_solution, dual_rhs);
+  VectorTools::interpolate_boundary_values(dual_dof_handler,1, Functions::ConstantFunction<dim>(0.), emitter_boundary_values);
+  MatrixTools::apply_boundary_values(emitter_boundary_values, dual_system_matrix, dual_solution, dual_rhs);
 
-    VectorTools::interpolate_boundary_values(dual_dof_handler,2, Functions::ConstantFunction<dim>(0.), collector_boundary_values);
-    MatrixTools::apply_boundary_values(collector_boundary_values, dual_system_matrix, dual_solution, dual_rhs);
-  }
+  VectorTools::interpolate_boundary_values(dual_dof_handler,2, Functions::ConstantFunction<dim>(0.), collector_boundary_values);
+  MatrixTools::apply_boundary_values(collector_boundary_values, dual_system_matrix, dual_solution, dual_rhs);
+  
+  // Condense constraints
+  dual_constraints.condense(dual_system_matrix);
+  dual_constraints.condense(dual_rhs);
 }
 
 template <int dim>
@@ -650,7 +666,11 @@ void Problem<dim>::solve_primal()
   primal_constraints.distribute(primal_solution);
 
 	// Retrieve lifting
-  VectorTools::interpolate(primal_dof_handler,Evaluate_Rg<dim>(),Rg_vector);
+  VectorTools::project(primal_dof_handler, 
+                      primal_constraints, 
+                      QGauss<dim>(7),  // Quadrature rule (degree + 1 for accuracy)
+                      Evaluate_Rg<dim>(),          // Analytical function Rg
+                      Rg_vector);  
   primal_solution += Rg_vector;               // uh = u0 + Rg
 
   cout<<"      Solved system: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<endl;
@@ -809,7 +829,7 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
     Vector<double> interpolated_primal_solution(dual_dof_handler.n_dofs());
     FETools::interpolate(primal_dof_handler,uh0, dual_dof_handler, dual_constraints,interpolated_primal_solution);
 
-    dual_constraints.distribute(interpolated_primal_solution); // ADDED
+    //dual_constraints.distribute(interpolated_primal_solution); // ADDED
 
     // Subtract from dual solution its projection on the primal solution FE space
     Vector<double> dual_weights(dual_dof_handler.n_dofs());
@@ -828,12 +848,12 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
     Vector<double> Rg_vector(sol_size);
     VectorTools::interpolate(dual_dof_handler,Evaluate_Rg<dim>(),Rg_vector);
 
-    dual_constraints.distribute(Rg_vector); // ADDED
+    //dual_constraints.distribute(Rg_vector); // ADDED
 
     for(unsigned int i=0;i<sol_size;i++)
         Rg_plus_uh0hat(i) = Rg_vector(i) + interpolated_primal_solution(i);
 
-    dual_constraints.distribute(Rg_plus_uh0hat); // ADDED
+    //dual_constraints.distribute(Rg_plus_uh0hat); // ADDED
 
     // INTEGRATE OVER CELLS
     FEValues<dim> fe_values(dual_fe,
@@ -956,7 +976,7 @@ void Problem<dim>::SIMPLE_setup_system()
 
 template <int dim>
 void Problem<dim>::SIMPLE_assemble_system(){
-  const QGauss<dim> quadrature_formula(primal_fe.degree + 1);
+  const QGauss<dim> quadrature_formula(/*primal_fe.degree + 1*/ 3);   // Aligned with primal solver
  
   FEValues<dim> fe_values(primal_fe,
                           quadrature_formula,
@@ -1009,8 +1029,8 @@ void Problem<dim>::SIMPLE_assemble_system(){
     MatrixTools::apply_boundary_values(collector_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
 
     // Ceiling
-    VectorTools::interpolate_boundary_values(primal_dof_handler,3, Functions::ZeroFunction<dim>(), ceiling_boundary_values);
-    MatrixTools::apply_boundary_values(ceiling_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
+    // VectorTools::interpolate_boundary_values(primal_dof_handler,3, Functions::ZeroFunction<dim>(), ceiling_boundary_values);
+    // MatrixTools::apply_boundary_values(ceiling_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
   }
 }
 
@@ -1066,21 +1086,20 @@ void Problem<dim>::run()
 		solve_primal();
 		output_primal_results(cycle);
 
-    // Dual ---------------    
-		cout<<"   Dual:"<<endl;
-		setup_dual_system();
-		assemble_dual_system();
-		solve_dual();
-		output_dual_results(cycle);
-
     // --------------------  
     if(cycle==NUM_REFINEMENT_CYCLES){
-      cout << "Cycle " << cycle << " [FINAL]" << ':' << endl;
+      cout << "   Simple solver with Automatic imposition of BC " << " [FINAL]" << ':' << endl;
       SIMPLE_setup_system();
       SIMPLE_assemble_system();
       SIMPLE_solve();
       SIMPLE_output_results(cycle);
     } else {
+      // Dual ---------------    
+      cout<<"   Dual:"<<endl;
+      setup_dual_system();
+      assemble_dual_system();
+      solve_dual();
+      output_dual_results(cycle);
       cout<<"   Error estimation and Mesh refinement:"<<endl;
       refine_mesh();
     }
