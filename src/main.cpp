@@ -825,64 +825,74 @@ void Problem<dim>::refine_mesh(){
 
 template <int dim>
 double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
-{
-    Vector<double> interpolated_primal_solution(dual_dof_handler.n_dofs());
-    FETools::interpolate(primal_dof_handler,uh0, dual_dof_handler, dual_constraints,interpolated_primal_solution);
+{ 
+  // ------------------------------------------------------------      
+  // PROJECTIONS: for both LOCAL and GLOBAL estimates
 
-    //dual_constraints.distribute(interpolated_primal_solution); // ADDED
+  Vector<double> primal_solution_on_dual_space(dual_dof_handler.n_dofs());
+  const auto sol_size = primal_solution_on_dual_space.size();
+  FETools::interpolate(primal_dof_handler,
+                        uh0, 
+                        dual_dof_handler, 
+                        dual_constraints,
+                        primal_solution_on_dual_space);
 
-    // Subtract from dual solution its projection on the primal solution FE space
-    Vector<double> dual_weights(dual_dof_handler.n_dofs());
-    FETools::interpolation_difference(dual_dof_handler,
-                                      dual_constraints,
-                                      dual_solution,
-                                      primal_dof_handler,
-                                      primal_constraints,
-                                      dual_weights);                            // zh-∏zh
+  //dual_constraints.distribute(primal_solution_on_dual_space); // ADDED
 
-    const auto sol_size = interpolated_primal_solution.size();
+  // Subtract from dual solution its projection on the primal solution FE space
+  Vector<double> dual_weights(dual_dof_handler.n_dofs());
+  FETools::interpolation_difference(dual_dof_handler,
+                                    dual_constraints,
+                                    dual_solution,
+                                    primal_dof_handler,
+                                    primal_constraints,
+                                    dual_weights);               // zh-∏zh
 
-    // 1) COMPUTE ERROR INDICATORS
-    // Compute Rg_plus_uh0hat
-    Vector<double> Rg_plus_uh0hat(sol_size);
-    Vector<double> Rg_vector(sol_size);
-    VectorTools::interpolate(dual_dof_handler,Evaluate_Rg<dim>(),Rg_vector);
+  // ------------------------------------------------------------      
+  // RETRIEVE LIFTING: Rg + uh0hat
+  
+  // ! Here we were summing up Rg and then forgetting the vector forever
 
-    //dual_constraints.distribute(Rg_vector); // ADDED
+  //Rg_vector.reinit(sol_size)
+  /*
+  Vector<double> Rg_vector_on_dual_space(sol_size);
+  VectorTools::project(dual_dof_handler, 
+                      dual_constraints, 
+                      QGauss<dim>(7),         // Quadrature rule (degree + 1 for accuracy)
+                      Evaluate_Rg<dim>(),     // Analytical function Rg
+                      Rg_vector_on_dual_space);  
+  primal_solution_on_dual_space += Rg_vector_on_dual_space;
+   */
+  // ------------------------------------------------------------      
+  // INTEGRATE OVER CELLS
+  FEValues<dim> fe_values(dual_fe,
+                          dual_quadrature,
+                          update_gradients | update_quadrature_points | update_JxW_values);
 
-    for(unsigned int i=0;i<sol_size;i++)
-        Rg_plus_uh0hat(i) = Rg_vector(i) + interpolated_primal_solution(i);
+  const unsigned int n_q_points = dual_quadrature.size();
 
-    //dual_constraints.distribute(Rg_plus_uh0hat); // ADDED
+  std::vector<Tensor<1,dim>> cell_primal_gradients(n_q_points);
+  std::vector<Tensor<1,dim>> cell_dual_gradients(n_q_points);
 
-    // INTEGRATE OVER CELLS
-    FEValues<dim> fe_values(dual_fe,
-                            dual_quadrature,
-                            update_gradients | update_quadrature_points | update_JxW_values);
+  double sum;
 
-    const unsigned int n_q_points = dual_quadrature.size();
+  for (const auto &cell : dual_dof_handler.active_cell_iterators()){
 
-    std::vector<Tensor<1,dim>> cell_primal_gradients(n_q_points);
-    std::vector<Tensor<1,dim>> cell_dual_gradients(n_q_points);
+    fe_values.reinit(cell);
+    fe_values.get_function_gradients(primal_solution_on_dual_space, cell_primal_gradients);
+    fe_values.get_function_gradients(dual_weights, cell_dual_gradients);
 
-    double sum;
-
-    for (const auto &cell : dual_dof_handler.active_cell_iterators()){
-
-        fe_values.reinit(cell);
-        fe_values.get_function_gradients(interpolated_primal_solution, cell_primal_gradients);
-        fe_values.get_function_gradients(dual_weights, cell_dual_gradients);
-
-        // Numerically approximate the integral of the scalar product between the gradients of the two
-        sum = 0;
-        for (unsigned int p = 0; p < n_q_points; ++p) {
-            sum +=  eps_r*eps_0*
-                    ((cell_primal_gradients[p] * cell_dual_gradients[p]  )   // Scalar product btw Tensors
-                     * fe_values.JxW(p));
-        }
-        error_indicators(cell->active_cell_index()) += (0. - sum);
-
+    // Numerically approximate the integral of the scalar product between the gradients of the two
+    sum = 0;
+    
+    for (unsigned int p = 0; p < n_q_points; ++p) {
+        sum +=  eps_r * eps_0 *
+                ((cell_primal_gradients[p] * cell_dual_gradients[p]  )   // Scalar product btw Tensors
+                  * fe_values.JxW(p));
     }
+    error_indicators(cell->active_cell_index()) += (0. - sum);
+
+  }
 
 
     // 2) EVALUATE GLOBAL ERROR
@@ -893,7 +903,7 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
     dual_system_matrix.vmult(temp,dual_weights);    // A z
 
     for(unsigned int i=0;i<sol_size;++i)
-        dx+=interpolated_primal_solution(i)*temp(i);           // u' A z
+        dx+=primal_solution_on_dual_space(i)*temp(i);           // u' A z
 
     // Compute   a(Rg,φ)
     const unsigned int dofs_per_cell = dual_fe.n_dofs_per_cell();
