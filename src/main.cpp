@@ -829,15 +829,15 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
   // ------------------------------------------------------------      
   // PROJECTIONS: for both LOCAL and GLOBAL estimates
 
-  Vector<double> primal_solution_on_dual_space(dual_dof_handler.n_dofs());
-  const auto sol_size = primal_solution_on_dual_space.size();
+  Vector<double> primal_homogeneous_solution_on_dual_space(dual_dof_handler.n_dofs());
+  const auto sol_size = primal_homogeneous_solution_on_dual_space.size();
   FETools::interpolate(primal_dof_handler,
                         uh0, 
                         dual_dof_handler, 
                         dual_constraints,
-                        primal_solution_on_dual_space);
+                        primal_homogeneous_solution_on_dual_space);
 
-  //dual_constraints.distribute(primal_solution_on_dual_space); // ADDED
+  //dual_constraints.distribute(primal_homogeneous_solution_on_dual_space); // ADDED
 
   // Subtract from dual solution its projection on the primal solution FE space
   Vector<double> dual_weights(dual_dof_handler.n_dofs());
@@ -853,18 +853,20 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
   
   // ! Here we were summing up Rg and then forgetting the vector forever
 
-  //Rg_vector.reinit(sol_size)
-  /*
+  Vector<double> Rg_plus_uh0hat(dual_dof_handler.n_dofs());
+  Rg_plus_uh0hat = primal_homogeneous_solution_on_dual_space;
   Vector<double> Rg_vector_on_dual_space(sol_size);
   VectorTools::project(dual_dof_handler, 
                       dual_constraints, 
                       QGauss<dim>(7),         // Quadrature rule (degree + 1 for accuracy)
                       Evaluate_Rg<dim>(),     // Analytical function Rg
                       Rg_vector_on_dual_space);  
-  primal_solution_on_dual_space += Rg_vector_on_dual_space;
-   */
+  Rg_plus_uh0hat += Rg_vector_on_dual_space;
+   
+
   // ------------------------------------------------------------      
-  // INTEGRATE OVER CELLS
+  // LOCAL ESTIMATE: integrate over cells
+
   FEValues<dim> fe_values(dual_fe,
                           dual_quadrature,
                           update_gradients | update_quadrature_points | update_JxW_values);
@@ -879,7 +881,7 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
   for (const auto &cell : dual_dof_handler.active_cell_iterators()){
 
     fe_values.reinit(cell);
-    fe_values.get_function_gradients(primal_solution_on_dual_space, cell_primal_gradients);
+    fe_values.get_function_gradients(Rg_plus_uh0hat, cell_primal_gradients);
     fe_values.get_function_gradients(dual_weights, cell_dual_gradients);
 
     // Numerically approximate the integral of the scalar product between the gradients of the two
@@ -894,60 +896,60 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
 
   }
 
+  // ------------------------------------------------------------      
+  // GLOBAL ESTIMATE
+  
+  double dx = 0.0; double lx = 0.0;
 
-    // 2) EVALUATE GLOBAL ERROR
-    double dx = 0.0; double lx = 0.0;
+  // Compute   u' A z              NOTE: z is actually the dual weights (zh-∏zh)
+  Vector<double> temp(dual_dof_handler.n_dofs());
+  dual_system_matrix.vmult(temp,dual_weights);    // A z
 
-    // Compute   u' A z              ;NOTE: z is actually the dual weights (zh-∏zh)
-    Vector<double> temp(dual_dof_handler.n_dofs());
-    dual_system_matrix.vmult(temp,dual_weights);    // A z
+  for(unsigned int i=0;i<sol_size;++i)
+      dx+=primal_homogeneous_solution_on_dual_space(i)*temp(i);           // u' A z
 
-    for(unsigned int i=0;i<sol_size;++i)
-        dx+=primal_solution_on_dual_space(i)*temp(i);           // u' A z
+  // Compute   a(Rg,φ)
+  const unsigned int dofs_per_cell = dual_fe.n_dofs_per_cell();
 
-    // Compute   a(Rg,φ)
-    const unsigned int dofs_per_cell = dual_fe.n_dofs_per_cell();
+  Vector<double> F(dual_dof_handler.n_dofs());
+  Vector<double> cell_F(dofs_per_cell);
+  std::vector <types::global_dof_index> local_dof_indices(dofs_per_cell);
 
-    Vector<double> F(dual_dof_handler.n_dofs());
-    Vector<double> cell_F(dofs_per_cell);
-    std::vector <types::global_dof_index> local_dof_indices(dofs_per_cell);
+  QGauss<dim>          Rg_quadrature(5);
+  FEValues<dim>        Rg_fe_values(dual_fe,
+                                    Rg_quadrature,
+                                    update_values | update_gradients | update_quadrature_points |
+                                    update_JxW_values);
 
-    QGauss<dim>          Rg_quadrature(5);
-    FEValues<dim>        Rg_fe_values(dual_fe,
-                                      Rg_quadrature,
-                                      update_values | update_gradients | update_quadrature_points |
-                                      update_JxW_values);
-    const unsigned int Rg_n_q_points = Rg_quadrature.size();
-
-    for (const auto &cell: dual_dof_handler.active_cell_iterators()) {
-        cell_F = 0;
-        Rg_fe_values.reinit(cell);
-        for (unsigned int q_point = 0; q_point < Rg_n_q_points; ++q_point){
-            // evaluate_grad_Rg
-            auto & quad_point_coords = Rg_fe_values.get_quadrature_points()[q_point];
-            auto grad_Rg_xq = evaluate_grad_Rg(quad_point_coords[0],quad_point_coords[1]);
-            // assemble a(Rg,φ)
-            for (unsigned int i = 0; i < dofs_per_cell; ++i)
-                cell_F(i) += eps_r*eps_0*
-                               (Rg_fe_values.shape_grad(i, q_point) *      // grad phi_i(x_q)
-                                grad_Rg_xq *                               // grad_Rg(x_q)
-                                Rg_fe_values.JxW(q_point));                // dx
-        }
-        // Local to Global
-        cell->get_dof_indices(local_dof_indices);
-        for (unsigned int i = 0; i < dofs_per_cell; ++i)
-            F(local_dof_indices[i]) += cell_F(i);
-
-        //dual_constraints.distribute_local_to_global(cell_F,local_dof_indices,F);
+  for (const auto &cell: dual_dof_handler.active_cell_iterators()) {
+    cell_F = 0;
+    Rg_fe_values.reinit(cell);
+    for (const unsigned int q_index : Rg_fe_values.quadrature_point_indices()){
+      // evaluate_grad_Rg
+      auto & quad_point_coords = Rg_fe_values.quadrature_point(q_index);
+      auto grad_Rg_xq = evaluate_grad_Rg(quad_point_coords[0],quad_point_coords[1]);
+      // assemble a(Rg,φ)
+      for (const unsigned int i : Rg_fe_values.dof_indices())
+        cell_F(i) += eps_r * eps_0*
+                        (Rg_fe_values.shape_grad(i, q_index) *     // grad phi_i(x_q)
+                        grad_Rg_xq *                               // grad_Rg(x_q)
+                        Rg_fe_values.JxW(q_index));                // dx
     }
+    // Local to Global
+    cell->get_dof_indices(local_dof_indices);
+    for (const unsigned int i : fe_values.dof_indices())
+      F(local_dof_indices[i]) += cell_F(i);
+    //dual_constraints.distribute_local_to_global(cell_F,local_dof_indices,F);
+  }
+  dual_constraints.condense(F);
 
-    // Compute     z' F    or    z•F
-    for(unsigned int i=0;i<dual_weights.size();i++)
-        lx += dual_weights(i) * F(i);
+  // Compute     z' F    or    z•F
+  for(unsigned int i=0;i<dual_weights.size();i++)
+    lx += dual_weights(i) * F(i);
 
-    // Return             η = |r(z)|  = | - z' F - u' A z |
-    // or, precisely,     η = |r(zk-∏zk)|  = | - (zk-∏zk)' F - uh0' A (zk-∏zk) |
-    return std::abs(-lx -dx);
+  // Return             η = |r(z)|  = | - z' F - u' A z |
+  // or, precisely,     η = |r(zk-∏zk)|  = | - (zk-∏zk)' F - uh0' A (zk-∏zk) |
+  return std::abs(-lx -dx);
 
 }
 
