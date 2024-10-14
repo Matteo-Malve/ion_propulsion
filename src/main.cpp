@@ -51,6 +51,9 @@ const double E_ON = 3.31e+6; // [V/m] corona inception threshold
 const double R = 2.5e-4; // [m]
 const double Rc = 10.0*R;
 const double dR2 = Rc*Rc - R*R;
+double factor1 = - Vmax / (dR2*dR2*dR2);
+double factor2 = 3. * Vmax / (dR2*dR2);
+double factor3 = -3. * Vmax / dR2;
 const double nn = 2;
 const double L = nn*R; // [m]
 const double X = 0.;//-L/2.; // [m]
@@ -263,15 +266,26 @@ public:
     
 	  const auto y = p[1];
 	  const auto x = p[0];
-    /*
+    /* poly(r)
     double r = sqrt(x*x + y*y);
     if(r <= 3*R)
       return Vmax * ( 1 - ( (r-R) / (2.0*R) ) ) * ( 1 - ( (r-R) / (2.0*R) ) );
     else
       return 0.;*/
+
+    /* C1 poly(r2)
     double r2 = x*x + y*y;
     if(r2 <= Rc*Rc)
       return 2.*Vmax/(dR2*dR2*dR2)*(pow((r2-R*R),3)) - 3.*Vmax/(dR2*dR2)*(pow((r2-R*R),2)) + Vmax;
+    else
+      return 0.;
+    */
+
+    // C2 poly(r2)
+    double r2 = x*x + y*y;
+    if(r2 <= Rc*Rc)
+      //return -Vmax/(dR2*dR2*dR2)*(pow((r2-R*R),3)) + 3.*Vmax/(dR2*dR2)*(pow((r2-R*R),2)) - 3.*Vmax/dR2*(r2-R*R) + Vmax;
+      return factor1*(pow((r2-R*R),3)) + factor2*(pow((r2-R*R),2)) + factor3*(r2-R*R) + Vmax;
     else
       return 0.;
   }
@@ -306,17 +320,25 @@ static auto evaluate_grad_Rg = [](const double x, const double y) {
 	Tensor<1,2> grad_Rg;
 	grad_Rg[0] = 0.;
 	grad_Rg[1] = 0.;
-  /*
+  /* poly(r)
   double r = sqrt(x*x + y*y);
   if(r <= 3*R){
     double dRgdr = - Vmax / R * ( 1 - ( (r-R) / (2.0*R) ) ); 
     grad_Rg[0] = dRgdr * x / r;
     grad_Rg[1] = dRgdr * y / r;
   }*/
+
+  /* C1 poly(r2)
   double r2 = x*x + y*y;
   if(r2 <= Rc*Rc){
     grad_Rg[0] = + ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*x - 3.*Vmax/(dR2*dR2)*2.*(r2-R*R)*2.*x );
     grad_Rg[1] = + ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*y - 3.*Vmax/(dR2*dR2)*2.*(r2-R*R)*2.*y );
+  }*/
+
+  double r2 = x*x + y*y;
+  if(r2 <= Rc*Rc){
+    grad_Rg[0] = + ( 2.* x * (factor3 + (r2 - R*R) * (2.*factor2 +3.*(factor1)*(r2-R*R))) );
+    grad_Rg[1] = + ( 2.* y * (factor3 + (r2 - R*R) * (2.*factor2 +3.*(factor1)*(r2-R*R))) );
   }
 
   return grad_Rg;
@@ -327,7 +349,7 @@ static auto evaluate_minus_grad_Rg = [](const double x, const double y) {
 	Tensor<1,2> grad_Rg;
 	grad_Rg[0] = 0.;
 	grad_Rg[1] = 0.;
-  /*
+  /* poly(r)
   double r = sqrt(x*x + y*y);
   if(r <= 3*R){
     double dRgdr = + Vmax / R * ( 1 - ( (r-R) / (2.0*R) ) ); // Actually we compute -gradRg
@@ -335,10 +357,18 @@ static auto evaluate_minus_grad_Rg = [](const double x, const double y) {
     grad_Rg[1] = dRgdr * y / r;
   }*/
 
+  /* C1 poly(r2)
   double r2 = x*x + y*y;
   if(r2 <= Rc*Rc){
     grad_Rg[0] = - ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*x - 3.*Vmax/(dR2*dR2)*2.*(r2-R*R)*2.*x );
     grad_Rg[1] = - ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*y - 3.*Vmax/(dR2*dR2)*2.*(r2-R*R)*2.*y );
+  }
+  */
+
+  double r2 = x*x + y*y;
+  if(r2 <= Rc*Rc){
+    grad_Rg[0] = - ( 2.* x * (factor3 + (r2 - R*R) * (2.*factor2 +3.*(factor1)*(r2-R*R))) );
+    grad_Rg[1] = - ( 2.* y * (factor3 + (r2 - R*R) * (2.*factor2 +3.*(factor1)*(r2-R*R))) );
   }
 
   return grad_Rg;
@@ -847,6 +877,7 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
                                     primal_dof_handler,
                                     primal_constraints,
                                     dual_weights);               // zh-∏zh
+  dual_constraints.distribute(dual_weights); 
 
   // ------------------------------------------------------------      
   // RETRIEVE LIFTING: Rg + uh0hat
@@ -855,6 +886,7 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
 
   Vector<double> Rg_plus_uh0hat(dual_dof_handler.n_dofs());
   Rg_plus_uh0hat = primal_homogeneous_solution_on_dual_space;
+  dual_constraints.distribute(primal_homogeneous_solution_on_dual_space);
   Vector<double> Rg_vector_on_dual_space(sol_size);
   VectorTools::project(dual_dof_handler, 
                       dual_constraints, 
@@ -862,7 +894,7 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
                       Evaluate_Rg<dim>(),     // Analytical function Rg
                       Rg_vector_on_dual_space);  
   Rg_plus_uh0hat += Rg_vector_on_dual_space;
-   
+  dual_constraints.distribute(Rg_plus_uh0hat);
 
   // ------------------------------------------------------------      
   // LOCAL ESTIMATE: integrate over cells
@@ -903,7 +935,8 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
 
   // Compute   u' A z              NOTE: z is actually the dual weights (zh-∏zh)
   Vector<double> temp(dual_dof_handler.n_dofs());
-  dual_system_matrix.vmult(temp,dual_weights);    // A z
+  dual_system_matrix.vmult(temp,dual_weights);    // A z      NB: A is condensed
+  dual_constraints.distribute(temp);
 
   for(unsigned int i=0;i<sol_size;++i)
       dx+=primal_homogeneous_solution_on_dual_space(i)*temp(i);           // u' A z
@@ -915,7 +948,7 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
   Vector<double> cell_F(dofs_per_cell);
   std::vector <types::global_dof_index> local_dof_indices(dofs_per_cell);
 
-  QGauss<dim>          Rg_quadrature(5);
+  QGauss<dim>          Rg_quadrature(7);
   FEValues<dim>        Rg_fe_values(dual_fe,
                                     Rg_quadrature,
                                     update_values | update_gradients | update_quadrature_points |
@@ -942,6 +975,7 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
     //dual_constraints.distribute_local_to_global(cell_F,local_dof_indices,F);
   }
   dual_constraints.condense(F);
+  dual_constraints.distribute(F);
 
   // Compute     z' F    or    z•F
   for(unsigned int i=0;i<dual_weights.size();i++)
