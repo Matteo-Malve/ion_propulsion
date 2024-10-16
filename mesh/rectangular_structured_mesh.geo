@@ -78,37 +78,21 @@ Physical Curve("Others", 9) =  {9,2,301,7,303,5,10,19,23,18};
 
 Physical Surface(100) = {1,2,3,4,5,6,7,8,9,10};
 
-Transfinite Curve {17} = 5 Using Progression 1;
-Transfinite Curve {22} = 5 Using Progression 1;
-Transfinite Curve {20} = 5 Using Progression 1;
-Transfinite Curve {11} = 5 Using Progression 1;
-Transfinite Curve {21} = 9 Using Progression 1;
-Transfinite Curve {14} = 9 Using Progression 1;
-Transfinite Curve {16} = 37 Using Progression 1;
-Transfinite Curve {15} = 37 Using Progression 1;
-Transfinite Curve {13} = 37 Using Progression 1;
-Transfinite Curve {12} = 37 Using Progression 1;
-Transfinite Curve {26} = 37 Using Progression 1;
-Transfinite Curve {25} = 37 Using Progression 1;
-Transfinite Curve {27} = 37 Using Progression 1;
-Transfinite Curve {24} = 37 Using Progression 1;
-Transfinite Curve {19} = 37 Using Progression 1;
-Transfinite Curve {23} = 37 Using Progression 1;
-Transfinite Surface {4};
-Transfinite Surface {5};
-Transfinite Surface {6};
-Transfinite Surface {3};
-Transfinite Surface {7};
-Transfinite Curve {6,8} = 41 Using Progression 1;
-Transfinite Curve {7} = 81 Using Progression 1;
-Transfinite Curve {18,28,29,-10} = 81 Using Progression 1.05;
+Transfinite Curve {11,17,20,22} = 3 Using Progression 1;
+Transfinite Curve {14,21} = 5 Using Progression 1;
+Transfinite Curve {12,13,15,16,19,23,24,25,26,27} = 19 Using Progression 1;
+Transfinite Surface {3,4,5,6,7};
+
+Transfinite Curve {6,8} = 21 Using Progression 1;
+Transfinite Curve {7} = 41 Using Progression 1;
+Transfinite Curve {18,28,29,-10} = 41 Using Progression 1.1;
 Transfinite Surface {8} = {16,12,3,15};
 Transfinite Surface {9} = {15,3,4,14};
 Transfinite Surface {10} = {13,14,4,7};
 
-Transfinite Curve {2,4} = 41 Using Progression 1;
-Transfinite Curve {9,-301} = 81 Using Progression 1.01;
-Transfinite Curve {5,303} = 21 Using Progression 1;
+Transfinite Curve {2,4} = 21 Using Progression 1;
+Transfinite Curve {9,-301} = 61 Using Progression 1.01;
+Transfinite Curve {5,303} = 16 Using Progression 1;
 Transfinite Surface {1};
 Transfinite Surface {2};
 
