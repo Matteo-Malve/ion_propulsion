@@ -60,7 +60,7 @@ const double X = 0.;//-L/2.; // [m]
 const double g = 0.2; // [m]
 const double mesh_height = 0.1;; // [m]
 
-std::string PATH_TO_MESH = "../mesh/input_mesh.msh";
+std::string PATH_TO_MESH = "../mesh/rectangular_structured_mesh.msh";
 const unsigned int NUM_REFINEMENT_CYCLES = 4;
 const unsigned int PRELIMINARY_REFINEMENT_STEPS = 0;
 

@@ -48,12 +48,6 @@ Line(25) = {19, 9};
 Line(26) = {20, 10};
 Line(27) = {18, 10};
 
-
-Physical Curve("Emitter", 1) = {20,21,22};
-Physical Curve("Collector", 2) = {4};
-Physical Curve("Others", 9) =  {};
-
-
 Curve Loop(1) = {9, 2, 3, 4, 5, 6, 7, 8};
 Plane Surface(1) = {1};
 Curve Loop(2) = {18, -8, -7, -6, 10, 11, 12, 13, 14, 15, 16, 17};
@@ -68,6 +62,12 @@ Curve Loop(6) = {25, -24, 12, 13};
 Plane Surface(6) = {6};
 Curve Loop(7) = {20, -24, -11, 19};
 Plane Surface(7) = {7};
+
+Physical Curve("Emitter", 1) = {20,21,22};
+Physical Curve("Collector", 2) = {4};
+Physical Curve("Others", 9) =  {9,2,3,5,10,19,23,18};
+
+Physical Surface(100) = {1,2,3,4,5,6,7};
 
 Transfinite Curve {17} = 5 Using Progression 1;
 Transfinite Curve {22} = 5 Using Progression 1;
@@ -101,4 +101,3 @@ Recombine Surface {4};
 Recombine Surface {5};
 Recombine Surface {6};
 Recombine Surface {7};
-
