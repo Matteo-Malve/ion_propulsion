@@ -48,21 +48,23 @@ const double eps_r = 1.0006;
 const double Vmax = 2.e+4; // [V]
 const double E_ON = 3.31e+6; // [V/m] corona inception threshold
 
-const double R = 4.0e-4; // [m]
-const double Rc = 10.0*R;
-const double dR2 = Rc*Rc - R*R;
-double factor1 = - Vmax / (dR2*dR2*dR2);
-double factor2 = 3. * Vmax / (dR2*dR2);
-double factor3 = -3. * Vmax / dR2;
+//const double R = 4.0e-4; // [m]
+//const double Rc = 10.0*R;
+//const double dR2 = Rc*Rc - R*R;
+//double factor1 = - Vmax / (dR2*dR2*dR2);
+//double factor2 = 3. * Vmax / (dR2*dR2);
+//double factor3 = -3. * Vmax / dR2;
 const double nn = 2;
-const double L = nn*R; // [m]
+//const double L = nn*R; // [m]
+const double L = 0.0004;
+const double R = std::sqrt(2.)*L;
 const double X = 0.;//-L/2.; // [m]
 const double g = 0.2; // [m]
 const double mesh_height = 0.1;; // [m]
 
 std::string PATH_TO_MESH = "../mesh/rectangular_structured_mesh.msh";
-const unsigned int NUM_REFINEMENT_CYCLES = 4;
-const unsigned int PRELIMINARY_REFINEMENT_STEPS = 5;
+const unsigned int NUM_REFINEMENT_CYCLES = 3;
+const unsigned int NR = 7;
 
 double get_emitter_height(const double &p)
 {
@@ -229,62 +231,28 @@ public:
 };
 
 
-template <int dim>
-class Problem<dim>::IonizationAreaPostprocessor : public DataPostprocessorScalar<dim>
-{
-public:
-  IonizationAreaPostprocessor ():  DataPostprocessorScalar<dim> ("normalized_overfield", update_gradients) {}
-
-  virtual void evaluate_scalar_field(const DataPostprocessorInputs::Scalar<dim> &input_data,
-									 std::vector<Vector<double>> &computed_quantities) const override {
-	  AssertDimension (input_data.solution_values.size(), computed_quantities.size()); // Size check
-
-	  for (unsigned int p=0; p<input_data.solution_gradients.size(); ++p)
-	  {
-	AssertDimension(computed_quantities[p].size(), 1);
-		  double magnitude = 0;
-		  for (unsigned int d=0; d<dim; ++d)
-			  magnitude += input_data.solution_gradients[p][d] * input_data.solution_gradients[p][d];
-
-		  const double overfield = std::max(0., std::sqrt(magnitude) - E_ON);
-
-		  computed_quantities[p](0) = overfield/E_ON;
-	  }
-  }
-};
-
-
-template <int dim>
-class Evaluate_Rg : public Function<dim>
-{
-public:
-  virtual double value(const Point<dim> & p,
-					   const unsigned int component = 0) const override{
-	  (void)component;
-    
-	  const auto y = p[1];
-	  const auto x = p[0];
-    // if on GammaE = Ve, otw 0
-
-    if(std::abs(std::abs(x)-0.0004) < 1.e-6 && y < 0.0004 + 1.e-6)
-      return Vmax;
-    else if(std::abs(y-0.0004) < 1.e-6 && std::abs(x) < 0.0004 +1.e-6)
-      return Vmax;
-    else
-      return 0.;
-  }
-  
-
-};
-
 Tensor<1,2> emitter_normal(const Point<2> p) {
 	//Compute the normal at point p of a circular emitter of length L
 	// with circular edges of radius R centered in [-R,0] and in [-L+R,0]
 
 	Tensor<1,2> normal;
-	normal[0] = 0.;
-	normal[1] = p[1];
+	normal[0] = -9999999.;
+	normal[1] = -9999999.;  // Should produce evident weird results if it doesn't get overwritten
 
+  if(std::abs(std::abs(p[0])-L) < 1.e-8){
+    normal[0] = p[0]/std::abs(p[0]);
+    normal[1] = 0.;
+    if(p[0] > L + 1.e-8)
+      cout<<"SOMETHING WRONG (x)"<<endl;
+  }
+  if(std::abs(p[1]-L) < 1.e-8){
+    normal[0] = 0.;
+    normal[1] = p[1]/std::abs(p[1]);
+    if(std::abs(std::abs(p[0])-L) < 1.e-8)
+      cout<<"SOMETHING WRONG (y)"<<endl;
+  }
+  return normal;
+  /*
 	const double x = p[0];
 	const double left_center = X - L/2. + R;
 	const double right_center = X + L/2. - R;
@@ -296,68 +264,8 @@ Tensor<1,2> emitter_normal(const Point<2> p) {
 
 	const double norm = std::sqrt(normal[0]*normal[0] + normal[1]*normal[1]); // The norm of this vector should always be nearly equal to R
 
-	return normal/norm;
+	return normal/norm;*/
 }
-
-static auto evaluate_grad_Rg = [](const double x, const double y) {
-
-	Tensor<1,2> grad_Rg;
-	grad_Rg[0] = 0.;
-	grad_Rg[1] = 0.;
-  /* poly(r)
-  double r = sqrt(x*x + y*y);
-  if(r <= 3*R){
-    double dRgdr = - Vmax / R * ( 1 - ( (r-R) / (2.0*R) ) ); 
-    grad_Rg[0] = dRgdr * x / r;
-    grad_Rg[1] = dRgdr * y / r;
-  }*/
-
-  /* C1 poly(r2)
-  double r2 = x*x + y*y;
-  if(r2 <= Rc*Rc){
-    grad_Rg[0] = + ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*x - 3.*Vmax/(dR2*dR2)*2.*(r2-R*R)*2.*x );
-    grad_Rg[1] = + ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*y - 3.*Vmax/(dR2*dR2)*2.*(r2-R*R)*2.*y );
-  }*/
-
-  double r2 = x*x + y*y;
-  if(r2 <= Rc*Rc){
-    grad_Rg[0] = + ( 2.* x * (factor3 + (r2 - R*R) * (2.*factor2 +3.*(factor1)*(r2-R*R))) );
-    grad_Rg[1] = + ( 2.* y * (factor3 + (r2 - R*R) * (2.*factor2 +3.*(factor1)*(r2-R*R))) );
-  }
-
-  return grad_Rg;
-};
-
-static auto evaluate_minus_grad_Rg = [](const double x, const double y) {
-
-	Tensor<1,2> grad_Rg;
-	grad_Rg[0] = 0.;
-	grad_Rg[1] = 0.;
-  /* poly(r)
-  double r = sqrt(x*x + y*y);
-  if(r <= 3*R){
-    double dRgdr = + Vmax / R * ( 1 - ( (r-R) / (2.0*R) ) ); // Actually we compute -gradRg
-    grad_Rg[0] = dRgdr * x / r;
-    grad_Rg[1] = dRgdr * y / r;
-  }*/
-
-  /* C1 poly(r2)
-  double r2 = x*x + y*y;
-  if(r2 <= Rc*Rc){
-    grad_Rg[0] = - ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*x - 3.*Vmax/(dR2*dR2)*2.*(r2-R*R)*2.*x );
-    grad_Rg[1] = - ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*y - 3.*Vmax/(dR2*dR2)*2.*(r2-R*R)*2.*y );
-  }
-  */
-
-  double r2 = x*x + y*y;
-  if(r2 <= Rc*Rc){
-    grad_Rg[0] = - ( 2.* x * (factor3 + (r2 - R*R) * (2.*factor2 +3.*(factor1)*(r2-R*R))) );
-    grad_Rg[1] = - ( 2.* y * (factor3 + (r2 - R*R) * (2.*factor2 +3.*(factor1)*(r2-R*R))) );
-  }
-
-  return grad_Rg;
-};
-
 
 template <int dim>
 Problem<dim>::Problem()
@@ -377,48 +285,31 @@ void Problem<dim>::create_mesh(const std::string filename)
 	GridIn<2>       grid_in;
 	grid_in.attach_triangulation(triangulation);
 	grid_in.read_msh(input_file);
-  
-	
-	for (unsigned int i = 0; i < PRELIMINARY_REFINEMENT_STEPS; ++i) {
 
+
+
+  for (unsigned int i = 0; i < NR; ++i) {
 		Vector<float> criteria(triangulation.n_active_cells());
 		cout  << "Active cells " << triangulation.n_active_cells() << endl;
 		unsigned int ctr = 0;
-    double L = 0.0004;
-		for (auto &cell : triangulation.active_cell_iterators()) {
 
+    // Threshold
+    const double max_thickness = 2. * L;
+    const double min_thickness = 1.05 * L;
+    const double D = min_thickness + (max_thickness-min_thickness)/(NR-1)*(NR-1-i);
+    cout<<"D = "<<D<<endl;
+
+		for (auto &cell : triangulation.active_cell_iterators()) {                
 			const Point<dim> c = cell->center();
-
-			if ( std::abs(c[0]) <= L + (i+1.) * L/4. && c[1] <= L + (i+1.) * L/4. )
-				criteria[ctr++] = 1;
-			else
-				criteria[ctr++] = 0;
+        if(c[1]<D && std::abs(c[0])<D)
+          criteria[ctr++] = 1;
+        else
+          criteria[ctr++] = 0;
 		}
 		GridRefinement::refine(triangulation, criteria, 0.5);
 		triangulation.execute_coarsening_and_refinement();
 		cout<<"   Executed preliminary coarsening and refinement"<<endl;
 	}
-
-	// Refine twice near the edges: only for custom meshes, if needed
-	/*Vector<float> criteria(triangulation.n_active_cells());
-	cout  << "Active cells " << triangulation.n_active_cells() << endl;
-	unsigned int ctr = 0;
-
-	const double left_edge = X - L/2.;
-	const double right_edge = X + L/2.;
-
-	for (auto &cell : triangulation.active_cell_iterators()) {
-
-		const Point<dim> c = cell->center();
-
-		if ( c[1] < 2.5e-5 && ( (abs(c[0]-left_edge) <= 1.e-5) ||  (abs(c[0]-right_edge) <= 1.e-5) ) )
-			criteria[ctr++] = 1;
-		else
-			criteria[ctr++] = 0;
-	}
-	GridRefinement::refine(triangulation, criteria, 0.5);
-	triangulation.execute_coarsening_and_refinement();*/
-
 }
 
 template <int dim>
@@ -552,18 +443,16 @@ void Problem<dim>::assemble_primal_system()
   std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
   // Emitter
   VectorTools::interpolate_boundary_values(primal_dof_handler,1, Functions::ZeroFunction<dim>(), emitter_boundary_values);
-  MatrixTools::apply_boundary_values(emitter_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
   // Collector
   VectorTools::interpolate_boundary_values(primal_dof_handler,2, Functions::ZeroFunction<dim>(), collector_boundary_values);
-  MatrixTools::apply_boundary_values(collector_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
-  // Ceiling    : only to compare with analytical solution
-  //std::map<types::global_dof_index, double> ceiling_boundary_values;
-  //VectorTools::interpolate_boundary_values(primal_dof_handler,3, Functions::ZeroFunction<dim>(), ceiling_boundary_values);
-  //MatrixTools::apply_boundary_values(ceiling_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
   
   // Condense constraints
   primal_constraints.condense(primal_system_matrix);
   primal_constraints.condense(primal_rhs);
+
+  MatrixTools::apply_boundary_values(emitter_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
+  MatrixTools::apply_boundary_values(collector_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
+
 
 }
 
@@ -709,7 +598,6 @@ void Problem<dim>::output_primal_results(const unsigned int cycle)
   // cout << "   Potential at sample point (" << evaluation_point[0] << "," << evaluation_point[1] << "): " << x << endl;
 
 	ElectricFieldPostprocessor electric_field_postprocessor;
-	IonizationAreaPostprocessor ionization_area_postprocessor;
   HomogeneousFieldPostprocessor homogeneous_field_postprocessor;
 
   
@@ -721,7 +609,6 @@ void Problem<dim>::output_primal_results(const unsigned int cycle)
 	data_out.add_data_vector(Rg_dof_values, "Rg");
   data_out.add_data_vector(primal_solution, electric_field_postprocessor);
   data_out.add_data_vector(uh0, homogeneous_field_postprocessor);
-	//data_out.add_data_vector(primal_solution, ionization_area_postprocessor);
 
   /*
   Tensor<1,dim> temp_grad;
@@ -879,11 +766,11 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
     sum = 0;
     
     for (unsigned int p = 0; p < n_q_points; ++p) {
-        sum +=  eps_r * eps_0 *
+        sum +=  eps_r * eps_0 *                        
                 ((cell_primal_gradients[p] * cell_dual_gradients[p]  )   // Scalar product btw Tensors
                   * fe_values.JxW(p));
     }
-    error_indicators(cell->active_cell_index()) += (0. - sum);
+    error_indicators(cell->active_cell_index()) -= sum;
 
   }
 
