@@ -137,7 +137,7 @@ public:
 private:
   void create_mesh(const std::string filename);
 
-  void setup_primal_system();
+  void setup_primal_system(unsigned int cycle);
   void setup_dual_system();
   void assemble_primal_system();
   void assemble_dual_system();
@@ -170,7 +170,8 @@ private:
 
   Vector<double> primal_rhs;
   Vector<double> uh0;
-	Vector<double> Rg_vector;
+	Vector<double> Rg_dof_values;
+  Vector<double> Rg_dual_dof_values;
   Vector<double> gradRg_x;
   Vector<double> gradRg_y;
   Vector<double> primal_solution;
@@ -256,42 +257,6 @@ public:
 };
 
 
-template <int dim>
-class Evaluate_Rg : public Function<dim>
-{
-public:
-  virtual double value(const Point<dim> & p,
-					   const unsigned int component = 0) const override{
-	  (void)component;
-    
-	  const auto y = p[1];
-	  const auto x = p[0];
-    /* poly(r)
-    double r = sqrt(x*x + y*y);
-    if(r <= 3*R)
-      return Vmax * ( 1 - ( (r-R) / (2.0*R) ) ) * ( 1 - ( (r-R) / (2.0*R) ) );
-    else
-      return 0.;*/
-
-    /* C1 poly(r2)
-    double r2 = x*x + y*y;
-    if(r2 <= Rc*Rc)
-      return 2.*Vmax/(dR2*dR2*dR2)*(pow((r2-R*R),3)) - 3.*Vmax/(dR2*dR2)*(pow((r2-R*R),2)) + Vmax;
-    else
-      return 0.;
-    */
-
-    // C2 poly(r2)
-    double r2 = x*x + y*y;
-    if(r2 <= Rc*Rc)
-      //return -Vmax/(dR2*dR2*dR2)*(pow((r2-R*R),3)) + 3.*Vmax/(dR2*dR2)*(pow((r2-R*R),2)) - 3.*Vmax/dR2*(r2-R*R) + Vmax;
-      return factor1*(pow((r2-R*R),3)) + factor2*(pow((r2-R*R),2)) + factor3*(r2-R*R) + Vmax;
-    else
-      return 0.;
-  }
-  
-
-};
 
 Tensor<1,2> emitter_normal(const Point<2> p) {
 	//Compute the normal at point p of a circular emitter of length L
@@ -315,64 +280,6 @@ Tensor<1,2> emitter_normal(const Point<2> p) {
 	return normal/norm;
 }
 
-static auto evaluate_grad_Rg = [](const double x, const double y) {
-
-	Tensor<1,2> grad_Rg;
-	grad_Rg[0] = 0.;
-	grad_Rg[1] = 0.;
-  /* poly(r)
-  double r = sqrt(x*x + y*y);
-  if(r <= 3*R){
-    double dRgdr = - Vmax / R * ( 1 - ( (r-R) / (2.0*R) ) ); 
-    grad_Rg[0] = dRgdr * x / r;
-    grad_Rg[1] = dRgdr * y / r;
-  }*/
-
-  /* C1 poly(r2)
-  double r2 = x*x + y*y;
-  if(r2 <= Rc*Rc){
-    grad_Rg[0] = + ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*x - 3.*Vmax/(dR2*dR2)*2.*(r2-R*R)*2.*x );
-    grad_Rg[1] = + ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*y - 3.*Vmax/(dR2*dR2)*2.*(r2-R*R)*2.*y );
-  }*/
-
-  double r2 = x*x + y*y;
-  if(r2 <= Rc*Rc){
-    grad_Rg[0] = + ( 2.* x * (factor3 + (r2 - R*R) * (2.*factor2 +3.*(factor1)*(r2-R*R))) );
-    grad_Rg[1] = + ( 2.* y * (factor3 + (r2 - R*R) * (2.*factor2 +3.*(factor1)*(r2-R*R))) );
-  }
-
-  return grad_Rg;
-};
-
-static auto evaluate_minus_grad_Rg = [](const double x, const double y) {
-
-	Tensor<1,2> grad_Rg;
-	grad_Rg[0] = 0.;
-	grad_Rg[1] = 0.;
-  /* poly(r)
-  double r = sqrt(x*x + y*y);
-  if(r <= 3*R){
-    double dRgdr = + Vmax / R * ( 1 - ( (r-R) / (2.0*R) ) ); // Actually we compute -gradRg
-    grad_Rg[0] = dRgdr * x / r;
-    grad_Rg[1] = dRgdr * y / r;
-  }*/
-
-  /* C1 poly(r2)
-  double r2 = x*x + y*y;
-  if(r2 <= Rc*Rc){
-    grad_Rg[0] = - ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*x - 3.*Vmax/(dR2*dR2)*2.*(r2-R*R)*2.*x );
-    grad_Rg[1] = - ( 2.*Vmax/(dR2*dR2*dR2)*3.*(pow((r2-R*R),2)) * 2.*y - 3.*Vmax/(dR2*dR2)*2.*(r2-R*R)*2.*y );
-  }
-  */
-
-  double r2 = x*x + y*y;
-  if(r2 <= Rc*Rc){
-    grad_Rg[0] = - ( 2.* x * (factor3 + (r2 - R*R) * (2.*factor2 +3.*(factor1)*(r2-R*R))) );
-    grad_Rg[1] = - ( 2.* y * (factor3 + (r2 - R*R) * (2.*factor2 +3.*(factor1)*(r2-R*R))) );
-  }
-
-  return grad_Rg;
-};
 
 
 template <int dim>
@@ -405,7 +312,7 @@ void Problem<dim>::create_mesh(const std::string filename)
 					const Point<dim> fc = cell->face(f)->center();
           if(fc[1]> 0.0999)
             cell->face(f)->set_boundary_id(3);
-					if (fc[1] > 0 && fc[1] < 3*R && std::abs(fc[0]-X) < L/2) {
+					if (fc[1] > 0 && fc[1] < 3*R && std::abs(fc[0]-X) < L/2) {    // Zona piatta dell'emettitore di Menessini
 						for (unsigned int v = 0; v < 2; ++v)
 							cell->face(f)->vertex(v)[1] =  get_emitter_height(cell->face(f)->vertex(v)[0]);
 						cell->face(f)->set_manifold_id(emitter);
@@ -417,7 +324,7 @@ void Problem<dim>::create_mesh(const std::string filename)
 	}
 
 	triangulation.set_all_manifold_ids_on_boundary(1, emitter);
-	triangulation.set_manifold(emitter, emitter_manifold);
+	triangulation.set_manifold(emitter, emitter_manifold);    // boundary_id, manifold_id
 
 	cout <<"   Set Manifolds"<< endl;
 	
@@ -469,14 +376,26 @@ void Problem<dim>::create_mesh(const std::string filename)
 }
 
 template <int dim>
-void Problem<dim>::setup_primal_system()
+void Problem<dim>::setup_primal_system(unsigned int cycle)
 {
   primal_dof_handler.distribute_dofs(primal_fe);
   
-	Rg_vector.reinit(primal_dof_handler.n_dofs());
 	uh0.reinit(primal_dof_handler.n_dofs());
   primal_solution.reinit(primal_dof_handler.n_dofs());
   primal_rhs.reinit(primal_dof_handler.n_dofs());
+
+  if (cycle == 0){
+    // Initialize Rg_dof_values for the first time
+    Rg_dof_values.reinit(primal_dof_handler.n_dofs());
+
+    // Interpolate boundary values only once
+    std::map<types::global_dof_index, double> emitter_boundary_values;
+    VectorTools::interpolate_boundary_values(primal_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), emitter_boundary_values);
+
+    for (const auto &boundary_value : emitter_boundary_values)
+      Rg_dof_values(boundary_value.first) = boundary_value.second;
+  }
+
  
   primal_constraints.clear();
 	DoFTools::make_hanging_node_constraints(primal_dof_handler, primal_constraints);
@@ -504,6 +423,13 @@ void Problem<dim>::setup_dual_system()
   dual_solution.reinit(dual_dof_handler.n_dofs());
   dual_rhs.reinit(dual_dof_handler.n_dofs());
 
+  // Evaluate Rg on DoF [of dual space]
+  Rg_dual_dof_values.reinit(dual_dof_handler.n_dofs());
+  std::map<types::global_dof_index, double> emitter_boundary_values; 
+  VectorTools::interpolate_boundary_values(dual_dof_handler,1, Functions::ConstantFunction<dim>(20000.), emitter_boundary_values);
+  for (const auto &boundary_value : emitter_boundary_values)
+    Rg_dual_dof_values(boundary_value.first) = boundary_value.second;
+
   dual_constraints.clear();
 	DoFTools::make_hanging_node_constraints(dual_dof_handler, dual_constraints);
 	dual_constraints.close();
@@ -525,7 +451,7 @@ void Problem<dim>::setup_dual_system()
 template <int dim>
 void Problem<dim>::assemble_primal_system()
 {
-	const QGauss <dim> quadrature(/*primal_fe.degree + 1*/ 3);  // GradRg è poly4(x,y). Exactness of GaussLegendree = 2n-1
+	const QGauss <dim> quadrature(primal_fe.degree + 1); 
   FEValues<dim> fe_values(primal_fe,
                           quadrature,
                           update_values | update_gradients | update_quadrature_points |
@@ -536,6 +462,9 @@ void Problem<dim>::assemble_primal_system()
   FullMatrix<double> cell_matrix(dofs_per_cell, dofs_per_cell);
   Vector<double> cell_rhs(dofs_per_cell);
   std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
+  
+  const unsigned int n_q_points = quadrature.size();
+  std::vector<Tensor<1, dim>> rg_gradients(n_q_points);
 
   for (const auto &cell : primal_dof_handler.active_cell_iterators())
   {
@@ -543,13 +472,11 @@ void Problem<dim>::assemble_primal_system()
     cell_matrix = 0;
     cell_rhs = 0;
 
+    // Compute gradients of Rg at quadrature points
+    fe_values.get_function_gradients(Rg_dof_values, rg_gradients);
+
     // Compute A_loc
     for (const unsigned int q_index : fe_values.quadrature_point_indices())
-    {
-      // Evaluate grad_Rg at the current quadrature point
-      auto &quad_point_coords = fe_values.quadrature_point(q_index);
-      auto grad_Rg_xq = evaluate_grad_Rg(quad_point_coords[0], quad_point_coords[1]);
-      // Assemble A_loc and rhs_Loc
       for (const unsigned int i : fe_values.dof_indices()){
         for (const unsigned int j : fe_values.dof_indices())
           cell_matrix(i, j) += eps_r*eps_0*
@@ -562,39 +489,41 @@ void Problem<dim>::assemble_primal_system()
                               fe_values.JxW(q_index));            // dx
         cell_rhs(i) -= eps_r * eps_0 *
                         (fe_values.shape_grad(i, q_index) *   // grad phi_i(x_q)
-                          grad_Rg_xq *                        // grad_Rg(x_q)
+                          rg_gradients[q_index] *                        // grad_Rg(x_q)
                           fe_values.JxW(q_index));            // dx
       }
-    }
+    
 
     // Local to global
     cell->get_dof_indices(local_dof_indices);
-    //primal_constraints.distribute_local_to_global(cell_matrix, cell_rhs, local_dof_indices, primal_system_matrix, primal_rhs);
-    for (const unsigned int i : fe_values.dof_indices()){
+
+    primal_rhs.add(local_dof_indices, cell_rhs);
+
+    for (const unsigned int i : fe_values.dof_indices())
       for (const unsigned int j : fe_values.dof_indices())
         primal_system_matrix.add(local_dof_indices[i], 
                           local_dof_indices[j],
                           cell_matrix(i, j)); 
-      primal_rhs(local_dof_indices[i]) += cell_rhs(i);
-    }           
   }
 
   // Apply boundary values
   std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
   // Emitter
   VectorTools::interpolate_boundary_values(primal_dof_handler,1, Functions::ZeroFunction<dim>(), emitter_boundary_values);
-  MatrixTools::apply_boundary_values(emitter_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
   // Collector
   VectorTools::interpolate_boundary_values(primal_dof_handler,2, Functions::ZeroFunction<dim>(), collector_boundary_values);
-  MatrixTools::apply_boundary_values(collector_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
-  // Ceiling    : only to compare with analytical solution
-  //std::map<types::global_dof_index, double> ceiling_boundary_values;
-  //VectorTools::interpolate_boundary_values(primal_dof_handler,3, Functions::ZeroFunction<dim>(), ceiling_boundary_values);
-  //MatrixTools::apply_boundary_values(ceiling_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
+  /* Ceiling    : only to compare with analytical solution
+  std::map<types::global_dof_index, double> ceiling_boundary_values;
+  VectorTools::interpolate_boundary_values(primal_dof_handler,3, Functions::ZeroFunction<dim>(), ceiling_boundary_values);
+  MatrixTools::apply_boundary_values(ceiling_boundary_values, primal_system_matrix, primal_solution, primal_rhs);*/
   
   // Condense constraints
   primal_constraints.condense(primal_system_matrix);
   primal_constraints.condense(primal_rhs);
+
+  MatrixTools::apply_boundary_values(emitter_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
+  MatrixTools::apply_boundary_values(collector_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
+
 
 }
 
@@ -684,24 +613,19 @@ void Problem<dim>::solve_primal()
   SolverControl            solver_control(it_max, tol);
   SolverCG<Vector<double>> solver(solver_control);
 
-  // Solve linear system
+  // Solve linear system --> uh0
   double relaxation_parameter = 1.2;
   PreconditionSSOR<SparseMatrix<double>> preconditioner;
   preconditioner.initialize(primal_system_matrix, relaxation_parameter);
-  solver.solve(primal_system_matrix, primal_solution, primal_rhs, preconditioner);
+  solver.solve(primal_system_matrix, uh0, primal_rhs, preconditioner);
 
-  // uh0
-	uh0 = primal_solution;
+  // uh [primal_solution]
+	primal_solution = uh0;
+	primal_solution += Rg_dof_values;
+
+	// Distribute constraints
 	primal_constraints.distribute(uh0);
   primal_constraints.distribute(primal_solution);
-
-	// Retrieve lifting
-  VectorTools::project(primal_dof_handler, 
-                      primal_constraints, 
-                      QGauss<dim>(7),  // Quadrature rule (degree + 1 for accuracy)
-                      Evaluate_Rg<dim>(),          // Analytical function Rg
-                      Rg_vector);  
-  primal_solution += Rg_vector;               // uh = u0 + Rg
 
   cout<<"      Solved system: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<endl;
 }
@@ -754,12 +678,12 @@ void Problem<dim>::output_primal_results(const unsigned int cycle)
   data_out.attach_dof_handler(primal_dof_handler);
   data_out.add_data_vector(primal_solution, "Potential");
 	data_out.add_data_vector(uh0, "uh0");
-	data_out.add_data_vector(Rg_vector, "Rg");
+	data_out.add_data_vector(Rg_dof_values, "Rg");
   data_out.add_data_vector(primal_solution, electric_field_postprocessor);
   data_out.add_data_vector(uh0, homogeneous_field_postprocessor);
 	//data_out.add_data_vector(primal_solution, ionization_area_postprocessor);
 
-  Tensor<1,dim> temp_grad;
+  /*Tensor<1,dim> temp_grad;
   gradRg_x.reinit(primal_dof_handler.n_dofs());
   gradRg_y.reinit(primal_dof_handler.n_dofs());
   std::vector<types::global_dof_index> local_dof_indices(primal_dof_handler.get_fe().dofs_per_cell);
@@ -778,7 +702,7 @@ void Problem<dim>::output_primal_results(const unsigned int cycle)
     }
   }
   data_out.add_data_vector(gradRg_x, "gradRg_x");
-  data_out.add_data_vector(gradRg_y, "gradRg_y");
+  data_out.add_data_vector(gradRg_y, "gradRg_y");*/
 
   data_out.build_patches(); // mapping
 
@@ -790,14 +714,6 @@ void Problem<dim>::output_primal_results(const unsigned int cycle)
   data_out.set_flags(vtk_flags);
   std::ofstream output(filename);
   data_out.write_vtk(output);
-
-  /* Output the mesh in .msh format (Gmsh)
-  std::ofstream out(meshName+"-"+Utilities::int_to_string(cycle, 1)+".msh");
-  GridOut grid_out;
-  grid_out.write_msh(triangulation, out);
-
-  std::cout << "Mesh saved to mesh.msh" << std::endl;
-  */
 }
 
 template <int dim>
@@ -846,11 +762,30 @@ void Problem<dim>::refine_mesh(){
       error_indicator = std::fabs(error_indicator);
   }
 
-	GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators, 0.8, 0.0); // CHANGED FROM: 0.8, 0.02
+	GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators, 0.8, 0); // CHANGED FROM: 0.8, 0.02
 
-  // Execute refinement
+  // Prepare the solution transfer object
+  SolutionTransfer<dim> solution_transfer(primal_dof_handler);
+  // take a copy of the solution vector
+  Vector<double> old_Rg_dof_values(Rg_dof_values);  
+  // Prepare for refinement (older versions of deal.II)
+  solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_dof_values);
+  // Perform the refinement
   triangulation.execute_coarsening_and_refinement();
-  // cout<<"      Executed coarsening and refinement"<<endl;  // redundant message
+  // Reinitialize the DoFHandler for the refined mesh
+  primal_dof_handler.distribute_dofs(primal_fe);
+
+  
+  // Reinitialize Rg_dof_values to match the new DoF layout after refinement
+  Rg_dof_values.reinit(primal_dof_handler.n_dofs());
+  // Transfer the old values to the new DoFs, accounting for hanging nodes
+  solution_transfer.interpolate(old_Rg_dof_values, Rg_dof_values);
+
+  // Handle boundary conditions again (for hanging nodes)
+  std::map<types::global_dof_index, double> emitter_boundary_values;
+  VectorTools::interpolate_boundary_values(primal_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), emitter_boundary_values);
+  for (const auto &boundary_value : emitter_boundary_values)
+    Rg_dof_values(boundary_value.first) = boundary_value.second;
 }
 
 template <int dim>
@@ -867,7 +802,7 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
                         dual_constraints,
                         primal_homogeneous_solution_on_dual_space);
 
-  //dual_constraints.distribute(primal_homogeneous_solution_on_dual_space); // ADDED
+  dual_constraints.distribute(primal_homogeneous_solution_on_dual_space); 
 
   // Subtract from dual solution its projection on the primal solution FE space
   Vector<double> dual_weights(dual_dof_handler.n_dofs());
@@ -884,16 +819,10 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
   
   // ! Here we were summing up Rg and then forgetting the vector forever
 
+  // uh0^hat + Rg
   Vector<double> Rg_plus_uh0hat(dual_dof_handler.n_dofs());
   Rg_plus_uh0hat = primal_homogeneous_solution_on_dual_space;
-  dual_constraints.distribute(primal_homogeneous_solution_on_dual_space);
-  Vector<double> Rg_vector_on_dual_space(sol_size);
-  VectorTools::project(dual_dof_handler, 
-                      dual_constraints, 
-                      QGauss<dim>(7),         // Quadrature rule (degree + 1 for accuracy)
-                      Evaluate_Rg<dim>(),     // Analytical function Rg
-                      Rg_vector_on_dual_space);  
-  Rg_plus_uh0hat += Rg_vector_on_dual_space;
+  Rg_plus_uh0hat += Rg_dual_dof_values;
   dual_constraints.distribute(Rg_plus_uh0hat);
 
   // ------------------------------------------------------------      
@@ -948,31 +877,27 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
   Vector<double> cell_F(dofs_per_cell);
   std::vector <types::global_dof_index> local_dof_indices(dofs_per_cell);
 
-  QGauss<dim>          Rg_quadrature(7);
-  FEValues<dim>        Rg_fe_values(dual_fe,
-                                    Rg_quadrature,
-                                    update_values | update_gradients | update_quadrature_points |
-                                    update_JxW_values);
+  // fe_values declared above for local estimate
+  std::vector<Tensor<1, dim>> rg_gradients(n_q_points);
 
   for (const auto &cell: dual_dof_handler.active_cell_iterators()) {
     cell_F = 0;
-    Rg_fe_values.reinit(cell);
-    for (const unsigned int q_index : Rg_fe_values.quadrature_point_indices()){
-      // evaluate_grad_Rg
-      auto & quad_point_coords = Rg_fe_values.quadrature_point(q_index);
-      auto grad_Rg_xq = evaluate_grad_Rg(quad_point_coords[0],quad_point_coords[1]);
-      // assemble a(Rg,φ)
-      for (const unsigned int i : Rg_fe_values.dof_indices())
+    fe_values.reinit(cell);
+
+    // Compute gradients of Rg at quadrature points
+    fe_values.get_function_gradients(Rg_dual_dof_values, rg_gradients);
+
+    // assemble a(Rg,φ)
+    for (const unsigned int q_index : fe_values.quadrature_point_indices()){ 
+      for (const unsigned int i : fe_values.dof_indices())
         cell_F(i) += eps_r * eps_0*
-                        (Rg_fe_values.shape_grad(i, q_index) *     // grad phi_i(x_q)
-                        grad_Rg_xq *                               // grad_Rg(x_q)
-                        Rg_fe_values.JxW(q_index));                // dx
+                        (fe_values.shape_grad(i, q_index) *     // grad phi_i(x_q)
+                        rg_gradients[q_index] *                               // grad_Rg(x_q)
+                        fe_values.JxW(q_index));                // dx
     }
     // Local to Global
     cell->get_dof_indices(local_dof_indices);
-    for (const unsigned int i : fe_values.dof_indices())
-      F(local_dof_indices[i]) += cell_F(i);
-    //dual_constraints.distribute_local_to_global(cell_F,local_dof_indices,F);
+    F.add(local_dof_indices, cell_F);
   }
   dual_constraints.condense(F);
   dual_constraints.distribute(F);
@@ -1127,7 +1052,7 @@ void Problem<dim>::run()
 
     // Primal --------------
 		cout<<"   Primal:"<<endl;
-		setup_primal_system();
+		setup_primal_system(cycle);
 		assemble_primal_system();
 		solve_primal();
 		output_primal_results(cycle);
