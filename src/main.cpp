@@ -63,8 +63,8 @@ const double g = 0.2; // [m]
 const double mesh_height = 0.1;; // [m]
 
 std::string PATH_TO_MESH = "../mesh/rectangular_structured_mesh.msh";
-const unsigned int NUM_REFINEMENT_CYCLES = 1;
-const unsigned int NR = 5; // Meglio 7 ma poi troppo lento
+const unsigned int NUM_REFINEMENT_CYCLES = 4;
+const unsigned int NR = 7; // Meglio 7 ma poi troppo lento
 
 double get_emitter_height(const double &p)
 {
@@ -87,33 +87,6 @@ double get_emitter_height(const double &p)
 
 	return y;
 }
-
-template <int dim>
-class EmitterGeometry : public ChartManifold<dim, dim, dim-1>
-{
-public:
-virtual Point<dim-1> pull_back(const Point<dim> &space_point) const override{		// space_point = p
-	Point<dim-1> x;
-	x[0] = space_point[0];
-	if (dim == 3) 
-		x[1] = space_point[2];
-	return x;
-}
-
-virtual Point<dim> push_forward(const Point<dim-1> &chart_point) const override{		// chart_point = x
-	const double y = get_emitter_height(chart_point[0]);
-	Point<dim> p;
-	p[0] = chart_point[0]; p[1] = y;
-	if (dim == 3)
-		p[2] = chart_point[1];
-	return p;
-}
-
-virtual std::unique_ptr<Manifold<dim, dim>> clone() const override{
-		return std::make_unique<EmitterGeometry<dim>>();
-	}
-
-};
 
 template <int dim>
 class RightHandSide : public Function<dim>
@@ -140,7 +113,7 @@ private:
   void create_mesh(const std::string filename);
 
   void setup_primal_system(unsigned int cycle);
-  void setup_dual_system();
+  void setup_dual_system(unsigned int cycle);
   void assemble_primal_system();
   void assemble_dual_system();
   void solve_primal();
@@ -350,19 +323,24 @@ void Problem<dim>::setup_primal_system(unsigned int cycle)
 }
 
 template <int dim>
-void Problem<dim>::setup_dual_system()
+void Problem<dim>::setup_dual_system(unsigned int cycle)
 {
   dual_dof_handler.distribute_dofs(dual_fe);
 
   dual_solution.reinit(dual_dof_handler.n_dofs());
   dual_rhs.reinit(dual_dof_handler.n_dofs());
 
-  // Evaluate Rg on DoF [of dual space]
-  Rg_dual_dof_values.reinit(dual_dof_handler.n_dofs());
-  std::map<types::global_dof_index, double> emitter_boundary_values; 
-  VectorTools::interpolate_boundary_values(dual_dof_handler,1, Functions::ConstantFunction<dim>(20000.), emitter_boundary_values);
-  for (const auto &boundary_value : emitter_boundary_values)
-    Rg_dual_dof_values(boundary_value.first) = boundary_value.second;
+  if (cycle == 0){
+    // Initialize Rg_dof_values for the first time
+    Rg_dual_dof_values.reinit(dual_dof_handler.n_dofs());
+
+    // Interpolate boundary values only once
+    std::map<types::global_dof_index, double> emitter_boundary_values;
+    VectorTools::interpolate_boundary_values(dual_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), emitter_boundary_values);
+
+    for (const auto &boundary_value : emitter_boundary_values)
+      Rg_dual_dof_values(boundary_value.first) = boundary_value.second;
+  }
 
   dual_constraints.clear();
 	DoFTools::make_hanging_node_constraints(dual_dof_handler, dual_constraints);
@@ -478,14 +456,12 @@ void Problem<dim>::assemble_dual_system(){
 
     // Compute A_loc
     for (const unsigned int q_index : fe_values.quadrature_point_indices())
-    {
-        for (const unsigned int i : fe_values.dof_indices())
-            for (const unsigned int j : fe_values.dof_indices())
-                cell_matrix(i, j) += eps_r*eps_0*
-                        (fe_values.shape_grad(i, q_index) * // grad phi_i(x_q)
-                          fe_values.shape_grad(j, q_index) * // grad phi_j(x_q)
-                          fe_values.JxW(q_index));           // dx
-    }
+      for (const unsigned int i : fe_values.dof_indices())
+        for (const unsigned int j : fe_values.dof_indices())
+          cell_matrix(i, j) += eps_r*eps_0*
+                  (fe_values.shape_grad(i, q_index) * // grad phi_i(x_q)
+                    fe_values.shape_grad(j, q_index) * // grad phi_j(x_q)
+                    fe_values.JxW(q_index));           // dx
 
     // Compute RHS
     for (const auto &face: cell->face_iterators())
@@ -508,27 +484,28 @@ void Problem<dim>::assemble_dual_system(){
     
     // Local to global
     cell->get_dof_indices(local_dof_indices);
-    //dual_constraints.distribute_local_to_global(cell_matrix, cell_rhs, local_dof_indices, dual_system_matrix, dual_rhs);
-    for (const unsigned int i : fe_values.dof_indices()){
+
+    dual_rhs.add(local_dof_indices, cell_rhs);
+
+    for (const unsigned int i : fe_values.dof_indices())
       for (const unsigned int j : fe_values.dof_indices())
         dual_system_matrix.add(local_dof_indices[i], 
                           local_dof_indices[j],
                           cell_matrix(i, j)); 
-      dual_rhs(local_dof_indices[i]) += cell_rhs(i);
-    }
+    
   }
   // Apply boundary values
   std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
-
   VectorTools::interpolate_boundary_values(dual_dof_handler,1, Functions::ConstantFunction<dim>(0.), emitter_boundary_values);
-  MatrixTools::apply_boundary_values(emitter_boundary_values, dual_system_matrix, dual_solution, dual_rhs);
-
   VectorTools::interpolate_boundary_values(dual_dof_handler,2, Functions::ConstantFunction<dim>(0.), collector_boundary_values);
-  MatrixTools::apply_boundary_values(collector_boundary_values, dual_system_matrix, dual_solution, dual_rhs);
   
   // Condense constraints
   dual_constraints.condense(dual_system_matrix);
   dual_constraints.condense(dual_rhs);
+
+  MatrixTools::apply_boundary_values(emitter_boundary_values, dual_system_matrix, dual_solution, dual_rhs);
+  MatrixTools::apply_boundary_values(collector_boundary_values, dual_system_matrix, dual_solution, dual_rhs);
+
 }
 
 template <int dim>
@@ -607,29 +584,7 @@ void Problem<dim>::output_primal_results(const unsigned int cycle){
   data_out.add_data_vector(primal_solution, electric_field_postprocessor);
   data_out.add_data_vector(uh0, homogeneous_field_postprocessor);
 
-  /*
-  Tensor<1,dim> temp_grad;
-  gradRg_x.reinit(primal_dof_handler.n_dofs());
-  gradRg_y.reinit(primal_dof_handler.n_dofs());
-  std::vector<types::global_dof_index> local_dof_indices(primal_dof_handler.get_fe().dofs_per_cell);
-  for (const auto &cell : primal_dof_handler.active_cell_iterators()){
-    cell->get_dof_indices(local_dof_indices);
-    for (unsigned int v = 0; v < GeometryInfo<dim>::vertices_per_cell; ++v){
-      // Get the global DoF index corresponding to the vertex
-      // const unsigned int dof_index = cell->vertex_index(v);
-      const unsigned int dof_index = cell->vertex_dof_index(v, 0);  // 0 refers to the first component
-      // Get the coordinates of the vertex
-      const Point<dim> &vertex = cell->vertex(v);
-      // Evaluate the gradient of Rg at the vertex
-      temp_grad  = evaluate_minus_grad_Rg(vertex[0], vertex[1]);
-      gradRg_x[dof_index] = temp_grad[0];
-      gradRg_y[dof_index] = temp_grad[1];
-    }
-  }
-  data_out.add_data_vector(gradRg_x, "gradRg_x");
-  data_out.add_data_vector(gradRg_y, "gradRg_y");
-  */
-
+  
   data_out.build_patches(); // mapping
 
   std::string filename;
@@ -640,14 +595,7 @@ void Problem<dim>::output_primal_results(const unsigned int cycle){
   data_out.set_flags(vtk_flags);
   std::ofstream output(filename);
   data_out.write_vtk(output);
-
-  /* Output the mesh in .msh format (Gmsh)
-  std::ofstream out(meshName+"-"+Utilities::int_to_string(cycle, 1)+".msh");
-  GridOut grid_out;
-  grid_out.write_msh(triangulation, out);
-
-  std::cout << "Mesh saved to mesh.msh" << std::endl;
-  */
+  
 }
 
 template <int dim>
@@ -677,10 +625,8 @@ template <int dim>
 void Problem<dim>::refine_mesh(){
   // Prepare vector to store error values
   Vector<float> error_indicators(triangulation.n_active_cells());
-
   // Compute local errors and global error estimate
   double global_error = estimate_error(error_indicators);
-
   // Sum contribution of each cell's local error to get a global estimate
   double global_error_as_sum_of_cell_errors=0.0;
   for(unsigned int i=0; i<error_indicators.size(); i++)
@@ -695,32 +641,42 @@ void Problem<dim>::refine_mesh(){
   for (float &error_indicator : error_indicators) {
       error_indicator = std::fabs(error_indicator);
   }
-
+  
 	GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators, 0.8, 0); // CHANGED FROM: 0.8, 0.02
-
+  
   // Prepare the solution transfer object
   SolutionTransfer<dim> solution_transfer(primal_dof_handler);
+  
+  SolutionTransfer<dim> dual_solution_transfer(dual_dof_handler);
   // take a copy of the solution vector
-  Vector<double> old_Rg_dof_values(Rg_dof_values);  
+  Vector<double> old_Rg_dof_values(Rg_dof_values);
+  Vector<double> old_dual_Rg_dof_values(Rg_dual_dof_values); 
   // Prepare for refinement (older versions of deal.II)
   solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_dof_values);
+  dual_solution_transfer.prepare_for_coarsening_and_refinement(old_dual_Rg_dof_values);
   // Perform the refinement
   triangulation.execute_coarsening_and_refinement();
   // Reinitialize the DoFHandler for the refined mesh
   primal_dof_handler.distribute_dofs(primal_fe);
+  dual_dof_handler.distribute_dofs(dual_fe);
 
   
   // Reinitialize Rg_dof_values to match the new DoF layout after refinement
   Rg_dof_values.reinit(primal_dof_handler.n_dofs());
+  Rg_dual_dof_values.reinit(dual_dof_handler.n_dofs());
   // Transfer the old values to the new DoFs, accounting for hanging nodes
   solution_transfer.interpolate(old_Rg_dof_values, Rg_dof_values);
+  dual_solution_transfer.interpolate(old_dual_Rg_dof_values, Rg_dual_dof_values);
 
   // Handle boundary conditions again (for hanging nodes)
   std::map<types::global_dof_index, double> emitter_boundary_values;
   VectorTools::interpolate_boundary_values(primal_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), emitter_boundary_values);
   for (const auto &boundary_value : emitter_boundary_values)
     Rg_dof_values(boundary_value.first) = boundary_value.second;
-  
+  std::map<types::global_dof_index, double> dual_emitter_boundary_values;
+  VectorTools::interpolate_boundary_values(dual_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), dual_emitter_boundary_values);
+  for (const auto &boundary_value : dual_emitter_boundary_values)
+    Rg_dual_dof_values(boundary_value.first) = boundary_value.second;
 }
 
 template <int dim>
@@ -1001,7 +957,7 @@ void Problem<dim>::run()
     } else {
       // Dual ---------------    
       cout<<"   Dual:"<<endl;
-      setup_dual_system();
+      setup_dual_system(cycle);
       assemble_dual_system();
       solve_dual();
       output_dual_results(cycle);
