@@ -63,8 +63,8 @@ const double g = 0.2; // [m]
 const double mesh_height = 0.1;; // [m]
 
 std::string PATH_TO_MESH = "../mesh/rectangular_structured_mesh.msh";
-const unsigned int NUM_REFINEMENT_CYCLES = 3;
-const unsigned int NR = 7;
+const unsigned int NUM_REFINEMENT_CYCLES = 1;
+const unsigned int NR = 5; // Meglio 7 ma poi troppo lento
 
 double get_emitter_height(const double &p)
 {
@@ -139,7 +139,7 @@ public:
 private:
   void create_mesh(const std::string filename);
 
-  void setup_primal_system();
+  void setup_primal_system(unsigned int cycle);
   void setup_dual_system();
   void assemble_primal_system();
   void assemble_dual_system();
@@ -239,32 +239,29 @@ Tensor<1,2> emitter_normal(const Point<2> p) {
 	normal[0] = -9999999.;
 	normal[1] = -9999999.;  // Should produce evident weird results if it doesn't get overwritten
 
-  if(std::abs(std::abs(p[0])-L) < 1.e-8){
-    normal[0] = p[0]/std::abs(p[0]);
+  // Left vertical edges of rectangular emitter
+  if(std::abs(p[0]+L) < 1.e-8){       
+    normal[0] = -1.;
     normal[1] = 0.;
-    if(p[0] > L + 1.e-8)
+    if(p[1] > L + 1.e-8)
       cout<<"SOMETHING WRONG (x)"<<endl;
   }
-  if(std::abs(p[1]-L) < 1.e-8){
+  // Right vertical edges of rectangular emitter
+  if(std::abs(p[0]-L) < 1.e-8){       
+    normal[0] = +1.;
+    normal[1] = 0.;
+    if(p[1] > L + 1.e-8)
+      cout<<"SOMETHING WRONG (x)"<<endl;
+  }
+  // Horizontal edge of rectangular emitter
+  if(std::abs(p[1]-L) < 1.e-8){       
     normal[0] = 0.;
-    normal[1] = p[1]/std::abs(p[1]);
+    normal[1] = 1.;
     if(std::abs(std::abs(p[0])-L) < 1.e-8)
       cout<<"SOMETHING WRONG (y)"<<endl;
   }
   return normal;
-  /*
-	const double x = p[0];
-	const double left_center = X - L/2. + R;
-	const double right_center = X + L/2. - R;
-
-	if (x >= right_center)
-		normal[0] = x - right_center;
-	else if (x <= left_center)
-		normal[0] = x - left_center;
-
-	const double norm = std::sqrt(normal[0]*normal[0] + normal[1]*normal[1]); // The norm of this vector should always be nearly equal to R
-
-	return normal/norm;*/
+  
 }
 
 template <int dim>
@@ -313,7 +310,7 @@ void Problem<dim>::create_mesh(const std::string filename)
 }
 
 template <int dim>
-void Problem<dim>::setup_primal_system()
+void Problem<dim>::setup_primal_system(unsigned int cycle)
 {
   primal_dof_handler.distribute_dofs(primal_fe);
   
@@ -322,12 +319,17 @@ void Problem<dim>::setup_primal_system()
   primal_solution.reinit(primal_dof_handler.n_dofs());
   primal_rhs.reinit(primal_dof_handler.n_dofs());
 
-  // Evaluate Rg on DoF
-  Rg_dof_values.reinit(primal_dof_handler.n_dofs());
-  std::map<types::global_dof_index, double> emitter_boundary_values; 
-  VectorTools::interpolate_boundary_values(primal_dof_handler,1, Functions::ConstantFunction<dim>(20000.), emitter_boundary_values);
-  for (const auto &boundary_value : emitter_boundary_values)
-    Rg_dof_values(boundary_value.first) = boundary_value.second;
+  if (cycle == 0){
+    // Initialize Rg_dof_values for the first time
+    Rg_dof_values.reinit(primal_dof_handler.n_dofs());
+
+    // Interpolate boundary values only once
+    std::map<types::global_dof_index, double> emitter_boundary_values;
+    VectorTools::interpolate_boundary_values(primal_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), emitter_boundary_values);
+
+    for (const auto &boundary_value : emitter_boundary_values)
+      Rg_dof_values(boundary_value.first) = boundary_value.second;
+  }
 
   primal_constraints.clear();
 	DoFTools::make_hanging_node_constraints(primal_dof_handler, primal_constraints);
@@ -381,8 +383,7 @@ void Problem<dim>::setup_dual_system()
 }
 
 template <int dim>
-void Problem<dim>::assemble_primal_system()
-{
+void Problem<dim>::assemble_primal_system(){
 	const QGauss <dim> quadrature(primal_fe.degree + 1);
   FEValues<dim> fe_values(primal_fe,
                           quadrature,
@@ -457,8 +458,7 @@ void Problem<dim>::assemble_primal_system()
 }
 
 template <int dim>
-void Problem<dim>::assemble_dual_system()
-{
+void Problem<dim>::assemble_dual_system(){
   FEValues<dim> fe_values(dual_fe,
                           dual_quadrature,
                           update_gradients | update_quadrature_points | update_JxW_values);
@@ -532,8 +532,7 @@ void Problem<dim>::assemble_dual_system()
 }
 
 template <int dim>
-void Problem<dim>::solve_primal()
-{
+void Problem<dim>::solve_primal(){
   // Solver setup
   const unsigned int it_max = 1e+4;
   const double rel_tol = 1.e-6*primal_rhs.l2_norm();
@@ -560,8 +559,7 @@ void Problem<dim>::solve_primal()
 }
 
 template <int dim>
-void Problem<dim>::solve_dual()
-{
+void Problem<dim>::solve_dual(){
   const unsigned int it_max = 1e+4;
   const double rel_tol = 1.e-6*dual_rhs.l2_norm();
   const double abs_tol = 1.e-12;
@@ -591,8 +589,7 @@ std::string extract_mesh_name() {
 }
 
 template <int dim>
-void Problem<dim>::output_primal_results(const unsigned int cycle)
-{
+void Problem<dim>::output_primal_results(const unsigned int cycle){
   // const Point<dim> evaluation_point(0.5*g, 0.1*g);
   // const double x = VectorTools::point_value(primal_dof_handler, primal_solution, evaluation_point);
   // cout << "   Potential at sample point (" << evaluation_point[0] << "," << evaluation_point[1] << "): " << x << endl;
@@ -699,11 +696,31 @@ void Problem<dim>::refine_mesh(){
       error_indicator = std::fabs(error_indicator);
   }
 
-	GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators, 0.8, 0.0); // CHANGED FROM: 0.8, 0.02
+	GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators, 0.8, 0); // CHANGED FROM: 0.8, 0.02
 
-  // Execute refinement
+  // Prepare the solution transfer object
+  SolutionTransfer<dim> solution_transfer(primal_dof_handler);
+  // take a copy of the solution vector
+  Vector<double> old_Rg_dof_values(Rg_dof_values);  
+  // Prepare for refinement (older versions of deal.II)
+  solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_dof_values);
+  // Perform the refinement
   triangulation.execute_coarsening_and_refinement();
-  // cout<<"      Executed coarsening and refinement"<<endl;  // redundant message
+  // Reinitialize the DoFHandler for the refined mesh
+  primal_dof_handler.distribute_dofs(primal_fe);
+
+  
+  // Reinitialize Rg_dof_values to match the new DoF layout after refinement
+  Rg_dof_values.reinit(primal_dof_handler.n_dofs());
+  // Transfer the old values to the new DoFs, accounting for hanging nodes
+  solution_transfer.interpolate(old_Rg_dof_values, Rg_dof_values);
+
+  // Handle boundary conditions again (for hanging nodes)
+  std::map<types::global_dof_index, double> emitter_boundary_values;
+  VectorTools::interpolate_boundary_values(primal_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), emitter_boundary_values);
+  for (const auto &boundary_value : emitter_boundary_values)
+    Rg_dof_values(boundary_value.first) = boundary_value.second;
+  
 }
 
 template <int dim>
@@ -969,7 +986,7 @@ void Problem<dim>::run()
 
     // Primal --------------
 		cout<<"   Primal:"<<endl;
-		setup_primal_system();
+		setup_primal_system(cycle);
 		assemble_primal_system();
 		solve_primal();
 		output_primal_results(cycle);
