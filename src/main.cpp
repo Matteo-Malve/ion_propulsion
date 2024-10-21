@@ -63,8 +63,8 @@ const double g = 0.2; // [m]
 const double mesh_height = 0.1;; // [m]
 
 std::string PATH_TO_MESH = "../mesh/rectangular_structured_mesh.msh";
-const unsigned int NUM_REFINEMENT_CYCLES = 4;
-const unsigned int NR = 7; // Meglio 7 ma poi troppo lento
+const unsigned int NUM_REFINEMENT_CYCLES = 2;
+const unsigned int NR = 2; // Meglio 7 ma poi troppo lento
 
 double get_emitter_height(const double &p)
 {
@@ -214,14 +214,14 @@ Tensor<1,2> emitter_normal(const Point<2> p) {
 
   // Left vertical edges of rectangular emitter
   if(std::abs(p[0]+L) < 1.e-8){       
-    normal[0] = -1.;
+    normal[0] = +1.;
     normal[1] = 0.;
     if(p[1] > L + 1.e-8)
       cout<<"SOMETHING WRONG (x)"<<endl;
   }
   // Right vertical edges of rectangular emitter
   if(std::abs(p[0]-L) < 1.e-8){       
-    normal[0] = +1.;
+    normal[0] = -1.;
     normal[1] = 0.;
     if(p[1] > L + 1.e-8)
       cout<<"SOMETHING WRONG (x)"<<endl;
@@ -229,7 +229,7 @@ Tensor<1,2> emitter_normal(const Point<2> p) {
   // Horizontal edge of rectangular emitter
   if(std::abs(p[1]-L) < 1.e-8){       
     normal[0] = 0.;
-    normal[1] = 1.;
+    normal[1] = -1.;
     if(std::abs(std::abs(p[0])-L) < 1.e-8)
       cout<<"SOMETHING WRONG (y)"<<endl;
   }
@@ -595,7 +595,7 @@ void Problem<dim>::output_primal_results(const unsigned int cycle){
   data_out.set_flags(vtk_flags);
   std::ofstream output(filename);
   data_out.write_vtk(output);
-  
+
 }
 
 template <int dim>
