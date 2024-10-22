@@ -63,8 +63,8 @@ const double g = 0.2; // [m]
 const double mesh_height = 0.1;; // [m]
 
 std::string PATH_TO_MESH = "../mesh/rectangular_structured_mesh.msh";
-const unsigned int NUM_REFINEMENT_CYCLES = 2;
-const unsigned int NR = 2; // Meglio 7 ma poi troppo lento
+const unsigned int NUM_REFINEMENT_CYCLES = 4;
+const unsigned int NR = 5; // Meglio 7 ma poi troppo lento
 
 double get_emitter_height(const double &p)
 {
@@ -209,8 +209,8 @@ Tensor<1,2> emitter_normal(const Point<2> p) {
 	// with circular edges of radius R centered in [-R,0] and in [-L+R,0]
 
 	Tensor<1,2> normal;
-	normal[0] = -9999999.;
-	normal[1] = -9999999.;  // Should produce evident weird results if it doesn't get overwritten
+	normal[0] = -0.;
+	normal[1] = -0.;  // Should produce evident weird results if it doesn't get overwritten
 
   // Left vertical edges of rectangular emitter
   if(std::abs(p[0]+L) < 1.e-8){       
@@ -441,8 +441,14 @@ void Problem<dim>::assemble_dual_system(){
                           dual_quadrature,
                           update_gradients | update_quadrature_points | update_JxW_values);
 
+  const QGauss<dim-1> face_quadrature(dual_quadrature.size());
+  FEFaceValues<dim> fe_face_values(dual_fe,
+                                   face_quadrature,
+                                   update_gradients | update_normal_vectors | update_JxW_values);
+
+
   const unsigned int dofs_per_cell = dual_fe.n_dofs_per_cell();
-  const unsigned int n_q_points = dual_quadrature.size();
+  const unsigned int n_face_q_points = face_quadrature.size();
 
   FullMatrix<double> cell_matrix(dofs_per_cell, dofs_per_cell);
   Vector<double> cell_rhs(dofs_per_cell);
@@ -465,22 +471,20 @@ void Problem<dim>::assemble_dual_system(){
 
     // Compute RHS
     for (const auto &face: cell->face_iterators())
-      if (face->at_boundary()) 
-        if (face->boundary_id() == 1) {
-          cell_rhs = 0;
-          fe_values.reinit(cell);
+      if (face->at_boundary() && face->boundary_id() == 1) {
+        fe_face_values.reinit(cell,face);
 
-          // Retrieve the components of the normal vector to the boundary face
-          Tensor<1, dim> n = emitter_normal(face->center());
+        /* Retrieve the components of the normal vector to the boundary face
+        Tensor<1, dim> n = emitter_normal(face->center());
+        cout<<"Cell ID: "<<cell->active_cell_index()<<"  |  n = [ "<<n[0]<<" , "<<n[1]<<" ]"<<endl;*/
 
-          // Compute the flux for this cell
-          for (unsigned int q = 0; q < n_q_points; ++q) 
-            for (unsigned int i = 0; i < dofs_per_cell; ++i) {
-              for (unsigned int k = 0; k < dim; ++k) 
-                cell_rhs[i] += fe_values.shape_grad(i, q)[k] * (-n[k]);
-              cell_rhs[i] *= fe_values.JxW(q);
-            }
-        }
+        // Compute the flux for this cell
+        for (unsigned int q_point = 0; q_point < n_face_q_points; ++q_point)
+          for (unsigned int i = 0; i < dofs_per_cell; ++i) 
+            cell_rhs(i) +=  fe_face_values.shape_grad(i, q_point) *       // grad_phi_i
+                            (-fe_face_values.normal_vector(q_point)) *    // - normal_vector (inwards)
+                            fe_face_values.JxW(q_point);                  // d(gamma)
+    }
     
     // Local to global
     cell->get_dof_indices(local_dof_indices);
@@ -495,16 +499,15 @@ void Problem<dim>::assemble_dual_system(){
     
   }
   // Apply boundary values
-  std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
-  VectorTools::interpolate_boundary_values(dual_dof_handler,1, Functions::ConstantFunction<dim>(0.), emitter_boundary_values);
-  VectorTools::interpolate_boundary_values(dual_dof_handler,2, Functions::ConstantFunction<dim>(0.), collector_boundary_values);
+  std::map<types::global_dof_index, double> emitter_and_collector_boundary_values;
+  VectorTools::interpolate_boundary_values(dual_dof_handler,1, Functions::ZeroFunction<dim>(), emitter_and_collector_boundary_values);
+  VectorTools::interpolate_boundary_values(dual_dof_handler,2, Functions::ZeroFunction<dim>(), emitter_and_collector_boundary_values);
   
   // Condense constraints
   dual_constraints.condense(dual_system_matrix);
   dual_constraints.condense(dual_rhs);
 
-  MatrixTools::apply_boundary_values(emitter_boundary_values, dual_system_matrix, dual_solution, dual_rhs);
-  MatrixTools::apply_boundary_values(collector_boundary_values, dual_system_matrix, dual_solution, dual_rhs);
+  MatrixTools::apply_boundary_values(emitter_and_collector_boundary_values, dual_system_matrix, dual_solution, dual_rhs);
 
 }
 
