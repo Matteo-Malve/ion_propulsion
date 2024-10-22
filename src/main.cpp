@@ -256,12 +256,12 @@ void Problem<dim>::setup_primal_system()
 	primal_constraints.close();
 
   DynamicSparsityPattern dsp(primal_dof_handler.n_dofs(),primal_dof_handler.n_dofs());
-  DoFTools::make_sparsity_pattern(primal_dof_handler, dsp);
-  primal_constraints.condense(dsp);
-  /*
-  DynamicSparsityPattern dsp(primal_dof_handler.n_dofs());
-  DoFTools::make_sparsity_pattern(primal_dof_handler, dsp, primal_constraints, false);
-  */
+  DoFTools::make_sparsity_pattern(primal_dof_handler,
+                                  dsp
+                                  //,primal_constraints,
+                                  ///*keep_constrained_dofs = */ false
+                                  );
+  primal_constraints.condense(dsp);                                
   primal_sparsity_pattern.copy_from(dsp);
   primal_system_matrix.reinit(primal_sparsity_pattern);
 
@@ -424,11 +424,6 @@ void Problem<dim>::assemble_dual_system(){
     for (const auto &face: cell->face_iterators())
       if (face->at_boundary() && face->boundary_id() == 1) {
         fe_face_values.reinit(cell,face);
-
-        /* Retrieve the components of the normal vector to the boundary face
-        Tensor<1, dim> n = emitter_normal(face->center());
-        cout<<"Cell ID: "<<cell->active_cell_index()<<"  |  n = [ "<<n[0]<<" , "<<n[1]<<" ]"<<endl;*/
-
         // Compute the flux for this cell
         for (unsigned int q_point = 0; q_point < n_face_q_points; ++q_point)
           for (unsigned int i = 0; i < dofs_per_cell; ++i) 
@@ -440,30 +435,8 @@ void Problem<dim>::assemble_dual_system(){
     // Local to global
     cell->get_dof_indices(local_dof_indices);
 
-    dual_constraints.distribute_local_to_global(cell_matrix, cell_rhs, local_dof_indices, dual_system_matrix, dual_rhs);
-
-    /*dual_rhs.add(local_dof_indices, cell_rhs);
-
-    for (const unsigned int i : fe_values.dof_indices())
-      for (const unsigned int j : fe_values.dof_indices())
-        dual_system_matrix.add(local_dof_indices[i], 
-                          local_dof_indices[j],
-                          cell_matrix(i, j));*/
-    
+    dual_constraints.distribute_local_to_global(cell_matrix, cell_rhs, local_dof_indices, dual_system_matrix, dual_rhs);    
   }
-  /* Apply boundary values
-  std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
-  VectorTools::interpolate_boundary_values(dual_dof_handler,1, Functions::ZeroFunction<dim>(), emitter_boundary_values);
-  VectorTools::interpolate_boundary_values(dual_dof_handler,2, Functions::ZeroFunction<dim>(), collector_boundary_values);
-  
-  // Condense constraints
-  //dual_constraints.condense(dual_system_matrix);
-  //dual_constraints.condense(dual_rhs);
-
-  MatrixTools::apply_boundary_values(emitter_boundary_values, dual_system_matrix, dual_solution, dual_rhs);
-  MatrixTools::apply_boundary_values(collector_boundary_values, dual_system_matrix, dual_solution, dual_rhs);*/
-
-
 }
 
 template <int dim>
@@ -767,20 +740,8 @@ void Problem<dim>::SIMPLE_setup_system()
   primal_solution.reinit(primal_dof_handler.n_dofs());
   primal_rhs.reinit(primal_dof_handler.n_dofs());
  
-  primal_constraints.clear();   // clear from previous cycle
-
+  primal_constraints.clear(); 
   DoFTools::make_hanging_node_constraints(primal_dof_handler, primal_constraints);
-	/* Alternative: Impose BCs as AffineConstraints rather than mapping
-	
-  VectorTools::interpolate_boundary_values(primal_dof_handler,
-                                           types::boundary_id(1),
-                                           Functions::ConstantFunction<dim>(20000.),
-                                           primal_constraints);
-  VectorTools::interpolate_boundary_values(primal_dof_handler,
-                                           types::boundary_id(2),
-                                           Functions::ZeroFunction<dim>(),
-                                           primal_constraints);               */                          
- 
   primal_constraints.close();
  
   DynamicSparsityPattern dsp(primal_dof_handler.n_dofs());
