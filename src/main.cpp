@@ -203,40 +203,6 @@ public:
     }
 };
 
-
-Tensor<1,2> emitter_normal(const Point<2> p) {
-	//Compute the normal at point p of a circular emitter of length L
-	// with circular edges of radius R centered in [-R,0] and in [-L+R,0]
-
-	Tensor<1,2> normal;
-	normal[0] = -0.;
-	normal[1] = -0.;  // Should produce evident weird results if it doesn't get overwritten
-
-  // Left vertical edges of rectangular emitter
-  if(std::abs(p[0]+L) < 1.e-8){       
-    normal[0] = +1.;
-    normal[1] = 0.;
-    if(p[1] > L + 1.e-8)
-      cout<<"SOMETHING WRONG (x)"<<endl;
-  }
-  // Right vertical edges of rectangular emitter
-  if(std::abs(p[0]-L) < 1.e-8){       
-    normal[0] = -1.;
-    normal[1] = 0.;
-    if(p[1] > L + 1.e-8)
-      cout<<"SOMETHING WRONG (x)"<<endl;
-  }
-  // Horizontal edge of rectangular emitter
-  if(std::abs(p[1]-L) < 1.e-8){       
-    normal[0] = 0.;
-    normal[1] = -1.;
-    if(std::abs(std::abs(p[0])-L) < 1.e-8)
-      cout<<"SOMETHING WRONG (y)"<<endl;
-  }
-  return normal;
-  
-}
-
 template <int dim>
 Problem<dim>::Problem()
   : primal_fe(1)
