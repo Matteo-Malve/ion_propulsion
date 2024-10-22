@@ -64,29 +64,7 @@ const double mesh_height = 0.1;; // [m]
 
 std::string PATH_TO_MESH = "../mesh/rectangular_structured_mesh.msh";
 const unsigned int NUM_REFINEMENT_CYCLES = 4;
-const unsigned int NR = 5; // Meglio 7 ma poi troppo lento
-
-double get_emitter_height(const double &p)
-{
-	if (p <= X-L/2. || p >= X+L/2.)
-		return 0.;
-
-	double y = 0;
-	double x = 0;
-
-	const double left_center = X - L/2. + R;
-	const double right_center = X + L/2. - R;
-
-	if (p <= left_center)
-		x = p - left_center;
-	else if (p >= right_center)
-		x = p - right_center;
-
-	x /= R;
-	y = R*std::sqrt( 1. - x * x);
-
-	return y;
-}
+const unsigned int NR = 3; // Meglio 7 ma poi troppo lento
 
 template <int dim>
 class RightHandSide : public Function<dim>
@@ -112,14 +90,14 @@ public:
 private:
   void create_mesh(const std::string filename);
 
-  void setup_primal_system(unsigned int cycle);
-  void setup_dual_system(unsigned int cycle);
+  void setup_primal_system();
+  void setup_dual_system();
   void assemble_primal_system();
   void assemble_dual_system();
   void solve_primal();
   void solve_dual();
-  void output_primal_results(const unsigned int cycle);
-  void output_dual_results(const unsigned int cycle);
+  void output_primal_results();
+  void output_dual_results();
 
   double estimate_error(Vector<float> &error_indicators) const;
   void refine_mesh();
@@ -127,7 +105,7 @@ private:
 	void SIMPLE_setup_system();
   void SIMPLE_assemble_system();
   void SIMPLE_solve();
-  void SIMPLE_output_results(const unsigned int cycle) const;
+  void SIMPLE_output_results() const;
 
   Triangulation<dim> triangulation;
 
@@ -160,6 +138,8 @@ private:
   RightHandSide<dim> rhs_function; // At the moment, this is equivalent to Functions::ZeroFunction<dim>()
 
   Timer timer;
+
+  unsigned int cycle = 0;
 
   class ElectricFieldPostprocessor;
   class IonizationAreaPostprocessor;
@@ -210,6 +190,7 @@ Problem<dim>::Problem()
   , dual_quadrature(dual_fe.degree + 1)
   , primal_dof_handler(triangulation)
   , dual_dof_handler(triangulation)
+  , cycle(0)
   //, mapping()
 {}
 
@@ -249,7 +230,7 @@ void Problem<dim>::create_mesh(const std::string filename)
 }
 
 template <int dim>
-void Problem<dim>::setup_primal_system(unsigned int cycle)
+void Problem<dim>::setup_primal_system()
 {
   primal_dof_handler.distribute_dofs(primal_fe);
   
@@ -289,9 +270,10 @@ void Problem<dim>::setup_primal_system(unsigned int cycle)
 }
 
 template <int dim>
-void Problem<dim>::setup_dual_system(unsigned int cycle)
-{
+void Problem<dim>::setup_dual_system()
+{ 
   dual_dof_handler.distribute_dofs(dual_fe);
+
 
   dual_solution.reinit(dual_dof_handler.n_dofs());
   dual_rhs.reinit(dual_dof_handler.n_dofs());
@@ -310,15 +292,18 @@ void Problem<dim>::setup_dual_system(unsigned int cycle)
 
   dual_constraints.clear();
 	DoFTools::make_hanging_node_constraints(dual_dof_handler, dual_constraints);
+  VectorTools::interpolate_boundary_values(dual_dof_handler,
+                                           types::boundary_id(1),
+                                           Functions::ZeroFunction<dim>(),
+                                           dual_constraints);
+  VectorTools::interpolate_boundary_values(dual_dof_handler,
+                                           types::boundary_id(2),
+                                           Functions::ZeroFunction<dim>(),
+                                           dual_constraints);                                         
 	dual_constraints.close();
 
-  //DynamicSparsityPattern dsp(dual_dof_handler.n_dofs());
-  //DoFTools::make_sparsity_pattern(dual_dof_handler, dsp, dual_constraints, false);
-  //dual_sparsity_pattern.copy_from(dsp);
-
   DynamicSparsityPattern dsp(dual_dof_handler.n_dofs(),dual_dof_handler.n_dofs());
-  DoFTools::make_sparsity_pattern(dual_dof_handler, dsp);
-  dual_constraints.condense(dsp);
+  DoFTools::make_sparsity_pattern(dual_dof_handler, dsp, dual_constraints, false);
 
   dual_sparsity_pattern.copy_from(dsp);
   dual_system_matrix.reinit(dual_sparsity_pattern);
@@ -455,25 +440,29 @@ void Problem<dim>::assemble_dual_system(){
     // Local to global
     cell->get_dof_indices(local_dof_indices);
 
-    dual_rhs.add(local_dof_indices, cell_rhs);
+    dual_constraints.distribute_local_to_global(cell_matrix, cell_rhs, local_dof_indices, dual_system_matrix, dual_rhs);
+
+    /*dual_rhs.add(local_dof_indices, cell_rhs);
 
     for (const unsigned int i : fe_values.dof_indices())
       for (const unsigned int j : fe_values.dof_indices())
         dual_system_matrix.add(local_dof_indices[i], 
                           local_dof_indices[j],
-                          cell_matrix(i, j)); 
+                          cell_matrix(i, j));*/
     
   }
-  // Apply boundary values
-  std::map<types::global_dof_index, double> emitter_and_collector_boundary_values;
-  VectorTools::interpolate_boundary_values(dual_dof_handler,1, Functions::ZeroFunction<dim>(), emitter_and_collector_boundary_values);
-  VectorTools::interpolate_boundary_values(dual_dof_handler,2, Functions::ZeroFunction<dim>(), emitter_and_collector_boundary_values);
+  /* Apply boundary values
+  std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
+  VectorTools::interpolate_boundary_values(dual_dof_handler,1, Functions::ZeroFunction<dim>(), emitter_boundary_values);
+  VectorTools::interpolate_boundary_values(dual_dof_handler,2, Functions::ZeroFunction<dim>(), collector_boundary_values);
   
   // Condense constraints
-  dual_constraints.condense(dual_system_matrix);
-  dual_constraints.condense(dual_rhs);
+  //dual_constraints.condense(dual_system_matrix);
+  //dual_constraints.condense(dual_rhs);
 
-  MatrixTools::apply_boundary_values(emitter_and_collector_boundary_values, dual_system_matrix, dual_solution, dual_rhs);
+  MatrixTools::apply_boundary_values(emitter_boundary_values, dual_system_matrix, dual_solution, dual_rhs);
+  MatrixTools::apply_boundary_values(collector_boundary_values, dual_system_matrix, dual_solution, dual_rhs);*/
+
 
 }
 
@@ -521,6 +510,7 @@ void Problem<dim>::solve_dual(){
   solver.solve(dual_system_matrix, dual_solution, dual_rhs, preconditioner);
 
   dual_constraints.distribute(dual_solution);
+
   cout<<"      Solved system: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<endl;
 }
 
@@ -535,15 +525,10 @@ std::string extract_mesh_name() {
 }
 
 template <int dim>
-void Problem<dim>::output_primal_results(const unsigned int cycle){
-  // const Point<dim> evaluation_point(0.5*g, 0.1*g);
-  // const double x = VectorTools::point_value(primal_dof_handler, primal_solution, evaluation_point);
-  // cout << "   Potential at sample point (" << evaluation_point[0] << "," << evaluation_point[1] << "): " << x << endl;
+void Problem<dim>::output_primal_results(){
 
 	ElectricFieldPostprocessor electric_field_postprocessor;
   HomogeneousFieldPostprocessor homogeneous_field_postprocessor;
-
-  
 
   DataOut<dim> data_out;
   data_out.attach_dof_handler(primal_dof_handler);
@@ -552,7 +537,6 @@ void Problem<dim>::output_primal_results(const unsigned int cycle){
 	data_out.add_data_vector(Rg_dof_values, "Rg");
   data_out.add_data_vector(primal_solution, electric_field_postprocessor);
   data_out.add_data_vector(uh0, homogeneous_field_postprocessor);
-
   
   data_out.build_patches(); // mapping
 
@@ -568,7 +552,7 @@ void Problem<dim>::output_primal_results(const unsigned int cycle){
 }
 
 template <int dim>
-void Problem<dim>::output_dual_results(const unsigned int cycle)
+void Problem<dim>::output_dual_results()
 {
 	ElectricFieldPostprocessor electric_field_postprocessor;
 
@@ -576,7 +560,12 @@ void Problem<dim>::output_dual_results(const unsigned int cycle)
   data_out.attach_dof_handler(dual_dof_handler);
   data_out.add_data_vector(dual_solution, "Potential");
   data_out.add_data_vector(dual_solution, electric_field_postprocessor);
-  data_out.build_patches(); // mapping
+  Vector<double> constraint_indicator(dual_dof_handler.n_dofs());
+  for (unsigned int i = 0; i < dual_dof_handler.n_dofs(); ++i)
+    constraint_indicator(i) = dual_constraints.is_constrained(i) ? 1.0 : 0.0;
+
+  data_out.add_data_vector(constraint_indicator, "constraints");
+  data_out.build_patches(5); // mapping
 
   std::string filename;
   std::string meshName = extract_mesh_name();
@@ -686,7 +675,6 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
 
   // ------------------------------------------------------------      
   // LOCAL ESTIMATE: integrate over cells
-
   FEValues<dim> fe_values(dual_fe,
                           dual_quadrature,
                           update_gradients | update_quadrature_points | update_JxW_values);
@@ -881,7 +869,7 @@ void Problem<dim>::SIMPLE_solve()
 }
 
 template <int dim>
-void Problem<dim>::SIMPLE_output_results(const unsigned int cycle) const
+void Problem<dim>::SIMPLE_output_results() const
 {
   ElectricFieldPostprocessor electric_field_postprocessor;
   DataOut<dim> data_out;
@@ -904,17 +892,17 @@ void Problem<dim>::run()
   create_mesh(PATH_TO_MESH);
 
   // Cycles for refinement
-	unsigned int cycle = 0;
+	
 	while (cycle <= NUM_REFINEMENT_CYCLES) {
     cout << endl << "Cycle " << cycle << ':' << endl;
     std::cout << "   Number of active cells:       "<< triangulation.n_active_cells() << std::endl;
 
     // Primal --------------
 		cout<<"   Primal:"<<endl;
-		setup_primal_system(cycle);
+		setup_primal_system();
 		assemble_primal_system();
 		solve_primal();
-		output_primal_results(cycle);
+		output_primal_results();
 
     // --------------------  
     if(cycle==NUM_REFINEMENT_CYCLES){
@@ -922,14 +910,14 @@ void Problem<dim>::run()
       SIMPLE_setup_system();
       SIMPLE_assemble_system();
       SIMPLE_solve();
-      SIMPLE_output_results(cycle);
+      SIMPLE_output_results();
     } else {
       // Dual ---------------    
       cout<<"   Dual:"<<endl;
-      setup_dual_system(cycle);
+      setup_dual_system();
       assemble_dual_system();
       solve_dual();
-      output_dual_results(cycle);
+      output_dual_results();
       cout<<"   Error estimation and Mesh refinement:"<<endl;
       refine_mesh();
     }
