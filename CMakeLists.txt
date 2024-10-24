@@ -9,13 +9,17 @@ project(ion-propulsion)
 
 #--------------------------------------------------
 
-include_directories(src)
+include_directories(src, include)
 
 #set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/results)
 #set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/results)
 #set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build)
 
 set(SOURCE_FILES
+    src/global.cpp
+    src/utilities.cpp
+    src/dual_functional.cpp
+    src/problem.cpp
     src/main.cpp
 )
 
