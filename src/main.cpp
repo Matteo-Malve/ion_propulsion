@@ -64,7 +64,7 @@ const double mesh_height = 0.1;; // [m]
 
 std::string PATH_TO_MESH = "../mesh/rectangular_structured_mesh.msh";
 const unsigned int NUM_REFINEMENT_CYCLES = 4;
-const unsigned int NR = 3; // Meglio 7 ma poi troppo lento
+const unsigned int NUM_PRELIMINARY_REF = 4; // Meglio 7 ma poi troppo lento
 
 template <int dim>
 class RightHandSide : public Function<dim>
@@ -205,7 +205,7 @@ void Problem<dim>::create_mesh(const std::string filename)
 
 
 
-  for (unsigned int i = 0; i < NR; ++i) {
+  for (unsigned int i = 0; i < NUM_PRELIMINARY_REF; ++i) {
 		Vector<float> criteria(triangulation.n_active_cells());
 		cout  << "Active cells " << triangulation.n_active_cells() << endl;
 		unsigned int ctr = 0;
@@ -213,7 +213,7 @@ void Problem<dim>::create_mesh(const std::string filename)
     // Threshold
     const double max_thickness = 2. * L;
     const double min_thickness = 1.05 * L;
-    const double D = min_thickness + (max_thickness-min_thickness)/(NR-1)*(NR-1-i);
+    const double D = min_thickness + (max_thickness-min_thickness)/(NUM_PRELIMINARY_REF-1)*(NUM_PRELIMINARY_REF-1-i);
     cout<<"D = "<<D<<endl;
 
 		for (auto &cell : triangulation.active_cell_iterators()) {                
@@ -291,19 +291,12 @@ void Problem<dim>::setup_dual_system()
   }
 
   dual_constraints.clear();
-	DoFTools::make_hanging_node_constraints(dual_dof_handler, dual_constraints);
-  VectorTools::interpolate_boundary_values(dual_dof_handler,
-                                           types::boundary_id(1),
-                                           Functions::ZeroFunction<dim>(),
-                                           dual_constraints);
-  VectorTools::interpolate_boundary_values(dual_dof_handler,
-                                           types::boundary_id(2),
-                                           Functions::ZeroFunction<dim>(),
-                                           dual_constraints);                                         
+	DoFTools::make_hanging_node_constraints(dual_dof_handler, dual_constraints);                   
 	dual_constraints.close();
 
   DynamicSparsityPattern dsp(dual_dof_handler.n_dofs(),dual_dof_handler.n_dofs());
-  DoFTools::make_sparsity_pattern(dual_dof_handler, dsp, dual_constraints, false);
+  DoFTools::make_sparsity_pattern(dual_dof_handler, dsp);
+  dual_constraints.condense(dsp);
 
   dual_sparsity_pattern.copy_from(dsp);
   dual_system_matrix.reinit(dual_sparsity_pattern);
@@ -387,29 +380,259 @@ void Problem<dim>::assemble_primal_system(){
 }
 
 template <int dim>
+class DualFunctionalBase : public Subscriptor{
+public:
+  virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
+                            Vector<double>        &rhs) const = 0;
+};
+
+template <int dim>
+class PointValueEvaluation : public DualFunctionalBase<dim>{
+public:
+  PointValueEvaluation(const Point<dim> &evaluation_point);
+  virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
+                            Vector<double>        &rhs) const override;
+  DeclException1(
+    ExcEvaluationPointNotFound,
+    Point<dim>,
+    << "The evaluation point " << arg1
+    << " was not found among the vertices of the present grid.");
+protected:
+  const Point<dim> evaluation_point;
+};
+
+template <int dim>
+PointValueEvaluation<dim>::PointValueEvaluation(const Point<dim> &evaluation_point): evaluation_point(evaluation_point)
+{}
+
+template <int dim>
+void PointValueEvaluation<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler,Vector<double> &rhs) const
+{
+  rhs.reinit(dof_handler.n_dofs());
+  for(const auto &cell : dof_handler.active_cell_iterators())
+    for(const auto vertex : cell->vertex_indices())
+      if(cell->vertex(vertex).distance(evaluation_point) < cell->diameter() * 1e-8){
+        rhs(cell->vertex_dof_index(vertex, 0)) = 1;
+        return; 
+      }
+  AssertThrow(false, ExcEvaluationPointNotFound(evaluation_point));
+}
+
+template <int dim>
+class BoundaryFluxEvaluation : public DualFunctionalBase<dim> {
+public:
+  BoundaryFluxEvaluation(const unsigned int boundary_id);
+  virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
+                            Vector<double>        &rhs) const override;
+
+protected:
+  const unsigned int boundary_id;
+};
+
+template <int dim>
+BoundaryFluxEvaluation<dim>::BoundaryFluxEvaluation(const unsigned int boundary_id)
+  : boundary_id(boundary_id)
+{}
+
+template <int dim>
+void BoundaryFluxEvaluation<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler, Vector<double> &rhs) const {
+  // Set up:
+  rhs.reinit(dof_handler.n_dofs());
+  // Quadrature
+  const QGauss<dim>          quadrature(dof_handler.get_fe().degree + 1);
+  const QGauss<dim-1>        face_quadrature(dof_handler.get_fe().degree + 1);  
+  // Finite elements
+  FEValues<dim>       fe_values(dof_handler.get_fe(),
+                                quadrature,
+                                update_gradients | update_quadrature_points | update_JxW_values);
+  FEFaceValues<dim>   fe_face_values(dof_handler.get_fe(), 
+                                     face_quadrature,
+                                     update_gradients | update_normal_vectors | update_JxW_values);
+  /*
+  const unsigned int dofs_per_cell = fe_face_values.get_fe().n_dofs_per_cell();
+  const unsigned int n_face_q_points = face_quadrature.size();
+  std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
+  Vector<double> cell_rhs(dofs_per_cell);
+
+  // Loop over all cells
+  for (const auto &cell : dof_handler.active_cell_iterators()) {
+    cell_rhs = 0;
+
+    // Loop over all faces of the cell
+    for (const auto &face : cell->face_iterators()) {
+      if (face->at_boundary() && face->boundary_id() == boundary_id) {
+        fe_face_values.reinit(cell, face);
+
+        // Compute flux for this cell
+        for (unsigned int q_point = 0; q_point < n_face_q_points; ++q_point) {
+          for (unsigned int i = 0; i < dofs_per_cell; ++i) {
+            cell_rhs(i) += fe_face_values.shape_grad(i, q_point) *      // grad_phi_i
+                           (-fe_face_values.normal_vector(q_point)) *   // - normal_vector (inwards)
+                           fe_face_values.JxW(q_point);                 // d(gamma)
+          }
+        }
+      }
+    }
+
+    // Distribute local to global
+    cell->get_dof_indices(local_dof_indices);
+    for (unsigned int i = 0; i < dofs_per_cell; ++i) {
+      rhs(local_dof_indices[i]) += cell_rhs(i);
+    }
+  }*/
+  
+  const unsigned int n_q_points = quadrature.size();
+  const unsigned int dofs_per_cell = dof_handler.get_fe().n_dofs_per_cell();
+  Vector<double>     cell_rhs(dofs_per_cell);
+  std::vector<unsigned int> local_dof_indices(dofs_per_cell);
+
+  // Loop over all cells and mark those belonging to the first foil around the emitter
+  for (const auto &cell : dof_handler.active_cell_iterators()) {
+    fe_values.reinit(cell);
+    for (const auto &face: cell->face_iterators())
+      if (face->at_boundary()) {
+        const Point <dim> &face_center = face->center();
+        if (face_center[1] < 1.0000001 * L   &&    std::abs(face_center[0]) < 1.0000001 * L) {
+          fe_face_values.reinit(cell, face);
+          cell->set_material_id(15);
+        }
+      }
+  }
+
+  // Now loop only on the previously marked cells
+  for (const auto &cell : dof_handler.active_cell_iterators()) {
+    bool flag = false;
+    // Check if cell is of interest
+    for (const auto &face: cell->face_iterators())
+      if (face->at_boundary()    &&    face->center()[1] < 1.0000001 * L   &&    std::abs(face->center()[0]) < 1.0000001 * L)
+        flag = true;
+    // Cell passed the test
+    if (flag) {
+      cell_rhs = 0;
+      fe_values.reinit(cell);
+      // [FEFaceValues] Retrieve the components of the normal vector to the boundary face
+      Tensor<1, dim> n;
+      for (const auto &face: cell->face_iterators())
+        if (face->at_boundary())
+          if (face->at_boundary()    &&    face->center()[1] < 1.0000001 * L   &&    std::abs(face->center()[0]) < 1.0000001 * L) {
+              fe_face_values.reinit(cell, face);
+              n = fe_face_values.normal_vector(0);
+            }    
+      // [FEValues] Compute the flux for this cell
+      for (unsigned int q = 0; q < n_q_points; ++q) {
+        for (unsigned int i = 0; i < dofs_per_cell; ++i) {
+          for (unsigned int k = 0; k < dim; ++k) {
+              cell_rhs[i] += fe_values.shape_grad(i, q)[k] * (-n[k]);
+          }
+          cell_rhs[i] *= fe_values.JxW(q);
+        }
+      }
+      // Local to Global: sum the contribution of this cell to the rhs
+      cell->get_dof_indices(local_dof_indices);
+      rhs.add(local_dof_indices,cell_rhs);
+    }
+  }
+
+
+}
+
+template <int dim>
+class FaceBoundaryFluxEvaluation : public DualFunctionalBase<dim> {
+public:
+  FaceBoundaryFluxEvaluation(const unsigned int boundary_id);
+  virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
+                            Vector<double>        &rhs) const override;
+
+protected:
+  const unsigned int boundary_id;
+};
+
+template <int dim>
+FaceBoundaryFluxEvaluation<dim>::FaceBoundaryFluxEvaluation(const unsigned int boundary_id)
+  : boundary_id(boundary_id)
+{}
+
+template <int dim>
+void FaceBoundaryFluxEvaluation<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler, Vector<double> &rhs) const {
+  // Set up:
+  rhs.reinit(dof_handler.n_dofs());
+
+  // Quadrature
+  const QGauss<dim-1> face_quadrature(dof_handler.get_fe().degree + 1);  
+
+  // Finite elements
+  FEFaceValues<dim> fe_face_values(dof_handler.get_fe(), 
+                                   face_quadrature,
+                                   update_gradients | update_normal_vectors | update_JxW_values);
+
+  const unsigned int dofs_per_cell = dof_handler.get_fe().n_dofs_per_cell();
+  const unsigned int n_face_q_points = face_quadrature.size();
+  Vector<double> cell_rhs(dofs_per_cell);
+  std::vector<unsigned int> local_dof_indices(dofs_per_cell);
+
+  // Loop over all cells and faces
+  for (const auto &cell : dof_handler.active_cell_iterators()) {
+    cell_rhs = 0;
+
+    for (const auto &face : cell->face_iterators()) {
+      // Process only boundary faces with the specified boundary_id
+      if (face->at_boundary() && face->boundary_id() == 1) {
+        fe_face_values.reinit(cell, face);
+
+        // Compute flux for this face
+        for (unsigned int q_point = 0; q_point < n_face_q_points; ++q_point) {
+          const Tensor<1, dim> &n = fe_face_values.normal_vector(q_point);
+          
+          for (unsigned int i = 0; i < dofs_per_cell; ++i) {
+            // Sum the flux contribution from each quadrature point on the boundary
+            cell_rhs[i] += (fe_face_values.shape_grad(i, q_point) * (-n)) * fe_face_values.JxW(q_point);
+          }
+        }
+      }
+    }
+
+    // Local to global: sum the contribution of this cell to the rhs
+    cell->get_dof_indices(local_dof_indices);
+    for (unsigned int i = 0; i < dofs_per_cell; ++i)
+      rhs(local_dof_indices[i]) += cell_rhs[i];
+  }
+}
+
+
+template <int dim>
 void Problem<dim>::assemble_dual_system(){
+  // ---------------------------------------
+  // RHS
+  // ---------------------------------------
+  Point<dim> evaluation_point;
+  if (NUM_PRELIMINARY_REF == 4)
+    evaluation_point = Point<dim>(0.00025, 0.0005);  
+  else{
+    cout<<"Choose an evaluation point suitable for "<<NUM_PRELIMINARY_REF<<"initial refinements"<<endl;
+    abort();
+  }
+  //PointValueEvaluation<dim> dual_functional(evaluation_point);
+  BoundaryFluxEvaluation<dim> dual_functional(1);  // Pass boundary ID, e.g., 1
+  //FaceBoundaryFluxEvaluation<dim> dual_functional(1);  // Pass boundary ID, e.g., 1
+  dual_functional.assemble_rhs(dual_dof_handler, dual_rhs);
+
+  // ---------------------------------------
+  // MATRIX
+  // ---------------------------------------
+
   FEValues<dim> fe_values(dual_fe,
                           dual_quadrature,
                           update_gradients | update_quadrature_points | update_JxW_values);
 
-  const QGauss<dim-1> face_quadrature(dual_quadrature.size());
-  FEFaceValues<dim> fe_face_values(dual_fe,
-                                   face_quadrature,
-                                   update_gradients | update_normal_vectors | update_JxW_values);
-
-
   const unsigned int dofs_per_cell = dual_fe.n_dofs_per_cell();
-  const unsigned int n_face_q_points = face_quadrature.size();
 
   FullMatrix<double> cell_matrix(dofs_per_cell, dofs_per_cell);
-  Vector<double> cell_rhs(dofs_per_cell);
   std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
 
   for (const auto &cell : dual_dof_handler.active_cell_iterators())
   {
     fe_values.reinit(cell);
     cell_matrix = 0;
-    cell_rhs = 0;
 
     // Compute A_loc
     for (const unsigned int q_index : fe_values.quadrature_point_indices())
@@ -419,24 +642,26 @@ void Problem<dim>::assemble_dual_system(){
                   (fe_values.shape_grad(i, q_index) * // grad phi_i(x_q)
                     fe_values.shape_grad(j, q_index) * // grad phi_j(x_q)
                     fe_values.JxW(q_index));           // dx
-
-    // Compute RHS
-    for (const auto &face: cell->face_iterators())
-      if (face->at_boundary() && face->boundary_id() == 1) {
-        fe_face_values.reinit(cell,face);
-        // Compute the flux for this cell
-        for (unsigned int q_point = 0; q_point < n_face_q_points; ++q_point)
-          for (unsigned int i = 0; i < dofs_per_cell; ++i) 
-            cell_rhs(i) +=  fe_face_values.shape_grad(i, q_point) *       // grad_phi_i
-                            (-fe_face_values.normal_vector(q_point)) *    // - normal_vector (inwards)
-                            fe_face_values.JxW(q_point);                  // d(gamma)
-    }
     
     // Local to global
     cell->get_dof_indices(local_dof_indices);
-
-    dual_constraints.distribute_local_to_global(cell_matrix, cell_rhs, local_dof_indices, dual_system_matrix, dual_rhs);    
+    for (const unsigned int i : fe_values.dof_indices())
+      for (const unsigned int j : fe_values.dof_indices())
+        dual_system_matrix.add(local_dof_indices[i], 
+                          local_dof_indices[j],
+                          cell_matrix(i, j)); 
   }
+
+  // Apply boundary values
+  std::map<types::global_dof_index, double> emitter_and_collector_boundary_values;
+  VectorTools::interpolate_boundary_values(dual_dof_handler,1, Functions::ZeroFunction<dim>(), emitter_and_collector_boundary_values);
+  VectorTools::interpolate_boundary_values(dual_dof_handler,2, Functions::ZeroFunction<dim>(), emitter_and_collector_boundary_values);
+  
+  // Condense constraints
+  dual_constraints.condense(dual_system_matrix);
+  dual_constraints.condense(dual_rhs);
+
+  MatrixTools::apply_boundary_values(emitter_and_collector_boundary_values, dual_system_matrix, dual_solution, dual_rhs);
 }
 
 template <int dim>
