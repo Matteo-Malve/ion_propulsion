@@ -754,79 +754,6 @@ void Problem<dim>::output_primal_results(){
 }
 
 template <int dim>
-void Problem<dim>::output_dual_results()
-{
-	ElectricFieldPostprocessor electric_field_postprocessor;
-
-  DataOut<dim> data_out;
-  data_out.attach_dof_handler(dual_dof_handler);
-  data_out.add_data_vector(dual_solution, "zh");
-  //data_out.add_data_vector(dual_solution, electric_field_postprocessor);
-  Vector<double> constraint_indicator(dual_dof_handler.n_dofs());
-  for (unsigned int i = 0; i < dual_dof_handler.n_dofs(); ++i)
-    constraint_indicator(i) = dual_constraints.is_constrained(i) ? 1.0 : 0.0;
-
-  data_out.add_data_vector(constraint_indicator, "constraints");
-	data_out.add_data_vector(Rg_dual_dof_values, "Rg");
-	data_out.add_data_vector(primal_homogeneous_solution_on_dual_space, "uh0_hat");
-	data_out.add_data_vector(Rg_plus_uh0hat, "Rg_plus_uh0_hat");
-	data_out.add_data_vector(error_indicators, "error_indicators");
-	data_out.add_data_vector(dual_weights, "dual_weights");
-
-  data_out.build_patches(5); // mapping
-
-  std::string filename;
-  std::string meshName = extract_mesh_name();
-
-	filename =  std::string("Rg_manual") + "-" + "dual-" + meshName + "-" + Utilities::int_to_string(cycle, 1) + ".vtk";
-  DataOutBase::VtkFlags vtk_flags;
-  vtk_flags.compression_level = DataOutBase::VtkFlags::ZlibCompressionLevel::best_speed;
-  data_out.set_flags(vtk_flags);
-  std::ofstream output(filename);
-  data_out.write_vtk(output);
-}
-
-
-template <int dim>
-void Problem<dim>::refine_mesh(){  
-	GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators, 0.8, 0); // CHANGED FROM: 0.8, 0.02
-  
-  // Prepare the solution transfer object
-  SolutionTransfer<dim> solution_transfer(primal_dof_handler);
-  
-  SolutionTransfer<dim> dual_solution_transfer(dual_dof_handler);
-  // take a copy of the solution vector
-  Vector<double> old_Rg_dof_values(Rg_dof_values);
-  Vector<double> old_dual_Rg_dof_values(Rg_dual_dof_values); 
-  // Prepare for refinement (older versions of deal.II)
-  solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_dof_values);
-  dual_solution_transfer.prepare_for_coarsening_and_refinement(old_dual_Rg_dof_values);
-  // Perform the refinement
-  triangulation.execute_coarsening_and_refinement();
-  // Reinitialize the DoFHandler for the refined mesh
-  primal_dof_handler.distribute_dofs(primal_fe);
-  dual_dof_handler.distribute_dofs(dual_fe);
-
-  
-  // Reinitialize Rg_dof_values to match the new DoF layout after refinement
-  Rg_dof_values.reinit(primal_dof_handler.n_dofs());
-  Rg_dual_dof_values.reinit(dual_dof_handler.n_dofs());
-  // Transfer the old values to the new DoFs, accounting for hanging nodes
-  solution_transfer.interpolate(old_Rg_dof_values, Rg_dof_values);
-  dual_solution_transfer.interpolate(old_dual_Rg_dof_values, Rg_dual_dof_values);
-
-  // Handle boundary conditions again (for hanging nodes)
-  std::map<types::global_dof_index, double> emitter_boundary_values;
-  VectorTools::interpolate_boundary_values(primal_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), emitter_boundary_values);
-  for (const auto &boundary_value : emitter_boundary_values)
-    Rg_dof_values(boundary_value.first) = boundary_value.second;
-  std::map<types::global_dof_index, double> dual_emitter_boundary_values;
-  VectorTools::interpolate_boundary_values(dual_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), dual_emitter_boundary_values);
-  for (const auto &boundary_value : dual_emitter_boundary_values)
-    Rg_dual_dof_values(boundary_value.first) = boundary_value.second;
-}
-
-template <int dim>
 double Problem<dim>::estimate_error()
 { 
   // ------------------------------------------------------------      
@@ -841,16 +768,16 @@ double Problem<dim>::estimate_error()
                         dual_constraints,
                         primal_homogeneous_solution_on_dual_space);
 
-	Rg_dual_dof_values.reinit(dual_dof_handler.n_dofs());
+	/*Rg_dual_dof_values.reinit(dual_dof_handler.n_dofs());
   FETools::interpolate(primal_dof_handler,
                         Rg_dof_values, 
                         dual_dof_handler, 
                         dual_constraints,
-                        Rg_dual_dof_values);
+                        Rg_dual_dof_values);*/
 											
 
   dual_constraints.distribute(primal_homogeneous_solution_on_dual_space);
-	dual_constraints.distribute(Rg_dual_dof_values);
+	//dual_constraints.distribute(Rg_dual_dof_values);
 
   // Subtract from dual solution its projection on the primal solution FE space
   dual_weights.reinit(dual_dof_handler.n_dofs());
@@ -869,9 +796,17 @@ double Problem<dim>::estimate_error()
 	
   // uh0^hat + Rg
   Rg_plus_uh0hat.reinit(dual_dof_handler.n_dofs());
-  Rg_plus_uh0hat = primal_homogeneous_solution_on_dual_space;
+  /*Rg_plus_uh0hat = primal_homogeneous_solution_on_dual_space;
   Rg_plus_uh0hat += Rg_dual_dof_values;
-  dual_constraints.distribute(Rg_plus_uh0hat);
+  dual_constraints.distribute(Rg_plus_uh0hat);*/
+
+	// Beacuase Rg-dual is different, let's interpolate directly uh
+	FETools::interpolate(primal_dof_handler,
+                        primal_solution, 
+                        dual_dof_handler, 
+                        dual_constraints,
+                        Rg_plus_uh0hat);
+	dual_constraints.distribute(Rg_plus_uh0hat);
 
   // ------------------------------------------------------------      
   // LOCAL ESTIMATE: integrate over cells
@@ -893,8 +828,8 @@ double Problem<dim>::estimate_error()
   for (const auto &cell : dual_dof_handler.active_cell_iterators()){
 
     fe_values.reinit(cell);
-    fe_values.get_function_gradients(Rg_plus_uh0hat, cell_primal_gradients);
-    fe_values.get_function_gradients(dual_weights, cell_dual_gradients);
+    fe_values.get_function_gradients(Rg_plus_uh0hat, cell_primal_gradients);		// <<<< !!!
+    fe_values.get_function_gradients(dual_weights, cell_dual_gradients);				// <<<< !!!
 
     // Numerically approximate the integral of the scalar product between the gradients of the two
     sum = 0;
@@ -986,6 +921,79 @@ double Problem<dim>::estimate_error()
 
 	return global_error;
 }
+
+template <int dim>
+void Problem<dim>::output_dual_results()
+{
+	ElectricFieldPostprocessor electric_field_postprocessor;
+
+  DataOut<dim> data_out;
+  data_out.attach_dof_handler(dual_dof_handler);
+  data_out.add_data_vector(dual_solution, "zh");
+  //data_out.add_data_vector(dual_solution, electric_field_postprocessor);
+  Vector<double> constraint_indicator(dual_dof_handler.n_dofs());
+  for (unsigned int i = 0; i < dual_dof_handler.n_dofs(); ++i)
+    constraint_indicator(i) = dual_constraints.is_constrained(i) ? 1.0 : 0.0;
+
+  data_out.add_data_vector(constraint_indicator, "constraints");
+	data_out.add_data_vector(Rg_dual_dof_values, "Rg");
+	data_out.add_data_vector(primal_homogeneous_solution_on_dual_space, "uh0_hat");
+	data_out.add_data_vector(Rg_plus_uh0hat, "Rg_plus_uh0_hat");
+	data_out.add_data_vector(error_indicators, "error_indicators", DataOut<dim>::type_dof_data::type_cell_data);
+	data_out.add_data_vector(dual_weights, "dual_weights");
+
+  data_out.build_patches(5); // mapping
+
+  std::string filename;
+  std::string meshName = extract_mesh_name();
+
+	filename =  std::string("Rg_manual") + "-" + "dual-" + meshName + "-" + Utilities::int_to_string(cycle, 1) + ".vtk";
+  DataOutBase::VtkFlags vtk_flags;
+  vtk_flags.compression_level = DataOutBase::VtkFlags::ZlibCompressionLevel::best_speed;
+  data_out.set_flags(vtk_flags);
+  std::ofstream output(filename);
+  data_out.write_vtk(output);
+}
+
+template <int dim>
+void Problem<dim>::refine_mesh(){  
+	GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators, 0.6, 0); // CHANGED FROM: 0.8, 0.02
+  
+  // Prepare the solution transfer object
+  SolutionTransfer<dim> solution_transfer(primal_dof_handler);
+  
+  SolutionTransfer<dim> dual_solution_transfer(dual_dof_handler);
+  // take a copy of the solution vector
+  Vector<double> old_Rg_dof_values(Rg_dof_values);
+  Vector<double> old_dual_Rg_dof_values(Rg_dual_dof_values); 
+  // Prepare for refinement (older versions of deal.II)
+  solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_dof_values);
+  dual_solution_transfer.prepare_for_coarsening_and_refinement(old_dual_Rg_dof_values);
+  // Perform the refinement
+  triangulation.execute_coarsening_and_refinement();
+  // Reinitialize the DoFHandler for the refined mesh
+  primal_dof_handler.distribute_dofs(primal_fe);
+  dual_dof_handler.distribute_dofs(dual_fe);
+
+  
+  // Reinitialize Rg_dof_values to match the new DoF layout after refinement
+  Rg_dof_values.reinit(primal_dof_handler.n_dofs());
+  Rg_dual_dof_values.reinit(dual_dof_handler.n_dofs());
+  // Transfer the old values to the new DoFs, accounting for hanging nodes
+  solution_transfer.interpolate(old_Rg_dof_values, Rg_dof_values);
+  dual_solution_transfer.interpolate(old_dual_Rg_dof_values, Rg_dual_dof_values);
+
+  // Handle boundary conditions again (for hanging nodes)
+  std::map<types::global_dof_index, double> emitter_boundary_values;
+  VectorTools::interpolate_boundary_values(primal_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), emitter_boundary_values);
+  for (const auto &boundary_value : emitter_boundary_values)
+    Rg_dof_values(boundary_value.first) = boundary_value.second;
+  std::map<types::global_dof_index, double> dual_emitter_boundary_values;
+  VectorTools::interpolate_boundary_values(dual_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), dual_emitter_boundary_values);
+  for (const auto &boundary_value : dual_emitter_boundary_values)
+    Rg_dual_dof_values(boundary_value.first) = boundary_value.second;
+}
+
 
 template <int dim>
 void Problem<dim>::SIMPLE_setup_system()
