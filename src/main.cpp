@@ -99,7 +99,7 @@ private:
   void output_primal_results();
   void output_dual_results();
 
-  double estimate_error(Vector<float> &error_indicators) const;
+  double estimate_error();
   void refine_mesh();
 
 	void SIMPLE_setup_system();
@@ -126,6 +126,10 @@ private:
   Vector<double> Rg_dof_values;
   Vector<double> primal_solution;
   Vector<double> Rg_dual_dof_values;
+	Vector<double> error_indicators;
+	Vector<double> Rg_plus_uh0hat;
+	Vector<double> primal_homogeneous_solution_on_dual_space;
+	Vector<double> dual_weights;
   
   AffineConstraints<double> dual_constraints; // to deal with hanging nodes
 
@@ -611,8 +615,8 @@ void Problem<dim>::assemble_dual_system(){
     cout<<"Choose an evaluation point suitable for "<<NUM_PRELIMINARY_REF<<"initial refinements"<<endl;
     abort();
   }
-  //PointValueEvaluation<dim> dual_functional(evaluation_point);
-  BoundaryFluxEvaluation<dim> dual_functional(1);  // Pass boundary ID, e.g., 1
+  PointValueEvaluation<dim> dual_functional(evaluation_point);
+  //BoundaryFluxEvaluation<dim> dual_functional(1);  // Pass boundary ID, e.g., 1
   //FaceBoundaryFluxEvaluation<dim> dual_functional(1);  // Pass boundary ID, e.g., 1
   dual_functional.assemble_rhs(dual_dof_handler, dual_rhs);
 
@@ -756,13 +760,19 @@ void Problem<dim>::output_dual_results()
 
   DataOut<dim> data_out;
   data_out.attach_dof_handler(dual_dof_handler);
-  data_out.add_data_vector(dual_solution, "Potential");
-  data_out.add_data_vector(dual_solution, electric_field_postprocessor);
+  data_out.add_data_vector(dual_solution, "zh");
+  //data_out.add_data_vector(dual_solution, electric_field_postprocessor);
   Vector<double> constraint_indicator(dual_dof_handler.n_dofs());
   for (unsigned int i = 0; i < dual_dof_handler.n_dofs(); ++i)
     constraint_indicator(i) = dual_constraints.is_constrained(i) ? 1.0 : 0.0;
 
   data_out.add_data_vector(constraint_indicator, "constraints");
+	data_out.add_data_vector(Rg_dual_dof_values, "Rg");
+	data_out.add_data_vector(primal_homogeneous_solution_on_dual_space, "uh0^");
+	data_out.add_data_vector(Rg_plus_uh0hat, "Rg+uh0^");
+	data_out.add_data_vector(error_indicators, "error_indicators");
+	data_out.add_data_vector(dual_weights, "dual_weights");
+
   data_out.build_patches(5); // mapping
 
   std::string filename;
@@ -779,10 +789,7 @@ void Problem<dim>::output_dual_results()
 
 template <int dim>
 void Problem<dim>::refine_mesh(){
-  // Prepare vector to store error values
-  Vector<float> error_indicators(triangulation.n_active_cells());
-  // Compute local errors and global error estimate
-  double global_error = estimate_error(error_indicators);
+  
   // Sum contribution of each cell's local error to get a global estimate
   double global_error_as_sum_of_cell_errors=0.0;
   for(unsigned int i=0; i<error_indicators.size(); i++)
@@ -790,11 +797,10 @@ void Problem<dim>::refine_mesh(){
   global_error_as_sum_of_cell_errors = std::abs(global_error_as_sum_of_cell_errors);
 
   // Output the two derived global estimates
-  cout<<"      Global error = " <<  global_error << endl
-      <<"      Global error as sum of cells' errors = " << global_error_as_sum_of_cell_errors << endl;
+  cout<<"      Global error as sum of cells' errors = " << global_error_as_sum_of_cell_errors << endl;
 
   // Take absolute value of each error
-  for (float &error_indicator : error_indicators) {
+  for (double &error_indicator : error_indicators) {
       error_indicator = std::fabs(error_indicator);
   }
   
@@ -836,12 +842,12 @@ void Problem<dim>::refine_mesh(){
 }
 
 template <int dim>
-double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
+double Problem<dim>::estimate_error()
 { 
   // ------------------------------------------------------------      
   // PROJECTIONS: for both LOCAL and GLOBAL estimates
 
-  Vector<double> primal_homogeneous_solution_on_dual_space(dual_dof_handler.n_dofs());
+  primal_homogeneous_solution_on_dual_space.reinit(dual_dof_handler.n_dofs());
   const auto sol_size = primal_homogeneous_solution_on_dual_space.size();
   FETools::interpolate(primal_dof_handler,
                         uh0, 
@@ -849,10 +855,19 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
                         dual_constraints,
                         primal_homogeneous_solution_on_dual_space);
 
+	Rg_dual_dof_values.reinit(dual_dof_handler.n_dofs());
+  FETools::interpolate(primal_dof_handler,
+                        Rg_dof_values, 
+                        dual_dof_handler, 
+                        dual_constraints,
+                        Rg_dual_dof_values);
+											
+
   dual_constraints.distribute(primal_homogeneous_solution_on_dual_space);
+	dual_constraints.distribute(Rg_dual_dof_values);
 
   // Subtract from dual solution its projection on the primal solution FE space
-  Vector<double> dual_weights(dual_dof_handler.n_dofs());
+  dual_weights.reinit(dual_dof_handler.n_dofs());
   FETools::interpolation_difference(dual_dof_handler,
                                     dual_constraints,
                                     dual_solution,
@@ -866,13 +881,16 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const
   // ! Here we were summing up Rg and then forgetting the vector forever
 
   // uh0^hat + Rg
-  Vector<double> Rg_plus_uh0hat(dual_dof_handler.n_dofs());
+  Rg_plus_uh0hat.reinit(dual_dof_handler.n_dofs());
   Rg_plus_uh0hat = primal_homogeneous_solution_on_dual_space;
   Rg_plus_uh0hat += Rg_dual_dof_values;
   dual_constraints.distribute(Rg_plus_uh0hat);
 
   // ------------------------------------------------------------      
   // LOCAL ESTIMATE: integrate over cells
+
+	error_indicators.reinit(triangulation.n_active_cells());
+
   FEValues<dim> fe_values(dual_fe,
                           dual_quadrature,
                           update_gradients | update_quadrature_points | update_JxW_values);
@@ -1103,8 +1121,13 @@ void Problem<dim>::run()
       setup_dual_system();
       assemble_dual_system();
       solve_dual();
+
+			// Compute local errors and global error estimate
+			cout<<"   Error estimation and Mesh refinement:"<<endl;
+  		double global_error = estimate_error();
+			cout<<"      Global error = " <<  global_error << endl;
       output_dual_results();
-      cout<<"   Error estimation and Mesh refinement:"<<endl;
+
       refine_mesh();
     }
     ++cycle;
