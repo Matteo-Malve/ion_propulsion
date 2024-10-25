@@ -15,7 +15,9 @@ Problem<dim>::Problem() : primal_dof_handler(triangulation),
 
 template <int dim>
 void Problem<dim>::run() {
+  // Import mesh, perform preliminary refinements
 	create_mesh();
+
 	while (cycle <= NUM_REFINEMENT_CYCLES) {
 		cout << endl << "Cycle " << cycle << ':' << endl;
 		std::cout << "   Number of active cells:       "<< triangulation.n_active_cells() << std::endl;
@@ -40,11 +42,16 @@ void Problem<dim>::run() {
       setup_dual_system();
       assemble_dual_system();
       solve_dual();
+
+      double global_error = estimate_error();
+      cout<<"      Global error = " <<  global_error << endl;
       output_dual_results();
 
 			// Error estimation and grid refinement ---------------  
       cout<<"   Error estimation and Mesh refinement:"<<endl;
       refine_mesh();
+
+      
     }
     ++cycle;
 	}
@@ -300,8 +307,8 @@ void Problem<dim>::assemble_dual_system() {
     cout<<"Choose an evaluation point suitable for "<<NUM_PRELIMINARY_REF<<"initial refinements"<<endl;
     abort();
   }
-  //PointValueEvaluation<dim> dual_functional(evaluation_point);
-  BoundaryFluxEvaluation<dim> dual_functional(1);  // Pass boundary ID, e.g., 1
+  PointValueEvaluation<dim> dual_functional(evaluation_point);
+  //BoundaryFluxEvaluation<dim> dual_functional(1);  // Pass boundary ID, e.g., 1
   //FaceBoundaryFluxEvaluation<dim> dual_functional(1);  // Pass boundary ID, e.g., 1
   dual_functional.assemble_rhs(dual_dof_handler, dual_rhs);
 
@@ -387,7 +394,10 @@ void Problem<dim>::output_dual_results() {
     constraint_indicator(i) = dual_constraints.is_constrained(i) ? 1.0 : 0.0;
 
   data_out.add_data_vector(constraint_indicator, "constraints");
-  data_out.build_patches(5); // mapping
+  data_out.add_data_vector(Rg_plus_uh0hat, "Rg_plus_uh0hat");
+  data_out.add_data_vector(error_indicators, "error_indicators");
+  
+  data_out.build_patches(); // mapping
 
   std::string filename;
   std::string meshName = extract_mesh_name();
@@ -405,7 +415,7 @@ void Problem<dim>::output_dual_results() {
 // -----------------------------------------
 
 template <int dim>
-double Problem<dim>::estimate_error(Vector<float> &error_indicators) const{
+double Problem<dim>::estimate_error(){
 	// ------------------------------------------------------------      
   // PROJECTIONS: for both LOCAL and GLOBAL estimates
 
@@ -434,13 +444,16 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const{
   // ! Here we were summing up Rg and then forgetting the vector forever
 
   // uh0^hat + Rg
-  Vector<double> Rg_plus_uh0hat(dual_dof_handler.n_dofs());
+  Rg_plus_uh0hat.reinit(dual_dof_handler.n_dofs());
   Rg_plus_uh0hat = primal_homogeneous_solution_on_dual_space;
   Rg_plus_uh0hat += Rg_dual_dof_values;
   dual_constraints.distribute(Rg_plus_uh0hat);
 
   // ------------------------------------------------------------      
   // LOCAL ESTIMATE: integrate over cells
+
+  error_indicators.reinit(triangulation.n_active_cells());
+
   const QGauss<dim> quadrature(dual_dof_handler.get_fe().degree + 1);
   FEValues<dim> fe_values(dual_fe,
                           quadrature,
@@ -527,22 +540,17 @@ double Problem<dim>::estimate_error(Vector<float> &error_indicators) const{
 
 template <int dim>
 void Problem<dim>::refine_mesh() {
-  // Prepare vector to store error values
-  Vector<float> error_indicators(triangulation.n_active_cells());
-  // Compute local errors and global error estimate
-  double global_error = estimate_error(error_indicators);
+
   // Sum contribution of each cell's local error to get a global estimate
   double global_error_as_sum_of_cell_errors=0.0;
   for(unsigned int i=0; i<error_indicators.size(); i++)
       global_error_as_sum_of_cell_errors += error_indicators[i];
   global_error_as_sum_of_cell_errors = std::abs(global_error_as_sum_of_cell_errors);
 
-  // Output the two derived global estimates
-  cout<<"      Global error = " <<  global_error << endl
-      <<"      Global error as sum of cells' errors = " << global_error_as_sum_of_cell_errors << endl;
+  cout<<"      Global error as sum of cells' errors = " << global_error_as_sum_of_cell_errors << endl;
 
   // Take absolute value of each error
-  for (float &error_indicator : error_indicators) {
+  for (double &error_indicator : error_indicators) {
       error_indicator = std::fabs(error_indicator);
   }
   

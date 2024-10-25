@@ -3,7 +3,10 @@
 
 #include <string>
 #include <cmath>
+#include <iostream>    
 
+using std::cout;
+using std::endl;
 
 // Declare global variables using `extern`
 extern const double eps_0 ; 
@@ -27,4 +30,6 @@ extern const double mesh_height ;
 extern int NUM_REFINEMENT_CYCLES;
 extern std::string PATH_TO_MESH;
 extern const unsigned int NUM_PRELIMINARY_REF; 
+
+
 #endif

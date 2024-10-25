@@ -65,7 +65,7 @@ private:
 	void solve_dual();
 	void output_dual_results();
 
-	double estimate_error(Vector<float> &error_indicators) const;
+	double estimate_error();
 	void refine_mesh();
 
 	Triangulation<dim>            triangulation;
@@ -94,6 +94,9 @@ private:
 
 	Vector<double> 								Rg_dof_values, 
 																Rg_dual_dof_values;
+
+	Vector<double> 								Rg_plus_uh0hat, 
+																error_indicators;															
 	
 	RightHandSide<dim> 						rhs_function;
 
