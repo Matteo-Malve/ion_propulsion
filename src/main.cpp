@@ -796,17 +796,17 @@ double Problem<dim>::estimate_error()
 	
   // uh0^hat + Rg
   Rg_plus_uh0hat.reinit(dual_dof_handler.n_dofs());
-  /*Rg_plus_uh0hat = primal_homogeneous_solution_on_dual_space;
+  Rg_plus_uh0hat = primal_homogeneous_solution_on_dual_space;
   Rg_plus_uh0hat += Rg_dual_dof_values;
-  dual_constraints.distribute(Rg_plus_uh0hat);*/
+  dual_constraints.distribute(Rg_plus_uh0hat);
 
 	// Beacuase Rg-dual is different, let's interpolate directly uh
-	FETools::interpolate(primal_dof_handler,
+	/*FETools::interpolate(primal_dof_handler,
                         primal_solution, 
                         dual_dof_handler, 
                         dual_constraints,
                         Rg_plus_uh0hat);
-	dual_constraints.distribute(Rg_plus_uh0hat);
+	dual_constraints.distribute(Rg_plus_uh0hat);*/
 
   // ------------------------------------------------------------      
   // LOCAL ESTIMATE: integrate over cells
@@ -939,7 +939,7 @@ void Problem<dim>::output_dual_results()
 	data_out.add_data_vector(Rg_dual_dof_values, "Rg");
 	data_out.add_data_vector(primal_homogeneous_solution_on_dual_space, "uh0_hat");
 	data_out.add_data_vector(Rg_plus_uh0hat, "Rg_plus_uh0_hat");
-	data_out.add_data_vector(error_indicators, "error_indicators", DataOut<dim>::type_dof_data::type_cell_data);
+	data_out.add_data_vector(error_indicators, "error_indicators");
 	data_out.add_data_vector(dual_weights, "dual_weights");
 
   data_out.build_patches(5); // mapping
