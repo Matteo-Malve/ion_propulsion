@@ -10,8 +10,8 @@ template <int dim>
 Problem<dim>::Problem() : primal_dof_handler(triangulation), 
                           dual_dof_handler(triangulation),
                           primal_fe(1), 
-                          dual_fe(1), 
-                          cycle(0) {}
+                          dual_fe(2)
+                          {}
 
 template <int dim>
 void Problem<dim>::run() {
@@ -43,12 +43,14 @@ void Problem<dim>::run() {
       assemble_dual_system();
       solve_dual();
 
-      double global_error = estimate_error();
-      cout<<"      Global error = " <<  global_error << endl;
+      cout<<"   Error estimation:"<<endl;
+      estimate_error();
+
+      
+      
       output_dual_results();
 
 			// Error estimation and grid refinement ---------------  
-      cout<<"   Error estimation and Mesh refinement:"<<endl;
       refine_mesh();
 
       
@@ -99,19 +101,19 @@ void Problem<dim>::setup_primal_system() {
   
 	//Rg_vector.reinit(primal_dof_handler.n_dofs());
 	uh0.reinit(primal_dof_handler.n_dofs());
-  primal_solution.reinit(primal_dof_handler.n_dofs());
+  uh.reinit(primal_dof_handler.n_dofs());
   primal_rhs.reinit(primal_dof_handler.n_dofs());
 
   if (cycle == 0){
-    // Initialize Rg_dof_values for the first time
-    Rg_dof_values.reinit(primal_dof_handler.n_dofs());
+    // Initialize Rg_primal for the first time
+    Rg_primal.reinit(primal_dof_handler.n_dofs());
 
     // Interpolate boundary values only once
     std::map<types::global_dof_index, double> emitter_boundary_values;
     VectorTools::interpolate_boundary_values(primal_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), emitter_boundary_values);
 
     for (const auto &boundary_value : emitter_boundary_values)
-      Rg_dof_values(boundary_value.first) = boundary_value.second;
+      Rg_primal(boundary_value.first) = boundary_value.second;
   }
 
   primal_constraints.clear();
@@ -156,7 +158,7 @@ void Problem<dim>::assemble_primal_system() {
     cell_rhs = 0;
 
     // Compute gradients of Rg at quadrature points
-    fe_values.get_function_gradients(Rg_dof_values, rg_gradients);
+    fe_values.get_function_gradients(Rg_primal, rg_gradients);
 
     // Compute A_loc and rhs_loc
     for (const unsigned int q_index : fe_values.quadrature_point_indices()){ 
@@ -201,8 +203,8 @@ void Problem<dim>::assemble_primal_system() {
   primal_constraints.condense(primal_system_matrix);
   primal_constraints.condense(primal_rhs);
 
-  MatrixTools::apply_boundary_values(emitter_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
-  MatrixTools::apply_boundary_values(collector_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
+  MatrixTools::apply_boundary_values(emitter_boundary_values, primal_system_matrix, uh, primal_rhs);
+  MatrixTools::apply_boundary_values(collector_boundary_values, primal_system_matrix, uh, primal_rhs);
 
 }
 
@@ -222,13 +224,13 @@ void Problem<dim>::solve_primal() {
   preconditioner.initialize(primal_system_matrix, relaxation_parameter);
   solver.solve(primal_system_matrix, uh0, primal_rhs, preconditioner);
 
-  // uh [primal_solution]
-  primal_solution = uh0;
-  primal_solution += Rg_dof_values;
+  // uh [uh]
+  uh = uh0;
+  uh += Rg_primal;
 
   // Distribute constraints
 	primal_constraints.distribute(uh0);
-  primal_constraints.distribute(primal_solution);
+  primal_constraints.distribute(uh);
 
   cout<<"      Solved system: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<endl;
 }
@@ -240,10 +242,10 @@ void Problem<dim>::output_primal_results() {
 
   DataOut<dim> data_out;
   data_out.attach_dof_handler(primal_dof_handler);
-  data_out.add_data_vector(primal_solution, "Potential");
+  data_out.add_data_vector(uh, "Potential");
 	data_out.add_data_vector(uh0, "uh0");
-	data_out.add_data_vector(Rg_dof_values, "Rg");
-  data_out.add_data_vector(primal_solution, electric_field_postprocessor);
+	data_out.add_data_vector(Rg_primal, "Rg");
+  data_out.add_data_vector(uh, electric_field_postprocessor);
   data_out.add_data_vector(uh0, homogeneous_field_postprocessor);
   
   data_out.build_patches(); // mapping
@@ -266,19 +268,19 @@ template <int dim>
 void Problem<dim>::setup_dual_system() {
   dual_dof_handler.distribute_dofs(dual_fe);
 
-  dual_solution.reinit(dual_dof_handler.n_dofs());
+  zh.reinit(dual_dof_handler.n_dofs());
   dual_rhs.reinit(dual_dof_handler.n_dofs());
 
   if (cycle == 0){
-    // Initialize Rg_dof_values for the first time
-    Rg_dual_dof_values.reinit(dual_dof_handler.n_dofs());
+    // Initialize Rg_primal for the first time
+    Rg_dual.reinit(dual_dof_handler.n_dofs());
 
     // Interpolate boundary values only once
     std::map<types::global_dof_index, double> emitter_boundary_values;
     VectorTools::interpolate_boundary_values(dual_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), emitter_boundary_values);
 
     for (const auto &boundary_value : emitter_boundary_values)
-      Rg_dual_dof_values(boundary_value.first) = boundary_value.second;
+      Rg_dual(boundary_value.first) = boundary_value.second;
   }
 
   dual_constraints.clear();
@@ -357,7 +359,7 @@ void Problem<dim>::assemble_dual_system() {
   dual_constraints.condense(dual_system_matrix);
   dual_constraints.condense(dual_rhs);
 
-  MatrixTools::apply_boundary_values(emitter_and_collector_boundary_values, dual_system_matrix, dual_solution, dual_rhs);
+  MatrixTools::apply_boundary_values(emitter_and_collector_boundary_values, dual_system_matrix, zh, dual_rhs);
 }
 
 template <int dim>
@@ -374,30 +376,31 @@ void Problem<dim>::solve_dual() {
   PreconditionSSOR<SparseMatrix<double>> preconditioner;
   preconditioner.initialize(dual_system_matrix, relaxation_parameter);
 
-  solver.solve(dual_system_matrix, dual_solution, dual_rhs, preconditioner);
+  solver.solve(dual_system_matrix, zh, dual_rhs, preconditioner);
 
-  dual_constraints.distribute(dual_solution);
+  dual_constraints.distribute(zh);
 
   cout<<"      Solved system: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<endl;
 }
 
 template <int dim>
 void Problem<dim>::output_dual_results() {
-	ElectricFieldPostprocessor<dim> electric_field_postprocessor;
 
   DataOut<dim> data_out;
   data_out.attach_dof_handler(dual_dof_handler);
-  data_out.add_data_vector(dual_solution, "Potential");
-  data_out.add_data_vector(dual_solution, electric_field_postprocessor);
+  data_out.add_data_vector(zh, "zh");
+  
   Vector<double> constraint_indicator(dual_dof_handler.n_dofs());
   for (unsigned int i = 0; i < dual_dof_handler.n_dofs(); ++i)
     constraint_indicator(i) = dual_constraints.is_constrained(i) ? 1.0 : 0.0;
 
   data_out.add_data_vector(constraint_indicator, "constraints");
+  data_out.add_data_vector(Rg_dual, "Rg_dual");
+  data_out.add_data_vector(uh0_on_dual_space, "uh0_on_dual_space");
   data_out.add_data_vector(Rg_plus_uh0hat, "Rg_plus_uh0hat");
   data_out.add_data_vector(error_indicators, "error_indicators");
   
-  data_out.build_patches(); // mapping
+  data_out.build_patches(5); // mapping
 
   std::string filename;
   std::string meshName = extract_mesh_name();
@@ -415,25 +418,26 @@ void Problem<dim>::output_dual_results() {
 // -----------------------------------------
 
 template <int dim>
-double Problem<dim>::estimate_error(){
+void Problem<dim>::estimate_error(){
 	// ------------------------------------------------------------      
   // PROJECTIONS: for both LOCAL and GLOBAL estimates
+  // ------------------------------------------------------------      
 
-  Vector<double> primal_homogeneous_solution_on_dual_space(dual_dof_handler.n_dofs());
-  const auto sol_size = primal_homogeneous_solution_on_dual_space.size();
+  uh0_on_dual_space.reinit(dual_dof_handler.n_dofs());
+  const auto sol_size = uh0_on_dual_space.size();
   FETools::interpolate(primal_dof_handler,
                         uh0, 
                         dual_dof_handler, 
                         dual_constraints,
-                        primal_homogeneous_solution_on_dual_space);
+                        uh0_on_dual_space);
 
-  dual_constraints.distribute(primal_homogeneous_solution_on_dual_space);
+  dual_constraints.distribute(uh0_on_dual_space);
 
   // Subtract from dual solution its projection on the primal solution FE space
   Vector<double> dual_weights(dual_dof_handler.n_dofs());
   FETools::interpolation_difference(dual_dof_handler,
                                     dual_constraints,
-                                    dual_solution,
+                                    zh,
                                     primal_dof_handler,
                                     primal_constraints,
                                     dual_weights);               // zh-∏zh
@@ -441,16 +445,18 @@ double Problem<dim>::estimate_error(){
 
   // ------------------------------------------------------------      
   // RETRIEVE LIFTING: Rg + uh0hat
+  // ------------------------------------------------------------      
   // ! Here we were summing up Rg and then forgetting the vector forever
 
   // uh0^hat + Rg
   Rg_plus_uh0hat.reinit(dual_dof_handler.n_dofs());
-  Rg_plus_uh0hat = primal_homogeneous_solution_on_dual_space;
-  Rg_plus_uh0hat += Rg_dual_dof_values;
+  Rg_plus_uh0hat = uh0_on_dual_space;
+  Rg_plus_uh0hat += Rg_dual;
   dual_constraints.distribute(Rg_plus_uh0hat);
 
   // ------------------------------------------------------------      
   // LOCAL ESTIMATE: integrate over cells
+  // ------------------------------------------------------------      
 
   error_indicators.reinit(triangulation.n_active_cells());
 
@@ -486,6 +492,7 @@ double Problem<dim>::estimate_error(){
 
   // ------------------------------------------------------------      
   // GLOBAL ESTIMATE
+  // ------------------------------------------------------------      
   
   double dx = 0.0; double lx = 0.0;
 
@@ -495,7 +502,7 @@ double Problem<dim>::estimate_error(){
   dual_constraints.distribute(temp);
 
   for(unsigned int i=0;i<sol_size;++i)
-      dx+=primal_homogeneous_solution_on_dual_space(i)*temp(i);           // u' A z
+      dx+=uh0_on_dual_space(i)*temp(i);           // u' A z
 
   // Compute   a(Rg,φ)
   const unsigned int dofs_per_cell = dual_fe.n_dofs_per_cell();
@@ -512,7 +519,7 @@ double Problem<dim>::estimate_error(){
     fe_values.reinit(cell);
 
     // Compute gradients of Rg at quadrature points
-    fe_values.get_function_gradients(Rg_dual_dof_values, rg_gradients);
+    fe_values.get_function_gradients(Rg_dual, rg_gradients);
 
     // assemble a(Rg,φ)
     for (const unsigned int q_index : fe_values.quadrature_point_indices()){ 
@@ -535,34 +542,40 @@ double Problem<dim>::estimate_error(){
 
   // Return             η = |r(z)|  = | - z' F - u' A z |
   // or, precisely,     η = |r(zk-∏zk)|  = | - (zk-∏zk)' F - uh0' A (zk-∏zk) |
-  return std::abs(-lx -dx);
-}
+  double global_error = std::abs(-lx -dx);
 
-template <int dim>
-void Problem<dim>::refine_mesh() {
+
+  // ------------------------------------------------------------      
+  // SUM UP and OUTPUT
+  // ------------------------------------------------------------      
+
+  cout<<"      Global error = " <<  global_error << endl;
 
   // Sum contribution of each cell's local error to get a global estimate
   double global_error_as_sum_of_cell_errors=0.0;
   for(unsigned int i=0; i<error_indicators.size(); i++)
       global_error_as_sum_of_cell_errors += error_indicators[i];
   global_error_as_sum_of_cell_errors = std::abs(global_error_as_sum_of_cell_errors);
-
   cout<<"      Global error as sum of cells' errors = " << global_error_as_sum_of_cell_errors << endl;
 
   // Take absolute value of each error
   for (double &error_indicator : error_indicators) {
       error_indicator = std::fabs(error_indicator);
   }
-  
-	GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators, 0.8, 0); // CHANGED FROM: 0.8, 0.02
+}
+
+template <int dim>
+void Problem<dim>::refine_mesh() {
+
+	GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators, 0.6, 0); // CHANGED FROM: 0.8, 0.02
   
   // Prepare the solution transfer object
   SolutionTransfer<dim> solution_transfer(primal_dof_handler);
   
   SolutionTransfer<dim> dual_solution_transfer(dual_dof_handler);
   // take a copy of the solution vector
-  Vector<double> old_Rg_dof_values(Rg_dof_values);
-  Vector<double> old_dual_Rg_dof_values(Rg_dual_dof_values); 
+  Vector<double> old_Rg_dof_values(Rg_primal);
+  Vector<double> old_dual_Rg_dof_values(Rg_dual); 
   // Prepare for refinement (older versions of deal.II)
   solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_dof_values);
   dual_solution_transfer.prepare_for_coarsening_and_refinement(old_dual_Rg_dof_values);
@@ -573,22 +586,22 @@ void Problem<dim>::refine_mesh() {
   dual_dof_handler.distribute_dofs(dual_fe);
 
   
-  // Reinitialize Rg_dof_values to match the new DoF layout after refinement
-  Rg_dof_values.reinit(primal_dof_handler.n_dofs());
-  Rg_dual_dof_values.reinit(dual_dof_handler.n_dofs());
+  // Reinitialize Rg_primal to match the new DoF layout after refinement
+  Rg_primal.reinit(primal_dof_handler.n_dofs());
+  Rg_dual.reinit(dual_dof_handler.n_dofs());
   // Transfer the old values to the new DoFs, accounting for hanging nodes
-  solution_transfer.interpolate(old_Rg_dof_values, Rg_dof_values);
-  dual_solution_transfer.interpolate(old_dual_Rg_dof_values, Rg_dual_dof_values);
+  solution_transfer.interpolate(old_Rg_dof_values, Rg_primal);
+  dual_solution_transfer.interpolate(old_dual_Rg_dof_values, Rg_dual);
 
   // Handle boundary conditions again (for hanging nodes)
   std::map<types::global_dof_index, double> emitter_boundary_values;
   VectorTools::interpolate_boundary_values(primal_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), emitter_boundary_values);
   for (const auto &boundary_value : emitter_boundary_values)
-    Rg_dof_values(boundary_value.first) = boundary_value.second;
+    Rg_primal(boundary_value.first) = boundary_value.second;
   std::map<types::global_dof_index, double> dual_emitter_boundary_values;
   VectorTools::interpolate_boundary_values(dual_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), dual_emitter_boundary_values);
   for (const auto &boundary_value : dual_emitter_boundary_values)
-    Rg_dual_dof_values(boundary_value.first) = boundary_value.second;
+    Rg_dual(boundary_value.first) = boundary_value.second;
 }
 
 

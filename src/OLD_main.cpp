@@ -64,7 +64,7 @@ void Problem<dim>::SIMPLE_setup_system()
 {
   primal_dof_handler.distribute_dofs(primal_fe);
  
-  primal_solution.reinit(primal_dof_handler.n_dofs());
+  uh.reinit(primal_dof_handler.n_dofs());
   primal_rhs.reinit(primal_dof_handler.n_dofs());
  
   primal_constraints.clear(); 
@@ -129,14 +129,14 @@ void Problem<dim>::SIMPLE_assemble_system(){
     std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values, ceiling_boundary_values;
 
     VectorTools::interpolate_boundary_values(primal_dof_handler,1, Functions::ConstantFunction<dim>(20000.), emitter_boundary_values);
-    MatrixTools::apply_boundary_values(emitter_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
+    MatrixTools::apply_boundary_values(emitter_boundary_values, primal_system_matrix, uh, primal_rhs);
 
     VectorTools::interpolate_boundary_values(primal_dof_handler,2, Functions::ZeroFunction<dim>(), collector_boundary_values);
-    MatrixTools::apply_boundary_values(collector_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
+    MatrixTools::apply_boundary_values(collector_boundary_values, primal_system_matrix, uh, primal_rhs);
 
     // Ceiling
     // VectorTools::interpolate_boundary_values(primal_dof_handler,3, Functions::ZeroFunction<dim>(), ceiling_boundary_values);
-    // MatrixTools::apply_boundary_values(ceiling_boundary_values, primal_system_matrix, primal_solution, primal_rhs);
+    // MatrixTools::apply_boundary_values(ceiling_boundary_values, primal_system_matrix, uh, primal_rhs);
   }
 }
 
@@ -149,9 +149,9 @@ void Problem<dim>::SIMPLE_solve()
   PreconditionSSOR<SparseMatrix<double>> preconditioner;
   preconditioner.initialize(primal_system_matrix, 1.2);
  
-  solver.solve(primal_system_matrix, primal_solution, primal_rhs, preconditioner);
+  solver.solve(primal_system_matrix, uh, primal_rhs, preconditioner);
  
-  primal_constraints.distribute(primal_solution);
+  primal_constraints.distribute(uh);
 
   //cout<<"   Solved primal problem: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<endl;
 }
@@ -162,8 +162,8 @@ void Problem<dim>::SIMPLE_output_results() const
   ElectricFieldPostprocessor electric_field_postprocessor;
   DataOut<dim> data_out;
   data_out.attach_dof_handler(primal_dof_handler);
-  data_out.add_data_vector(primal_solution, "Potential");
-  data_out.add_data_vector(primal_solution, electric_field_postprocessor);
+  data_out.add_data_vector(uh, "Potential");
+  data_out.add_data_vector(uh, electric_field_postprocessor);
   data_out.build_patches();
 
 	std::string filename;
