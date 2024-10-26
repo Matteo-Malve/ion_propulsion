@@ -271,18 +271,6 @@ void Problem<dim>::setup_dual_system() {
   zh.reinit(dual_dof_handler.n_dofs());
   dual_rhs.reinit(dual_dof_handler.n_dofs());
 
-  if (cycle == 0){
-    // Initialize Rg_primal for the first time
-    Rg_dual.reinit(dual_dof_handler.n_dofs());
-
-    // Interpolate boundary values only once
-    std::map<types::global_dof_index, double> emitter_boundary_values;
-    VectorTools::interpolate_boundary_values(dual_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), emitter_boundary_values);
-
-    for (const auto &boundary_value : emitter_boundary_values)
-      Rg_dual(boundary_value.first) = boundary_value.second;
-  }
-
   dual_constraints.clear();
 	DoFTools::make_hanging_node_constraints(dual_dof_handler, dual_constraints);                   
 	dual_constraints.close();
@@ -431,7 +419,14 @@ void Problem<dim>::estimate_error(){
                         dual_constraints,
                         uh0_on_dual_space);
 
-  dual_constraints.distribute(uh0_on_dual_space);
+  Rg_dual.reinit(dual_dof_handler.n_dofs());
+  FETools::interpolate(primal_dof_handler,
+                        Rg_primal, 
+                        dual_dof_handler, 
+                        dual_constraints,
+                        Rg_dual);
+
+  dual_constraints.distribute(Rg_dual);
 
   // Subtract from dual solution its projection on the primal solution FE space
   Vector<double> dual_weights(dual_dof_handler.n_dofs());
@@ -567,41 +562,29 @@ void Problem<dim>::estimate_error(){
 template <int dim>
 void Problem<dim>::refine_mesh() {
 
-	GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators, 0.6, 0); // CHANGED FROM: 0.8, 0.02
+	GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators, 0.6, 0);
   
   // Prepare the solution transfer object
-  SolutionTransfer<dim> solution_transfer(primal_dof_handler);
-  
-  SolutionTransfer<dim> dual_solution_transfer(dual_dof_handler);
+  SolutionTransfer<dim> primal_solution_transfer(primal_dof_handler);
   // take a copy of the solution vector
-  Vector<double> old_Rg_dof_values(Rg_primal);
-  Vector<double> old_dual_Rg_dof_values(Rg_dual); 
+  Vector<double> old_Rg_dual_dof_values(Rg_primal);
   // Prepare for refinement (older versions of deal.II)
-  solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_dof_values);
-  dual_solution_transfer.prepare_for_coarsening_and_refinement(old_dual_Rg_dof_values);
+  primal_solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_dual_dof_values);
   // Perform the refinement
   triangulation.execute_coarsening_and_refinement();
   // Reinitialize the DoFHandler for the refined mesh
   primal_dof_handler.distribute_dofs(primal_fe);
-  dual_dof_handler.distribute_dofs(dual_fe);
-
   
   // Reinitialize Rg_primal to match the new DoF layout after refinement
   Rg_primal.reinit(primal_dof_handler.n_dofs());
-  Rg_dual.reinit(dual_dof_handler.n_dofs());
   // Transfer the old values to the new DoFs, accounting for hanging nodes
-  solution_transfer.interpolate(old_Rg_dof_values, Rg_primal);
-  dual_solution_transfer.interpolate(old_dual_Rg_dof_values, Rg_dual);
+  primal_solution_transfer.interpolate(old_Rg_dual_dof_values, Rg_primal);
 
   // Handle boundary conditions again (for hanging nodes)
   std::map<types::global_dof_index, double> emitter_boundary_values;
   VectorTools::interpolate_boundary_values(primal_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), emitter_boundary_values);
   for (const auto &boundary_value : emitter_boundary_values)
     Rg_primal(boundary_value.first) = boundary_value.second;
-  std::map<types::global_dof_index, double> dual_emitter_boundary_values;
-  VectorTools::interpolate_boundary_values(dual_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), dual_emitter_boundary_values);
-  for (const auto &boundary_value : dual_emitter_boundary_values)
-    Rg_dual(boundary_value.first) = boundary_value.second;
 }
 
 
