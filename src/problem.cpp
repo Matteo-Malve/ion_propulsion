@@ -27,7 +27,7 @@ void Problem<dim>::run() {
 		assemble_primal_system();
 		solve_primal();
 		output_primal_results();
-
+    test_convergence();
 		// --------------------  
     if(cycle==NUM_REFINEMENT_CYCLES){
       // Last cycle primal -------------------- 
@@ -42,18 +42,11 @@ void Problem<dim>::run() {
       setup_dual_system();
       assemble_dual_system();
       solve_dual();
-
+      // Error evaluation and grid refinement --------------- 
       cout<<"   Error estimation:"<<endl;
       estimate_error();
-
-      
-      
       output_dual_results();
-
-			// Error estimation and grid refinement ---------------  
       refine_mesh();
-
-      
     }
     ++cycle;
 	}
@@ -109,11 +102,12 @@ void Problem<dim>::setup_primal_system() {
     Rg_primal.reinit(primal_dof_handler.n_dofs());
 
     // Interpolate boundary values only once
-    std::map<types::global_dof_index, double> emitter_boundary_values;
-    VectorTools::interpolate_boundary_values(primal_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), emitter_boundary_values);
-
-    for (const auto &boundary_value : emitter_boundary_values)
+    std::map<types::global_dof_index, double> boundary_values;
+    VectorTools::interpolate_boundary_values(primal_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), boundary_values);
+  
+    for (const auto &boundary_value : boundary_values)
       Rg_primal(boundary_value.first) = boundary_value.second;
+   
   }
 
   primal_constraints.clear();
@@ -146,6 +140,7 @@ void Problem<dim>::assemble_primal_system() {
 
   FullMatrix<double> cell_matrix(dofs_per_cell, dofs_per_cell);
   Vector<double> cell_rhs(dofs_per_cell);
+  std::vector<double> rhs_values(quadrature.size());
   std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
 
   const unsigned int n_q_points = quadrature.size();
@@ -156,6 +151,8 @@ void Problem<dim>::assemble_primal_system() {
     fe_values.reinit(cell);
     cell_matrix = 0;
     cell_rhs = 0;
+
+    rhs_function.value_list(fe_values.get_quadrature_points(),rhs_values);
 
     // Compute gradients of Rg at quadrature points
     fe_values.get_function_gradients(Rg_primal, rg_gradients);
@@ -168,7 +165,9 @@ void Problem<dim>::assemble_primal_system() {
                               (fe_values.shape_grad(i, q_index) * // grad phi_i(x_q)
                                 fe_values.shape_grad(j, q_index) * // grad phi_j(x_q)
                                 fe_values.JxW(q_index));           // dx
-
+        cell_rhs(i) += (fe_values.shape_value(i, q_index) *   // phi_i(x_q)
+                          rhs_values[q_index] *               // f(x_q)
+                          fe_values.JxW(q_index));            //dx
         cell_rhs(i) -= eps_r * eps_0 *
                         (fe_values.shape_grad(i, q_index) *   // grad phi_i(x_q)
                           rg_gradients[q_index] *             // grad_Rg(x_q)
@@ -193,19 +192,18 @@ void Problem<dim>::assemble_primal_system() {
   }
 
   // Apply boundary values
-  std::map<types::global_dof_index, double> emitter_boundary_values, collector_boundary_values;
-  // Emitter
+  std::map<types::global_dof_index, double> emitter_boundary_values, others_boundary_values;
   VectorTools::interpolate_boundary_values(primal_dof_handler,1, Functions::ZeroFunction<dim>(), emitter_boundary_values);
-  // Collector
-  VectorTools::interpolate_boundary_values(primal_dof_handler,2, Functions::ZeroFunction<dim>(), collector_boundary_values);
+  VectorTools::interpolate_boundary_values(primal_dof_handler,9, Functions::ZeroFunction<dim>(), others_boundary_values);
+  // floor gets Homogeneous_Neumann
   
   // Condense constraints
   primal_constraints.condense(primal_system_matrix);
   primal_constraints.condense(primal_rhs);
 
-  MatrixTools::apply_boundary_values(emitter_boundary_values, primal_system_matrix, uh, primal_rhs);
-  MatrixTools::apply_boundary_values(collector_boundary_values, primal_system_matrix, uh, primal_rhs);
-
+  MatrixTools::apply_boundary_values(emitter_boundary_values, primal_system_matrix, uh0, primal_rhs); 
+  MatrixTools::apply_boundary_values(others_boundary_values, primal_system_matrix, uh0, primal_rhs); 
+  cout<<"      Applied BCs"<<endl;
 }
 
 template <int dim>
@@ -247,7 +245,22 @@ void Problem<dim>::output_primal_results() {
 	data_out.add_data_vector(Rg_primal, "Rg");
   data_out.add_data_vector(uh, electric_field_postprocessor);
   data_out.add_data_vector(uh0, homogeneous_field_postprocessor);
+
+  Vector<double> boundary_ids(triangulation.n_active_cells());
+  for (const auto &cell : triangulation.active_cell_iterators())
+    for (unsigned int face = 0; face < GeometryInfo<dim>::faces_per_cell; ++face)
+      if (cell->face(face)->at_boundary())
+        boundary_ids[cell->active_cell_index()] = cell->face(face)->boundary_id();
+  data_out.add_data_vector(boundary_ids, "boundary_ids");
   
+  Vector<double> u_ex(primal_dof_handler.n_dofs());
+  VectorTools::project(primal_dof_handler, 
+                      primal_constraints, 
+                      QGauss<dim>(7),  // Quadrature rule (degree + 1 for accuracy)
+                      exact_solution_function,          // Analytical function Rg
+                      u_ex);
+  data_out.add_data_vector(u_ex, "u_ex");
+
   data_out.build_patches(); // mapping
 
   std::string filename;
@@ -575,19 +588,38 @@ void Problem<dim>::refine_mesh() {
   // Reinitialize the DoFHandler for the refined mesh
   primal_dof_handler.distribute_dofs(primal_fe);
   
+  
   // Reinitialize Rg_primal to match the new DoF layout after refinement
   Rg_primal.reinit(primal_dof_handler.n_dofs());
   // Transfer the old values to the new DoFs, accounting for hanging nodes
   primal_solution_transfer.interpolate(old_Rg_dual_dof_values, Rg_primal);
 
   // Handle boundary conditions again (for hanging nodes)
-  std::map<types::global_dof_index, double> emitter_boundary_values;
-  VectorTools::interpolate_boundary_values(primal_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), emitter_boundary_values);
-  for (const auto &boundary_value : emitter_boundary_values)
+  std::map<types::global_dof_index, double> boundary_values;
+  VectorTools::interpolate_boundary_values(primal_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), boundary_values);
+  for (const auto &boundary_value : boundary_values)
     Rg_primal(boundary_value.first) = boundary_value.second;
 }
 
 
+template <int dim>
+void Problem<dim>::test_convergence(){
+  Point<dim> sensor_1(0.00025, 0.0005);
+  Point<dim> sensor_2(-0.00025, 0.0005);
+  //Point<dim> sensor_3(-0.00025, 0.0005);
+  
+  double uh_at_sensor_1 = VectorTools::point_value(primal_dof_handler, uh, sensor_1);
+  std::cout << "   Cconvergence test at sensor-1:" << endl
+            << "      uh    " << uh_at_sensor_1 << endl
+            << "      u_ex  " << exact_solution_function.value(sensor_1) << endl;
+  
+  double uh_at_sensor_2 = VectorTools::point_value(primal_dof_handler, uh, sensor_2);
+  std::cout << "   Cconvergence test at sensor-2:" << endl
+            << "      uh    " << uh_at_sensor_2 << endl
+            << "      u_ex  " << exact_solution_function.value(sensor_2) << endl;
+  
+ 
+}
 
 
 // #######################################

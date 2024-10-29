@@ -7,7 +7,6 @@
 
 using namespace dealii;
 constexpr double pi = 3.14159265358979323846;
-
 std::string extract_mesh_name();
 
 // -----------------------------------------
@@ -112,6 +111,22 @@ public:
 		const auto x = p[0];
 		const auto y = p[1];
 		return 1. - x*x * y*y / pow(0.004,4);
+	}
+};
+
+template <int dim>
+class ExactSolution4 : public Function<dim>{
+public:
+	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
+		(void)component;
+		
+		const auto x = p[0];
+		const auto y = p[1];
+		double r2 = x*x + y*y;
+    if(r2 <= Rc*Rc)
+      return factor1*(pow((r2-R*R),3)) + factor2*(pow((r2-R*R),2)) + factor3*(r2-R*R) + Ve;
+    else
+      return 0.;
 	}
 };
 

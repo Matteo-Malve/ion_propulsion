@@ -68,6 +68,8 @@ private:
 	void estimate_error();
 	void refine_mesh();
 
+	void test_convergence();
+
 	Triangulation<dim>            triangulation;
 
 	DoFHandler<dim>               primal_dof_handler, 
@@ -99,7 +101,8 @@ private:
 																Rg_plus_uh0hat, 
 																error_indicators;															
 	
-	RightHandSide<dim> 						rhs_function;
+	RightHandSide0<dim> 						rhs_function;
+	ExactSolution4<dim>						exact_solution_function;
 
 	int cycle;
 };
