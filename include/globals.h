@@ -25,9 +25,10 @@ extern const double mesh_height ;
 extern const double R; 
 extern const double Rc;
 extern const double dR2;
-extern double factor1;
-extern double factor2;
-extern double factor3;
+extern double AC;
+extern double AD;
+extern double AE;
+extern double AF;
 
 extern int NUM_REFINEMENT_CYCLES;
 extern std::string PATH_TO_MESH;

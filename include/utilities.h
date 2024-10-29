@@ -67,6 +67,23 @@ public:
 	}
 };
 
+template <int dim>
+class RightHandSide4 : public Function<dim>{
+public:
+	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
+		(void)component;
+		const auto x = p[0];
+		const auto y = p[1];
+		double r2 = x*x + y*y;
+
+    if(r2 <= Rc*Rc){
+			return - eps_0 * eps_r
+						 * 4. * ( AE + AD*(-2.*R*R + 4.*r2) + 3.*AC*(R*R*R*R - 4.*R*R*r2 + 3.*r2*r2));
+		} else
+      return 0.;
+	}
+};
+
 // -----------------------------------------
 // Exact solution
 // -----------------------------------------
@@ -124,7 +141,7 @@ public:
 		const auto y = p[1];
 		double r2 = x*x + y*y;
     if(r2 <= Rc*Rc)
-      return factor1*(pow((r2-R*R),3)) + factor2*(pow((r2-R*R),2)) + factor3*(r2-R*R) + Ve;
+      return AC*(pow((r2-R*R),3)) + AD*(pow((r2-R*R),2)) + AE*(r2-R*R) + AF;
     else
       return 0.;
 	}

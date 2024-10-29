@@ -103,7 +103,7 @@ void Problem<dim>::setup_primal_system() {
 
     // Interpolate boundary values only once
     std::map<types::global_dof_index, double> boundary_values;
-    VectorTools::interpolate_boundary_values(primal_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), boundary_values);
+    VectorTools::interpolate_boundary_values(primal_dof_handler, 1, exact_solution_function, boundary_values);
   
     for (const auto &boundary_value : boundary_values)
       Rg_primal(boundary_value.first) = boundary_value.second;
@@ -196,7 +196,7 @@ void Problem<dim>::assemble_primal_system() {
   VectorTools::interpolate_boundary_values(primal_dof_handler,1, Functions::ZeroFunction<dim>(), emitter_boundary_values);
   VectorTools::interpolate_boundary_values(primal_dof_handler,9, Functions::ZeroFunction<dim>(), others_boundary_values);
   // floor gets Homogeneous_Neumann
-  
+
   // Condense constraints
   primal_constraints.condense(primal_system_matrix);
   primal_constraints.condense(primal_rhs);
@@ -596,7 +596,7 @@ void Problem<dim>::refine_mesh() {
 
   // Handle boundary conditions again (for hanging nodes)
   std::map<types::global_dof_index, double> boundary_values;
-  VectorTools::interpolate_boundary_values(primal_dof_handler, 1, Functions::ConstantFunction<dim>(20000.), boundary_values);
+  VectorTools::interpolate_boundary_values(primal_dof_handler, 1, exact_solution_function, boundary_values);
   for (const auto &boundary_value : boundary_values)
     Rg_primal(boundary_value.first) = boundary_value.second;
 }
@@ -606,17 +606,29 @@ template <int dim>
 void Problem<dim>::test_convergence(){
   Point<dim> sensor_1(0.00025, 0.0005);
   Point<dim> sensor_2(-0.00025, 0.0005);
-  //Point<dim> sensor_3(-0.00025, 0.0005);
-  
+  Point<dim> sensor_3(0.0031, 0.0035);
+
+  cout<<"   Convergence test:"<<endl;
   double uh_at_sensor_1 = VectorTools::point_value(primal_dof_handler, uh, sensor_1);
-  std::cout << "   Cconvergence test at sensor-1:" << endl
-            << "      uh    " << uh_at_sensor_1 << endl
-            << "      u_ex  " << exact_solution_function.value(sensor_1) << endl;
+  double uex_at_sensor_1 = exact_solution_function.value(sensor_1);
+  std::cout << "      Sensor 1:" << endl
+            << "         uh      =  " << uh_at_sensor_1 << endl
+            << "         u_ex    =  " << uex_at_sensor_1 << endl
+            << "         abs_err =  " << std::fabs(uh_at_sensor_1-uex_at_sensor_1) <<endl;
   
   double uh_at_sensor_2 = VectorTools::point_value(primal_dof_handler, uh, sensor_2);
-  std::cout << "   Cconvergence test at sensor-2:" << endl
-            << "      uh    " << uh_at_sensor_2 << endl
-            << "      u_ex  " << exact_solution_function.value(sensor_2) << endl;
+  double uex_at_sensor_2 = exact_solution_function.value(sensor_2);
+  std::cout << "      Sensor 2:" << endl
+            << "         uh      =  " << uh_at_sensor_2 << endl
+            << "         u_ex    =  " << uex_at_sensor_2 << endl
+            << "         abs_err =  " << std::fabs(uh_at_sensor_2-uex_at_sensor_2) <<endl;
+  
+  double uh_at_sensor_3 = VectorTools::point_value(primal_dof_handler, uh, sensor_3);
+  double uex_at_sensor_3 = exact_solution_function.value(sensor_3);
+  std::cout << "      Sensor 3:" << endl
+            << "         uh      =  " << uh_at_sensor_3 << endl
+            << "         u_ex    =  " << uex_at_sensor_3 << endl
+            << "         abs_err =  " << std::fabs(uh_at_sensor_3-uex_at_sensor_3) <<endl;
   
  
 }

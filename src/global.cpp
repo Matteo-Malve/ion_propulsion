@@ -15,9 +15,10 @@ const double mesh_height = 0.1;; // [m]
 
 const double Rc = 3.0*R;
 const double dR2 = Rc*Rc - R*R;
-double factor1 = - Ve / (dR2*dR2*dR2);
-double factor2 = 3. * Ve / (dR2*dR2);
-double factor3 = -3. * Ve / dR2;
+double AC = - Ve / (dR2*dR2*dR2);
+double AD = 3. * Ve / (dR2*dR2);
+double AE = -3. * Ve / dR2;
+double AF = Ve;
 
 
 std::string PATH_TO_MESH = "../mesh/TestSquare.msh";
