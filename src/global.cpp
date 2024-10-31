@@ -23,8 +23,8 @@ double AF = Ve;
 
 //std::string PATH_TO_MESH = "../mesh/input_mesh.msh";
 //std::string PATH_TO_MESH = "../mesh/TestSquare.msh";
-//std::string PATH_TO_MESH = "../mesh/FullTestSquare.msh";
-std::string PATH_TO_MESH = "../mesh/cerchi_concentrici.msh";
+std::string PATH_TO_MESH = "../mesh/FullTestSquare.msh";
+//std::string PATH_TO_MESH = "../mesh/cerchi_concentrici.msh";
 
 const unsigned int NUM_PRELIMINARY_REF = 0; // Meglio 7 ma poi troppo lento
 int NUM_REFINEMENT_CYCLES = 0;

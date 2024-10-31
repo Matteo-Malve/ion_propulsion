@@ -103,8 +103,8 @@ void Problem<dim>::setup_primal_system() {
 
     // Interpolate boundary values only once
     std::map<types::global_dof_index, double> boundary_values;
-    VectorTools::interpolate_boundary_values(primal_dof_handler, 1, Functions::ConstantFunction<dim>(0.), boundary_values);
-    VectorTools::interpolate_boundary_values(primal_dof_handler, 9, Functions::ConstantFunction<dim>(0.), boundary_values);
+    VectorTools::interpolate_boundary_values(primal_dof_handler, 1, exact_solution_function, boundary_values);
+    VectorTools::interpolate_boundary_values(primal_dof_handler, 9, exact_solution_function, boundary_values);
 
     for (const auto &boundary_value : boundary_values)
       Rg_primal(boundary_value.first) = boundary_value.second;
@@ -594,8 +594,8 @@ void Problem<dim>::refine_mesh() {
 
   // Handle boundary conditions again (for hanging nodes)
   std::map<types::global_dof_index, double> boundary_values;
-  VectorTools::interpolate_boundary_values(primal_dof_handler, 1, Functions::ConstantFunction<dim>(0.), boundary_values);
-  VectorTools::interpolate_boundary_values(primal_dof_handler, 9, Functions::ConstantFunction<dim>(0.), boundary_values);
+  VectorTools::interpolate_boundary_values(primal_dof_handler, 1, exact_solution_function, boundary_values);
+  VectorTools::interpolate_boundary_values(primal_dof_handler, 9, exact_solution_function, boundary_values);
   for (const auto &boundary_value : boundary_values)
     Rg_primal(boundary_value.first) = boundary_value.second;
 }
