@@ -1,6 +1,7 @@
 #include "problem.h"
 #include <iostream>
 
+
 int main() {
 	try {
 		Problem<2> iprop_problem;

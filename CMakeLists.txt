@@ -28,7 +28,16 @@ deal_ii_setup_target(${PROJECT_NAME})
 
 #--------------------------------------------------
 
+# Find Python library
+find_package(PythonLibs 3 REQUIRED)
 
+# Include Python directories
+include_directories(${PYTHON_INCLUDE_DIRS})
+
+# Link Python library
+target_link_libraries(${PROJECT_NAME} ${PYTHON_LIBRARIES})
+
+# Custom target to run the program
 add_custom_target(run
   COMMAND ${PROJECT_NAME}
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/../results

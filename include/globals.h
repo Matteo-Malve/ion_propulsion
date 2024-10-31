@@ -34,6 +34,8 @@ extern double AF;
 extern int NUM_REFINEMENT_CYCLES;
 extern std::string PATH_TO_MESH;
 extern const unsigned int NUM_PRELIMINARY_REF; 
+extern const unsigned int NUM_PRELIMINARY_GLOBAL_REF; 
+
 
 
 #endif

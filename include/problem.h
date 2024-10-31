@@ -36,14 +36,14 @@
 #include <deal.II/numerics/data_out_faces.h>
 
 #include <fstream>
-
-
+#include "matplotlibcpp.h"
 
 
 #include "dual_functional.h"
 #include "globals.h"
 #include "postprocessors.h"
 #include "utilities.h"
+
 
 using namespace dealii;
 
@@ -68,6 +68,7 @@ private:
 	void estimate_error();
 	void refine_mesh();
 
+	double compute_averaged_error() const;
 	void test_convergence();
 
 	Triangulation<dim>            triangulation;
@@ -101,10 +102,15 @@ private:
 																Rg_plus_uh0hat, 
 																error_indicators;															
 	
-	RightHandSide6<dim> 					rhs_function;
-	ExactSolution6<dim>						exact_solution_function;
+	RightHandSide5<dim> 					rhs_function;
+	ExactSolution5<dim>						exact_solution_function;
 
-	int cycle;
+	int cycle = 0;
+
+	std::vector<double> errors_sensor_1, errors_sensor_2, errors_sensor_3;
+	std::vector<int> average_errors;
+	std::vector<int> cycles;
+
 };
 
 #endif

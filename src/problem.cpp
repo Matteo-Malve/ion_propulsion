@@ -5,6 +5,7 @@
 using namespace dealii;
 using std::cout;
 using std::endl;
+namespace plt = matplotlibcpp;
 
 template <int dim>
 Problem<dim>::Problem() : primal_dof_handler(triangulation), 
@@ -59,7 +60,9 @@ void Problem<dim>::create_mesh() {
 	GridIn<2>       grid_in;
 	grid_in.attach_triangulation(triangulation);
 	grid_in.read_msh(input_file);
-  /*
+
+  triangulation.refine_global(NUM_PRELIMINARY_GLOBAL_REF);
+
   for (unsigned int i = 0; i < NUM_PRELIMINARY_REF; ++i) {
 		Vector<float> criteria(triangulation.n_active_cells());
 		cout  << "Active cells " << triangulation.n_active_cells() << endl;
@@ -69,7 +72,6 @@ void Problem<dim>::create_mesh() {
     const double max_thickness = 2. * l;
     const double min_thickness = 1.05 * l;
     const double D = min_thickness + (max_thickness-min_thickness)/(NUM_PRELIMINARY_REF-1)*(NUM_PRELIMINARY_REF-1-i);
-    cout<<"D = "<<D<<endl;
 
 		for (auto &cell : triangulation.active_cell_iterators()) {                
 			const Point<dim> c = cell->center();
@@ -80,9 +82,9 @@ void Problem<dim>::create_mesh() {
 		}
 		GridRefinement::refine(triangulation, criteria, 0.5);
 		triangulation.execute_coarsening_and_refinement();
-		cout<<"   Executed preliminary coarsening and refinement"<<endl;
-	}*/
-  //triangulation.refine_global(2);
+	}
+  
+  cout<<"   Executed preliminary coarsening and refinement"<<endl;
 }
 
 // -----------------------------------------
@@ -153,7 +155,6 @@ void Problem<dim>::assemble_primal_system() {
     cell_matrix = 0;
     cell_rhs = 0;
 
-    //rhs_function.value_list(fe_values.get_quadrature_points(),rhs_values);
 
     // Compute gradients of Rg at quadrature points
     fe_values.get_function_gradients(Rg_primal, rg_gradients);
@@ -180,7 +181,6 @@ void Problem<dim>::assemble_primal_system() {
     // Local to global
     cell->get_dof_indices(local_dof_indices);
 
-    //primal_constraints.distribute_local_to_global(cell_matrix, cell_rhs, local_dof_indices, primal_system_matrix, primal_rhs);
     for (const unsigned int i : fe_values.dof_indices()){
       primal_rhs(local_dof_indices[i]) += cell_rhs(i);
       for (const unsigned int j : fe_values.dof_indices())
@@ -194,7 +194,6 @@ void Problem<dim>::assemble_primal_system() {
   std::map<types::global_dof_index, double> boundary_values;
   VectorTools::interpolate_boundary_values(primal_dof_handler,1, Functions::ZeroFunction<dim>(), boundary_values);
   VectorTools::interpolate_boundary_values(primal_dof_handler,9, Functions::ZeroFunction<dim>(), boundary_values);
-  // floor gets Homogeneous_Neumann
 
   // Condense constraints
   primal_constraints.condense(primal_system_matrix);
@@ -573,7 +572,7 @@ void Problem<dim>::estimate_error(){
 template <int dim>
 void Problem<dim>::refine_mesh() {
 
-	GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators, 0.6, 0);
+	GridRefinement::refine_and_coarsen_fixed_number(triangulation,error_indicators, 0.05, 0);
   
   // Prepare the solution transfer object
   SolutionTransfer<dim> primal_solution_transfer(primal_dof_handler);
@@ -600,6 +599,47 @@ void Problem<dim>::refine_mesh() {
     Rg_primal(boundary_value.first) = boundary_value.second;
 }
 
+template <int dim>
+double Problem<dim>::compute_averaged_error() const {
+    // Initialize error accumulator and point counter
+    double total_error = 0.0;
+    unsigned int total_points = 0;
+
+    // Select a quadrature rule (e.g., QGauss) for integration
+    const unsigned int quadrature_order = 2;  // Adjust this based on your needs
+    dealii::QGauss<dim> quadrature_formula(quadrature_order);
+
+    // Initialize FEValues to evaluate the solution at quadrature points
+    dealii::FEValues<dim> fe_values(primal_fe, quadrature_formula,
+                                    dealii::update_values | dealii::update_quadrature_points);
+
+    // Iterate over each cell
+    for (const auto &cell : primal_dof_handler.active_cell_iterators()) {
+        // Reinitialize FEValues for the current cell
+        fe_values.reinit(cell);
+
+        // Extract solution values at quadrature points on the current cell
+        std::vector<double> uh_values(fe_values.n_quadrature_points);
+        fe_values.get_function_values(uh, uh_values);
+
+        // Loop over quadrature points on this cell
+        for (unsigned int q = 0; q < fe_values.n_quadrature_points; ++q) {
+            // Exact solution at this quadrature point
+            double uex_value = exact_solution_function.value(fe_values.quadrature_point(q));
+
+            // Compute error at this quadrature point
+            double error = std::fabs(uh_values[q] - uex_value);
+
+            // Accumulate the error and increase the point counter
+            total_error += error;
+            ++total_points;
+        }
+    }
+
+    // Compute the average error by dividing the accumulated error by the number of points
+    double averaged_error = total_error / total_points;
+    return averaged_error;
+}
 
 template <int dim>
 void Problem<dim>::test_convergence(){
@@ -610,26 +650,51 @@ void Problem<dim>::test_convergence(){
   cout<<"   Convergence test:"<<endl;
   double uh_at_sensor_1 = VectorTools::point_value(primal_dof_handler, uh, sensor_1);
   double uex_at_sensor_1 = exact_solution_function.value(sensor_1);
+  double abs_err_1 = std::fabs(uh_at_sensor_1-uex_at_sensor_1);
   std::cout << "      Sensor 1:" << endl
             << "         uh      =  " << uh_at_sensor_1 << endl
             << "         u_ex    =  " << uex_at_sensor_1 << endl
-            << "         abs_err =  " << std::fabs(uh_at_sensor_1-uex_at_sensor_1) <<endl;
+            << "         abs_err =  " << abs_err_1 <<endl;
   
   double uh_at_sensor_2 = VectorTools::point_value(primal_dof_handler, uh, sensor_2);
   double uex_at_sensor_2 = exact_solution_function.value(sensor_2);
+  double abs_err_2 = std::fabs(uh_at_sensor_2-uex_at_sensor_2);
   std::cout << "      Sensor 2:" << endl
             << "         uh      =  " << uh_at_sensor_2 << endl
             << "         u_ex    =  " << uex_at_sensor_2 << endl
-            << "         abs_err =  " << std::fabs(uh_at_sensor_2-uex_at_sensor_2) <<endl;
+            << "         abs_err =  " << abs_err_2 <<endl;
   
   double uh_at_sensor_3 = VectorTools::point_value(primal_dof_handler, uh, sensor_3);
   double uex_at_sensor_3 = exact_solution_function.value(sensor_3);
+  double abs_err_3 = std::fabs(uh_at_sensor_3-uex_at_sensor_3);
   std::cout << "      Sensor 3:" << endl
             << "         uh      =  " << uh_at_sensor_3 << endl
             << "         u_ex    =  " << uex_at_sensor_3 << endl
-            << "         abs_err =  " << std::fabs(uh_at_sensor_3-uex_at_sensor_3) <<endl;
+            << "         abs_err =  " << abs_err_3 <<endl;
   
+  cycles.push_back(cycle);
+  errors_sensor_1.push_back(abs_err_1);
+  errors_sensor_2.push_back(abs_err_2);
+  errors_sensor_3.push_back(abs_err_3);
+  average_errors.push_back(compute_averaged_error());
  
+  // Plot data
+  plt::figure_size(800, 600);
+  plt::clf(); // Clear previous plot
+
+  plt::named_plot("Sensor 1", cycles, errors_sensor_1, "r-o");
+  plt::named_plot("Sensor 2", cycles, errors_sensor_2, "g-o");
+  plt::named_plot("Sensor 3", cycles, errors_sensor_3, "b-o");
+  plt::named_plot("average", cycles, average_errors, "y-o");
+
+  plt::xlabel("Cycle");
+  plt::ylabel("Error");
+  plt::title("Convergence Test");
+  plt::legend();
+  plt::grid(true);
+
+  // Save the plot
+  plt::save("convergence_plot.png");
 }
 
 

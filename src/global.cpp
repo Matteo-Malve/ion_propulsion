@@ -26,5 +26,7 @@ double AF = Ve;
 std::string PATH_TO_MESH = "../mesh/FullTestSquare.msh";
 //std::string PATH_TO_MESH = "../mesh/cerchi_concentrici.msh";
 
-const unsigned int NUM_PRELIMINARY_REF = 0; // Meglio 7 ma poi troppo lento
-int NUM_REFINEMENT_CYCLES = 0;
+const unsigned int NUM_PRELIMINARY_REF = 4; 
+const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 0; 
+
+int NUM_REFINEMENT_CYCLES = 6;
