@@ -101,8 +101,8 @@ private:
 																Rg_plus_uh0hat, 
 																error_indicators;															
 	
-	RightHandSide4<dim> 					rhs_function;
-	ExactSolution4<dim>						exact_solution_function;
+	RightHandSide6<dim> 					rhs_function;
+	ExactSolution6<dim>						exact_solution_function;
 
 	int cycle;
 };

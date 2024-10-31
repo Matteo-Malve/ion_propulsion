@@ -80,7 +80,7 @@ void BoundaryFluxEvaluation<dim>::assemble_rhs(const DoFHandler<dim> &dof_handle
     for (const auto &face: cell->face_iterators())
       if (face->at_boundary()) {
         const Point <dim> &face_center = face->center();
-        if (face_center[1] < 1.0000001 * L   &&    std::abs(face_center[0]) < 1.0000001 * L) {
+        if (face_center[1] < 1.0000001 * l   &&    std::abs(face_center[0]) < 1.0000001 * l) {
           fe_face_values.reinit(cell, face);
           cell->set_material_id(15);
         }
@@ -92,7 +92,7 @@ void BoundaryFluxEvaluation<dim>::assemble_rhs(const DoFHandler<dim> &dof_handle
     bool flag = false;
     // Check if cell is of interest
     for (const auto &face: cell->face_iterators())
-      if (face->at_boundary()    &&    face->center()[1] < 1.0000001 * L   &&    std::abs(face->center()[0]) < 1.0000001 * L)
+      if (face->at_boundary()    &&    face->center()[1] < 1.0000001 * l   &&    std::abs(face->center()[0]) < 1.0000001 * l)
         flag = true;
     // Cell passed the test
     if (flag) {
@@ -102,7 +102,7 @@ void BoundaryFluxEvaluation<dim>::assemble_rhs(const DoFHandler<dim> &dof_handle
       Tensor<1, dim> n;
       for (const auto &face: cell->face_iterators())
         if (face->at_boundary())
-          if (face->at_boundary()    &&    face->center()[1] < 1.0000001 * L   &&    std::abs(face->center()[0]) < 1.0000001 * L) {
+          if (face->at_boundary()    &&    face->center()[1] < 1.0000001 * l   &&    std::abs(face->center()[0]) < 1.0000001 * l) {
               fe_face_values.reinit(cell, face);
               n = fe_face_values.normal_vector(0);
             }    

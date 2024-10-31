@@ -15,8 +15,9 @@ extern const double Ve;
 extern const double E_ON; 
 
 extern const double nn;
-//const double L = nn*R; // [m]
-extern const double L ;
+//const double l = nn*R; // [m]
+extern const double l ;
+extern const double L;
 extern const double R ;
 extern const double X ;
 extern const double g; 

@@ -20,8 +20,12 @@ public:
 	virtual void value_list( 	const std::vector< Point<dim>> &point_list, std::vector<double> &values, const unsigned int component = 0 ) const override {
 	(void)component;
 	AssertDimension (point_list.size(), values.size()); // Size check
-		for (unsigned int p=0; p<point_list.size(); ++p)
-			values[p] = 0.;
+		for (unsigned int p=0; p<point_list.size(); ++p){
+			const auto x = point_list[p][0];
+			const auto y = point_list[p][1];
+			double r = sqrt(x*x + y*y);
+			values[p] = -Ve;
+		}
 	}
 };
 
@@ -37,8 +41,8 @@ public:
 		double k = 5.0;
 		const auto x = p[0];
 		const auto y = p[1];
-		double piL = pi / (L*L);
-		if(std::abs(x) <= k*L && y<= k*L){
+		double piL = pi / (l*l);
+		if(std::abs(x) <= k*l && y<= k*l){
 			double argX = x*x * piL;
 			double argY = y*y * piL;
 			return eps_0 * eps_r * 2. * Ve * piL *
@@ -57,12 +61,12 @@ public:
 		double k = 5.0;
 		const auto x = p[0];
 		const auto y = p[1];
-		if(std::abs(x) <= k*L && y<= k*L)
+		if(std::abs(x) <= k*l && y<= k*l)
 			return Ve * (1 - 
-						 std::sin(std::abs(x)/L*pi) * 
-						 std::sin(y/L*pi) );
-						 //(1.-1./((k-1)*L)*(std::abs(x)-L)) *
-						 //(1.-1./((k-1)*L)*(y-L));
+						 std::sin(std::abs(x)/l*pi) * 
+						 std::sin(y/l*pi) );
+						 //(1.-1./((k-1)*l)*(std::abs(x)-l)) *
+						 //(1.-1./((k-1)*l)*(y-l));
 		else
 			return 0.;
 	}
@@ -160,7 +164,7 @@ public:
 };
 
 // -----------------------------------------
-// 5 - 
+// 5 - to test - for rectangular
 // -----------------------------------------
 
 
@@ -178,7 +182,7 @@ public:
     
 		return exp(-(r-R)*(r-R)/(2.*sigma2))
 					 * Ve
-					 * (1. - sin(x/L*pi) * sin(y/L*pi));
+					 * (1. - sin(x/l*pi) * sin(y/l*pi));
       
 	}
 };
@@ -186,53 +190,98 @@ public:
 template <int dim>
 class RightHandSide5 : public Function<dim>{
 public:
-	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
+	virtual void value_list( 	const std::vector< Point<dim>> &point_list, std::vector<double> &values, const unsigned int component = 0 ) const override {
 		(void)component;
+		cout<<"In value_list"<<endl;
+		AssertDimension (point_list.size(), values.size()); // Size check
 
 		double sigma2 = 0.0000005;
+		for (unsigned int p=0; p<point_list.size(); ++p){
+			const auto x = point_list[p][0];
+			const auto y = point_list[p][1];
+			double r = sqrt(x*x + y*y);
+			double argX = pi * x / l;
+			double argY = pi * y / l;
 
-		const auto x = p[0];
-		const auto y = p[1];
-		double r = sqrt(x*x + y*y);
-		double argX = pi * x / L;
-    double argY = pi * y / L;
-
-		// Break down the formula for readability
-    double expTerm = std::exp(-std::pow(R - r, 2) / (2 * sigma2));
-  
-    double sinArgX = std::sin(argX);
-    double sinArgY = std::sin(argY);
-    double cosArgX = std::cos(argX);
-    double cosArgY = std::cos(argY);
-    
-    double term1 = L * L * R * R * r;
-    double term2 = -L * L * R * R * r * sinArgX * sinArgY;
-    double term3 = -L * L * R * sigma2 * sinArgX * sinArgY;
-    double term4 = L * L * R * sigma2;
-    double term5 = 2 * L * L * R * x * x * sinArgX * sinArgY;
-    double term6 = -2 * L * L * R * x * x;
-    double term7 = 2 * L * L * R * y * y * sinArgX * sinArgY;
-    double term8 = -2 * L * L * R * y * y;
-    double term9 = -2 * L * L * sigma2 * r;
-    double term10 = 2 * L * L * sigma2 * r * sinArgX * sinArgY;
-    double term11 = L * L * x * x * r;
-    double term12 = L * L * y * y * r;
-    double term13 = -L * L * x * x * r * sinArgX * sinArgY;
-    double term14 = -L * L * y * y * r * sinArgX * sinArgY;
-    double term15 = 2 * pi * L * sigma2 * y * sinArgX * cosArgY * (r - R);
-    double term16 = 2 * pi * L * sigma2 * x * cosArgX * sinArgY * (r - R);
-    double term17 = 2 * pi * pi * sigma2 * sigma2 * r * sinArgX * sinArgY;
-    
-    double numerator = expTerm * (term1 + term2 + term3 + term4 + term5 + term6 + term7 + term8 +
-                                  term9 + term10 + term11 + term12 + term13 + term14 + term15 +
-                                  term16 + term17);
-    double denominator = L * L * sigma2 * sigma2 * r;
-    double laplacian = numerator / denominator;
-    return - eps_0 * eps_r * laplacian;
+			// Break down the formula for readability
+			double expTerm = std::exp(-std::pow(R - r, 2) / (2 * sigma2));
+		
+			double sinArgX = std::sin(argX);
+			double sinArgY = std::sin(argY);
+			double cosArgX = std::cos(argX);
+			double cosArgY = std::cos(argY);
+			
+			double term1 = l * l * R * R * r;
+			double term2 = -l * l * R * R * r * sinArgX * sinArgY;
+			double term3 = -l * l * R * sigma2 * sinArgX * sinArgY;
+			double term4 = l * l * R * sigma2;
+			double term5 = 2 * l * l * R * x * x * sinArgX * sinArgY;
+			double term6 = -2 * l * l * R * x * x;
+			double term7 = 2 * l * l * R * y * y * sinArgX * sinArgY;
+			double term8 = -2 * l * l * R * y * y;
+			double term9 = -2 * l * l * sigma2 * r;
+			double term10 = 2 * l * l * sigma2 * r * sinArgX * sinArgY;
+			double term11 = l * l * x * x * r;
+			double term12 = l * l * y * y * r;
+			double term13 = -l * l * x * x * r * sinArgX * sinArgY;
+			double term14 = -l * l * y * y * r * sinArgX * sinArgY;
+			double term15 = 2 * pi * l * sigma2 * y * sinArgX * cosArgY * (r - R);
+			double term16 = 2 * pi * l * sigma2 * x * cosArgX * sinArgY * (r - R);
+			double term17 = 2 * pi * pi * sigma2 * sigma2 * r * sinArgX * sinArgY;
+			
+			double numerator = expTerm * (term1 + term2 + term3 + term4 + term5 + term6 + term7 + term8 +
+																		term9 + term10 + term11 + term12 + term13 + term14 + term15 +
+																		term16 + term17);
+			double denominator = l * l * sigma2 * sigma2 * r;
+			double laplacian = numerator / denominator;
+			values[p] = - eps_0 * eps_r * laplacian;
+		}
+			
+		
 	}
 };
 
+// -----------------------------------------
+// 6 - to test - paraola per cerchi concentrici
+// -----------------------------------------
 
 
+template <int dim>
+class RightHandSide6 : public Function<dim>{
+public:
+	virtual void value_list( 	const std::vector< Point<dim>> &point_list, std::vector<double> &values, const unsigned int component = 0 ) const override {
+	(void)component;
+	AssertDimension (point_list.size(), values.size()); // Size check
+		for (unsigned int p=0; p<point_list.size(); ++p){
+			const auto x = point_list[p][0];
+			const auto y = point_list[p][1];
+			double r = sqrt(x*x + y*y);
+			values[p] = - eps_0 * eps_r *
+									Ve * ( l + L - 4.*r ) / r;
+		}
+	}
+	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
+		(void)component;
+		const auto x = p[0];
+		const auto y = p[1];
+		double r = sqrt(x*x + y*y);
+
+		return - eps_0 * eps_r *
+					 Ve * ( l + L - 4.*r ) / r;
+	}
+};
+
+template <int dim>
+class ExactSolution6 : public Function<dim>{
+public:
+	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
+		(void)component;
+		const auto x = p[0];
+		const auto y = p[1];
+		double r = sqrt(x*x + y*y);
+
+		return - Ve * (r-l) * (r-L);
+	}
+};
 
 #endif
