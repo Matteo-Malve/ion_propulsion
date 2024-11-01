@@ -21,6 +21,7 @@ void Problem<dim>::run() {
 
 	while (cycle <= NUM_REFINEMENT_CYCLES) {
 		cout << endl << "Cycle " << cycle << ':' << endl;
+    cycles.push_back(cycle);
 		std::cout << "   Number of active cells:       "<< triangulation.n_active_cells() << std::endl;
 		// Primal --------------
 		cout<<"   Primal:"<<endl;
@@ -262,7 +263,7 @@ void Problem<dim>::output_primal_results() {
 
   std::string filename;
   std::string meshName = extract_mesh_name();
-	filename = std::string("Rg_manual") + "-" + "primal" + "-" + meshName + "-" + Utilities::int_to_string(cycle, 1) + ".vtk";
+	filename = TEST_NAME + "-" + "primal" + "-" + meshName + "-" + Utilities::int_to_string(cycle, 1) + ".vtk";
   DataOutBase::VtkFlags vtk_flags;
   vtk_flags.compression_level = DataOutBase::VtkFlags::ZlibCompressionLevel::best_speed;
   data_out.set_flags(vtk_flags);
@@ -403,7 +404,7 @@ void Problem<dim>::output_dual_results() {
   std::string filename;
   std::string meshName = extract_mesh_name();
 
-	filename =  std::string("Rg_manual") + "-" + "dual-" + meshName + "-" + Utilities::int_to_string(cycle, 1) + ".vtk";
+	filename =  TEST_NAME + "-" + "dual-" + meshName + "-" + Utilities::int_to_string(cycle, 1) + ".vtk";
   DataOutBase::VtkFlags vtk_flags;
   vtk_flags.compression_level = DataOutBase::VtkFlags::ZlibCompressionLevel::best_speed;
   data_out.set_flags(vtk_flags);
@@ -562,11 +563,27 @@ void Problem<dim>::estimate_error(){
       global_error_as_sum_of_cell_errors += error_indicators[i];
   global_error_as_sum_of_cell_errors = std::abs(global_error_as_sum_of_cell_errors);
   cout<<"      Global error as sum of cells' errors = " << global_error_as_sum_of_cell_errors << endl;
+  goal_oriented_local_errors.push_back(global_error_as_sum_of_cell_errors);
 
   // Take absolute value of each error
   for (double &error_indicator : error_indicators) {
       error_indicator = std::fabs(error_indicator);
   }
+
+  // Plot data
+  plt::figure_size(800, 600);
+  plt::clf(); // Clear previous plot
+
+  plt::named_plot("local_estimate", cycles, goal_oriented_local_errors, "b-o");
+
+  plt::xlabel("Cycle");
+  plt::ylabel("Error");
+  plt::title("Goal-oriented error");
+  plt::legend();
+  plt::grid(true);
+
+  // Save the plot
+  plt::save(TEST_NAME+"-goal_oriented_convergence.png");
 }
 
 template <int dim>
@@ -642,10 +659,53 @@ double Problem<dim>::compute_averaged_error() const {
 }
 
 template <int dim>
+double Problem<dim>::compute_MSE() const {
+    // Initialize error accumulator and point counter
+    double total_error = 0.0;
+    unsigned int total_points = 0;
+
+    // Select a quadrature rule (e.g., QGauss) for integration
+    const unsigned int quadrature_order = 2;  // Adjust this based on your needs
+    dealii::QGauss<dim> quadrature_formula(quadrature_order);
+
+    // Initialize FEValues to evaluate the solution at quadrature points
+    dealii::FEValues<dim> fe_values(primal_fe, quadrature_formula,
+                                    dealii::update_values | dealii::update_quadrature_points);
+
+    // Iterate over each cell
+    for (const auto &cell : primal_dof_handler.active_cell_iterators()) {
+        // Reinitialize FEValues for the current cell
+        fe_values.reinit(cell);
+
+        // Extract solution values at quadrature points on the current cell
+        std::vector<double> uh_values(fe_values.n_quadrature_points);
+        fe_values.get_function_values(uh, uh_values);
+
+        // Loop over quadrature points on this cell
+        for (unsigned int q = 0; q < fe_values.n_quadrature_points; ++q) {
+            // Exact solution at this quadrature point
+            double uex_value = exact_solution_function.value(fe_values.quadrature_point(q));
+
+            // Compute error at this quadrature point
+            double error = pow(uh_values[q] - uex_value, 2);
+
+            // Accumulate the error and increase the point counter
+            total_error += error;
+            ++total_points;
+        }
+    }
+
+    // Compute the average error by dividing the accumulated error by the number of points
+    double MSE = total_error / total_points;
+    return MSE;
+}
+
+template <int dim>
 void Problem<dim>::test_convergence(){
-  Point<dim> sensor_1(0.00025, 0.0005);
+  Point<dim> sensor_1(0.0002625, 0.0005);
   Point<dim> sensor_2(-0.00025, 0.0005);
   Point<dim> sensor_3(0.0031, 0.0035);
+  Point<dim> sensor_4(-0.0004, -0.0013);
 
   cout<<"   Convergence test:"<<endl;
   double uh_at_sensor_1 = VectorTools::point_value(primal_dof_handler, uh, sensor_1);
@@ -672,11 +732,20 @@ void Problem<dim>::test_convergence(){
             << "         u_ex    =  " << uex_at_sensor_3 << endl
             << "         abs_err =  " << abs_err_3 <<endl;
   
-  cycles.push_back(cycle);
+  double uh_at_sensor_4 = VectorTools::point_value(primal_dof_handler, uh, sensor_4);
+  double uex_at_sensor_4 = exact_solution_function.value(sensor_4);
+  double abs_err_4 = std::fabs(uh_at_sensor_4-uex_at_sensor_4);
+  std::cout << "      Sensor 4:" << endl
+            << "         uh      =  " << uh_at_sensor_4 << endl
+            << "         u_ex    =  " << uex_at_sensor_4 << endl
+            << "         abs_err =  " << abs_err_4 <<endl;
+  
   errors_sensor_1.push_back(abs_err_1);
   errors_sensor_2.push_back(abs_err_2);
   errors_sensor_3.push_back(abs_err_3);
+  errors_sensor_4.push_back(abs_err_4);
   average_errors.push_back(compute_averaged_error());
+  //MSEs.push_back(compute_MSE());
  
   // Plot data
   plt::figure_size(800, 600);
@@ -685,16 +754,19 @@ void Problem<dim>::test_convergence(){
   plt::named_plot("Sensor 1", cycles, errors_sensor_1, "r-o");
   plt::named_plot("Sensor 2", cycles, errors_sensor_2, "g-o");
   plt::named_plot("Sensor 3", cycles, errors_sensor_3, "b-o");
+  plt::named_plot("Sensor 4", cycles, errors_sensor_4, "k-o");
   plt::named_plot("average", cycles, average_errors, "y-o");
+  //plt::named_plot("MSE", cycles, MSEs, "y:o");
+
 
   plt::xlabel("Cycle");
   plt::ylabel("Error");
-  plt::title("Convergence Test");
+  plt::title("Convergence error");
   plt::legend();
   plt::grid(true);
 
   // Save the plot
-  plt::save("convergence_plot.png");
+  plt::save(TEST_NAME+"-convergence_test.png");
 }
 
 

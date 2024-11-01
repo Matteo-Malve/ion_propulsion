@@ -29,4 +29,7 @@ std::string PATH_TO_MESH = "../mesh/FullTestSquare.msh";
 const unsigned int NUM_PRELIMINARY_REF = 4; 
 const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 0; 
 
-int NUM_REFINEMENT_CYCLES = 6;
+int NUM_REFINEMENT_CYCLES = 12;
+
+const std::string TEST_NAME = "4_0_12"; 
+

@@ -36,6 +36,6 @@ extern std::string PATH_TO_MESH;
 extern const unsigned int NUM_PRELIMINARY_REF; 
 extern const unsigned int NUM_PRELIMINARY_GLOBAL_REF; 
 
-
+extern const std::string TEST_NAME; 
 
 #endif
