@@ -16,43 +16,63 @@ Problem<dim>::Problem() : primal_dof_handler(triangulation),
 
 template <int dim>
 void Problem<dim>::run() {
-  // Import mesh, perform preliminary refinements
 	create_mesh();
-
-	while (cycle <= NUM_REFINEMENT_CYCLES) {
-		cout << endl << "Cycle " << cycle << ':' << endl;
-    cycles.push_back(cycle);
-		std::cout << "   Number of active cells:       "<< triangulation.n_active_cells() << std::endl;
-    num_cells.push_back(triangulation.n_active_cells());
-		// Primal --------------
-		cout<<"   Primal:"<<endl;
-		setup_primal_system();
-		assemble_primal_system();
-		solve_primal();
-		output_primal_results();
-    test_convergence();
-		// --------------------  
-    if(cycle==NUM_REFINEMENT_CYCLES){
-      // Last cycle primal -------------------- 
-			cout << "   Primal " << " [FINAL]" << ':' << endl;
+  if(REFINEMENT_STRATEGY = "GO"){
+    while (cycle <= NUM_REFINEMENT_CYCLES) {
+      cout << endl << "Cycle " << cycle << ':' << endl;
+      cycles.push_back(cycle);
+      std::cout << "   Number of active cells:       "<< triangulation.n_active_cells() << std::endl;
+      num_cells.push_back(triangulation.n_active_cells());
+      // Primal --------------
+      cout<<"   Primal:"<<endl;
       setup_primal_system();
       assemble_primal_system();
       solve_primal();
       output_primal_results();
-    } else {
-      // Dual ---------------    
-      cout<<"   Dual:"<<endl;
-      setup_dual_system();
-      assemble_dual_system();
-      solve_dual();
-      // Error evaluation and grid refinement --------------- 
-      cout<<"   Error estimation:"<<endl;
-      estimate_error();
-      output_dual_results();
+      test_convergence();
+      // --------------------  
+      if(cycle==NUM_REFINEMENT_CYCLES){
+        // Last cycle primal -------------------- 
+        cout << "   Primal " << " [FINAL]" << ':' << endl;
+        setup_primal_system();
+        assemble_primal_system();
+        solve_primal();
+        output_primal_results();
+      } else {
+        // Dual ---------------    
+        cout<<"   Dual:"<<endl;
+        setup_dual_system();
+        assemble_dual_system();
+        solve_dual();
+        // Error evaluation and grid refinement --------------- 
+        cout<<"   Error estimation:"<<endl;
+        estimate_error();
+        output_dual_results();
+        refine_mesh();
+      }
+      ++cycle;
+	  }
+  } else if(REFINEMENT_STRATEGY = "GlobRef"){
+    while (cycle <= NUM_REFINEMENT_CYCLES) {
+      cout << endl << "Cycle " << cycle << ':' << endl;
+      cycles.push_back(cycle);
+      std::cout << "   Number of active cells:       "<< triangulation.n_active_cells() << std::endl;
+      num_cells.push_back(triangulation.n_active_cells());
+      
+      cout<<"   Primal:"<<endl;
+      setup_primal_system();
+      assemble_primal_system();
+      solve_primal();
+      output_primal_results();
+      test_convergence();
       refine_mesh();
-    }
-    ++cycle;
-	}
+      ++cycle;
+	  }
+  } else {
+    cout << "Refinement strategy undefined" << endl;
+    abort();
+  }
+	
 }
 
 template <int dim>
@@ -430,6 +450,7 @@ void Problem<dim>::estimate_error(){
                         dual_dof_handler, 
                         dual_constraints,
                         uh0_on_dual_space);
+  dual_constraints.distribute(uh0_on_dual_space); // just added, shouldn't have been necessary
 
   Rg_dual.reinit(dual_dof_handler.n_dofs());
   FETools::interpolate(primal_dof_handler,
@@ -453,9 +474,7 @@ void Problem<dim>::estimate_error(){
   // ------------------------------------------------------------      
   // RETRIEVE LIFTING: Rg + uh0hat
   // ------------------------------------------------------------      
-  // ! Here we were summing up Rg and then forgetting the vector forever
 
-  // uh0^hat + Rg
   Rg_plus_uh0hat.reinit(dual_dof_handler.n_dofs());
   Rg_plus_uh0hat = uh0_on_dual_space;
   Rg_plus_uh0hat += Rg_dual;
@@ -493,7 +512,7 @@ void Problem<dim>::estimate_error(){
                 ((cell_primal_gradients[p] * cell_dual_gradients[p]  )   // Scalar product btw Tensors
                   * fe_values.JxW(p));
     }
-    error_indicators(cell->active_cell_index()) -= sum;
+    error_indicators(cell->active_cell_index()) -= sum;  
 
   }
 
@@ -575,7 +594,7 @@ void Problem<dim>::estimate_error(){
   plt::figure_size(800, 600);
   plt::clf(); // Clear previous plot
 
-  plt::named_plot("local_estimate", cycles, goal_oriented_local_errors, "b-o");
+  plt::named_semilogy("local_estimate", cycles, goal_oriented_local_errors, "b-o");
 
   plt::xlabel("Cycle");
   plt::ylabel("Error");
@@ -589,32 +608,36 @@ void Problem<dim>::estimate_error(){
 
 template <int dim>
 void Problem<dim>::refine_mesh() {
+  if(REFINEMENT_STRATEGY = "GO"){
+    GridRefinement::refine_and_coarsen_fixed_number(triangulation,error_indicators, 0.1, 0);
+    
+    // Prepare the solution transfer object
+    SolutionTransfer<dim> primal_solution_transfer(primal_dof_handler);
+    // take a copy of the solution vector
+    Vector<double> old_Rg_dof_values(Rg_primal);
+    // Prepare for refinement (older versions of deal.II)
+    primal_solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_dof_values);
+    // Perform the refinement
+    triangulation.execute_coarsening_and_refinement();
+    // Reinitialize the DoFHandler for the refined mesh
+    primal_dof_handler.distribute_dofs(primal_fe);
+    
+    
+    // Reinitialize Rg_primal to match the new DoF layout after refinement
+    Rg_primal.reinit(primal_dof_handler.n_dofs());
+    // Transfer the old values to the new DoFs, accounting for hanging nodes
+    primal_solution_transfer.interpolate(old_Rg_dof_values, Rg_primal);
 
-	GridRefinement::refine_and_coarsen_fixed_number(triangulation,error_indicators, 0.05, 0);
-  
-  // Prepare the solution transfer object
-  SolutionTransfer<dim> primal_solution_transfer(primal_dof_handler);
-  // take a copy of the solution vector
-  Vector<double> old_Rg_dual_dof_values(Rg_primal);
-  // Prepare for refinement (older versions of deal.II)
-  primal_solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_dual_dof_values);
-  // Perform the refinement
-  triangulation.execute_coarsening_and_refinement();
-  // Reinitialize the DoFHandler for the refined mesh
-  primal_dof_handler.distribute_dofs(primal_fe);
-  
-  
-  // Reinitialize Rg_primal to match the new DoF layout after refinement
-  Rg_primal.reinit(primal_dof_handler.n_dofs());
-  // Transfer the old values to the new DoFs, accounting for hanging nodes
-  primal_solution_transfer.interpolate(old_Rg_dual_dof_values, Rg_primal);
+    // Handle boundary conditions again (for hanging nodes)
+    std::map<types::global_dof_index, double> boundary_values;
+    VectorTools::interpolate_boundary_values(primal_dof_handler, 1, exact_solution_function, boundary_values);
+    VectorTools::interpolate_boundary_values(primal_dof_handler, 9, exact_solution_function, boundary_values);
+    for (const auto &boundary_value : boundary_values)
+      Rg_primal(boundary_value.first) = boundary_value.second;
 
-  // Handle boundary conditions again (for hanging nodes)
-  std::map<types::global_dof_index, double> boundary_values;
-  VectorTools::interpolate_boundary_values(primal_dof_handler, 1, exact_solution_function, boundary_values);
-  VectorTools::interpolate_boundary_values(primal_dof_handler, 9, exact_solution_function, boundary_values);
-  for (const auto &boundary_value : boundary_values)
-    Rg_primal(boundary_value.first) = boundary_value.second;
+  } else if(REFINEMENT_STRATEGY = "GlobRef"){
+    
+  }
 }
 template <int dim>
 double Problem<dim>::compute_averaged_error() const {
@@ -757,7 +780,28 @@ void Problem<dim>::test_convergence(){
   average_errors.push_back(compute_averaged_error());
   localized_average_errors.push_back(localized_average_error(evaluation_point, R));
 
- 
+  // Prepare CSV file for writing
+  std::ofstream csv_file;
+  std::string file_name = TEST_NAME + "-convergence_data.csv";
+  csv_file.open(file_name);
+  
+  // Write the header
+  csv_file << "num_cells,errors_sensor_1,errors_sensor_2,errors_sensor_3,errors_sensor_4,average_errors,localized_average_errors\n";
+  
+  // Write each cycle's data
+  for (size_t i = 0; i < num_cells.size(); ++i) {
+      csv_file << num_cells[i] << ","
+               << errors_sensor_1[i] << ","
+               << errors_sensor_2[i] << ","
+               << errors_sensor_3[i] << ","
+               << errors_sensor_4[i] << ","
+               << average_errors[i] << ","
+               << localized_average_errors[i] << "\n";
+  }
+  
+  // Close the CSV file
+  csv_file.close();
+
   // Plot data
   plt::figure_size(800, 600);
   plt::clf();

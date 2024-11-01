@@ -31,5 +31,7 @@ const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 0;
 
 int NUM_REFINEMENT_CYCLES = 12;
 
-const std::string TEST_NAME = "4_0_12"; 
+const std::string TEST_NAME = "GlobRef_4_0_12"; 
 
+const std::string REFINEMENT_STRATEGY = "GlobRef";
+//const std::string REFINEMENT_STRATEGY = "GO";
