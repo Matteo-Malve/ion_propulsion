@@ -17,7 +17,7 @@ Problem<dim>::Problem() : primal_dof_handler(triangulation),
 template <int dim>
 void Problem<dim>::run() {
 	create_mesh();
-  if(REFINEMENT_STRATEGY = "GO"){
+  if(REFINEMENT_STRATEGY == "GO"){
     while (cycle <= NUM_REFINEMENT_CYCLES) {
       cout << endl << "Cycle " << cycle << ':' << endl;
       cycles.push_back(cycle);
@@ -52,7 +52,7 @@ void Problem<dim>::run() {
       }
       ++cycle;
 	  }
-  } else if(REFINEMENT_STRATEGY = "GlobRef"){
+  } else if(REFINEMENT_STRATEGY == "GlobRef"){
     while (cycle <= NUM_REFINEMENT_CYCLES) {
       cout << endl << "Cycle " << cycle << ':' << endl;
       cycles.push_back(cycle);
@@ -608,7 +608,7 @@ void Problem<dim>::estimate_error(){
 
 template <int dim>
 void Problem<dim>::refine_mesh() {
-  if(REFINEMENT_STRATEGY = "GO"){
+  if(REFINEMENT_STRATEGY == "GO"){
     GridRefinement::refine_and_coarsen_fixed_number(triangulation,error_indicators, 0.1, 0);
     
     // Prepare the solution transfer object
@@ -635,8 +635,23 @@ void Problem<dim>::refine_mesh() {
     for (const auto &boundary_value : boundary_values)
       Rg_primal(boundary_value.first) = boundary_value.second;
 
-  } else if(REFINEMENT_STRATEGY = "GlobRef"){
-    
+  } else if(REFINEMENT_STRATEGY == "GlobRef"){
+
+    Vector<double> old_Rg_values = Rg_primal;
+
+    SolutionTransfer<dim> solution_transfer(primal_dof_handler);
+    solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_values);
+
+    triangulation.refine_global(1);
+
+    primal_dof_handler.distribute_dofs(primal_fe);
+
+    Rg_primal.reinit(primal_dof_handler.n_dofs());
+    solution_transfer.interpolate(old_Rg_values, Rg_primal);
+
+  } else {
+    cout << "Refinement strategy undefined" << endl;
+    abort();
   }
 }
 template <int dim>
