@@ -23,6 +23,7 @@ void Problem<dim>::run() {
 		cout << endl << "Cycle " << cycle << ':' << endl;
     cycles.push_back(cycle);
 		std::cout << "   Number of active cells:       "<< triangulation.n_active_cells() << std::endl;
+    num_cells.push_back(triangulation.n_active_cells());
 		// Primal --------------
 		cout<<"   Primal:"<<endl;
 		setup_primal_system();
@@ -301,7 +302,7 @@ void Problem<dim>::assemble_dual_system() {
   // ---------------------------------------
   // RHS
   // ---------------------------------------
-  Point<dim> evaluation_point;
+
   if (NUM_PRELIMINARY_REF == 4)
     evaluation_point = Point<dim>(0.00025, 0.0005);  
   else{
@@ -615,7 +616,6 @@ void Problem<dim>::refine_mesh() {
   for (const auto &boundary_value : boundary_values)
     Rg_primal(boundary_value.first) = boundary_value.second;
 }
-
 template <int dim>
 double Problem<dim>::compute_averaged_error() const {
     // Initialize error accumulator and point counter
@@ -639,13 +639,15 @@ double Problem<dim>::compute_averaged_error() const {
         std::vector<double> uh_values(fe_values.n_quadrature_points);
         fe_values.get_function_values(uh, uh_values);
 
-        // Loop over quadrature points on this cell
-        for (unsigned int q = 0; q < fe_values.n_quadrature_points; ++q) {
-            // Exact solution at this quadrature point
-            double uex_value = exact_solution_function.value(fe_values.quadrature_point(q));
+        // Collect quadrature points and evaluate exact solution at all points in one call
+        std::vector<dealii::Point<dim>> quadrature_points = fe_values.get_quadrature_points();
+        std::vector<double> uex_values(fe_values.n_quadrature_points);
+        exact_solution_function.value_list(quadrature_points, uex_values);
 
+        // Loop over quadrature points on this cell to calculate errors
+        for (unsigned int q = 0; q < fe_values.n_quadrature_points; ++q) {
             // Compute error at this quadrature point
-            double error = std::fabs(uh_values[q] - uex_value);
+            double error = std::fabs(uh_values[q] - uex_values[q]);
 
             // Accumulate the error and increase the point counter
             total_error += error;
@@ -658,47 +660,55 @@ double Problem<dim>::compute_averaged_error() const {
     return averaged_error;
 }
 
+
 template <int dim>
-double Problem<dim>::compute_MSE() const {
+double Problem<dim>::localized_average_error(Point<dim> center_point, double radius) const {
     // Initialize error accumulator and point counter
     double total_error = 0.0;
     unsigned int total_points = 0;
 
     // Select a quadrature rule (e.g., QGauss) for integration
     const unsigned int quadrature_order = 2;  // Adjust this based on your needs
-    dealii::QGauss<dim> quadrature_formula(quadrature_order);
+    QGauss<dim> quadrature_formula(quadrature_order);
 
     // Initialize FEValues to evaluate the solution at quadrature points
-    dealii::FEValues<dim> fe_values(primal_fe, quadrature_formula,
-                                    dealii::update_values | dealii::update_quadrature_points);
+    FEValues<dim> fe_values(primal_fe, quadrature_formula,
+                                    update_values | update_quadrature_points);
 
     // Iterate over each cell
     for (const auto &cell : primal_dof_handler.active_cell_iterators()) {
-        // Reinitialize FEValues for the current cell
-        fe_values.reinit(cell);
+        // Check if the cell center is within the radius of the specified center point
+        Point<dim> cell_center = cell->center();
+        double distance = cell_center.distance(center_point);
+        
+        if (distance <= radius) {
+            // Reinitialize FEValues for the current cell
+            fe_values.reinit(cell);
 
-        // Extract solution values at quadrature points on the current cell
-        std::vector<double> uh_values(fe_values.n_quadrature_points);
-        fe_values.get_function_values(uh, uh_values);
+            // Extract solution values at quadrature points on the current cell
+            std::vector<double> uh_values(fe_values.n_quadrature_points);
+            fe_values.get_function_values(uh, uh_values);
 
-        // Loop over quadrature points on this cell
-        for (unsigned int q = 0; q < fe_values.n_quadrature_points; ++q) {
-            // Exact solution at this quadrature point
-            double uex_value = exact_solution_function.value(fe_values.quadrature_point(q));
+            // Loop over quadrature points on this cell
+            for (unsigned int q = 0; q < fe_values.n_quadrature_points; ++q) {
+                // Exact solution at this quadrature point
+                double uex_value = exact_solution_function.value(fe_values.quadrature_point(q));
 
-            // Compute error at this quadrature point
-            double error = pow(uh_values[q] - uex_value, 2);
+                // Compute error at this quadrature point
+                double error = std::fabs(uh_values[q] - uex_value);
 
-            // Accumulate the error and increase the point counter
-            total_error += error;
-            ++total_points;
+                // Accumulate the error and increase the point counter
+                total_error += error;
+                ++total_points;
+            }
         }
     }
 
     // Compute the average error by dividing the accumulated error by the number of points
-    double MSE = total_error / total_points;
-    return MSE;
+    double averaged_error = (total_points > 0) ? (total_error / total_points) : 0.0;
+    return averaged_error;
 }
+
 
 template <int dim>
 void Problem<dim>::test_convergence(){
@@ -745,21 +755,30 @@ void Problem<dim>::test_convergence(){
   errors_sensor_3.push_back(abs_err_3);
   errors_sensor_4.push_back(abs_err_4);
   average_errors.push_back(compute_averaged_error());
-  //MSEs.push_back(compute_MSE());
+  localized_average_errors.push_back(localized_average_error(evaluation_point, R));
+
  
   // Plot data
   plt::figure_size(800, 600);
-  plt::clf(); // Clear previous plot
-
-  plt::named_plot("Sensor 1", cycles, errors_sensor_1, "r-o");
+  plt::clf();
+  
+  /*plt::named_plot("Sensor 1", cycles, errors_sensor_1, "r-o");
   plt::named_plot("Sensor 2", cycles, errors_sensor_2, "g-o");
   plt::named_plot("Sensor 3", cycles, errors_sensor_3, "b-o");
   plt::named_plot("Sensor 4", cycles, errors_sensor_4, "k-o");
   plt::named_plot("average", cycles, average_errors, "y-o");
-  //plt::named_plot("MSE", cycles, MSEs, "y:o");
+  plt::named_plot("localized average", cycles, localized_average_errors, "y:o");*/
+
+  plt::named_loglog("Sensor 1", num_cells, errors_sensor_1, "r-o");
+  plt::named_loglog("Sensor 2", num_cells, errors_sensor_2, "g-o");
+  plt::named_loglog("Sensor 3", num_cells, errors_sensor_3, "b-o");
+  plt::named_loglog("Sensor 4", num_cells, errors_sensor_4, "k-o");
+  plt::named_loglog("average", num_cells, average_errors, "y-o");
+  plt::named_loglog("localized average", num_cells, localized_average_errors, "y:o");
 
 
-  plt::xlabel("Cycle");
+  //plt::xlabel("Cycle");
+  plt::xlabel("Number of Cells");
   plt::ylabel("Error");
   plt::title("Convergence error");
   plt::legend();

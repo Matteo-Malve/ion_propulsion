@@ -269,6 +269,17 @@ public:
 
 		return - Ve * (r-l) * (r-L);
 	}
+	virtual void value_list(const std::vector< Point<dim>> &point_list, std::vector<double> &values, const unsigned int component = 0 ) const override {
+		(void)component;
+		AssertDimension (point_list.size(), values.size()); // Size check
+		for (unsigned int p=0; p<point_list.size(); ++p){
+			const auto x = point_list[p][0];
+			const auto y = point_list[p][1];
+			double r = sqrt(x*x + y*y);
+
+			values[p] = - Ve * (r-l) * (r-L);
+		}
+	}
 };
 
 #endif

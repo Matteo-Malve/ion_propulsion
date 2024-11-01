@@ -69,7 +69,8 @@ private:
 	void refine_mesh();
 
 	double compute_averaged_error() const;
-	double compute_MSE() const;
+	double localized_average_error(dealii::Point<dim> center_point, double radius) const;
+
 	void test_convergence();
 
 	Triangulation<dim>            triangulation;
@@ -96,6 +97,8 @@ private:
 																uh, 
 																zh;
 
+	Point<dim> 										evaluation_point;
+
 	Vector<double> 								Rg_primal, 
 																Rg_dual;
 
@@ -109,10 +112,10 @@ private:
 	int cycle = 0;
 
 	std::vector<double> errors_sensor_1, errors_sensor_2, errors_sensor_3, errors_sensor_4;
-	std::vector<double> average_errors, MSEs;
+	std::vector<double> average_errors, localized_average_errors;
 	std::vector<double> goal_oriented_local_errors;
 
-	std::vector<int> cycles;
+	std::vector<int> cycles, num_cells;
 
 };
 
