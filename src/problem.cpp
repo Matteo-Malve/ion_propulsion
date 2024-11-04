@@ -340,7 +340,7 @@ void Problem<dim>::assemble_dual_system() {
   const QGauss<dim> quadrature(dual_dof_handler.get_fe().degree + 1);
   FEValues<dim> fe_values(dual_fe,
                           quadrature,
-                          update_gradients | update_quadrature_points | update_JxW_values);
+                          update_values | update_gradients | update_quadrature_points | update_JxW_values);
 
   const unsigned int dofs_per_cell = dual_fe.n_dofs_per_cell();
 
@@ -489,7 +489,7 @@ void Problem<dim>::estimate_error(){
   const QGauss<dim> quadrature(dual_dof_handler.get_fe().degree + 1);
   FEValues<dim> fe_values(dual_fe,
                           quadrature,
-                          update_gradients | update_quadrature_points | update_JxW_values);
+                          update_values | update_gradients | update_quadrature_points | update_JxW_values);
 
   const unsigned int n_q_points = quadrature.size();
 
@@ -520,6 +520,81 @@ void Problem<dim>::estimate_error(){
   // GLOBAL ESTIMATE
   // ------------------------------------------------------------      
   
+  /*
+  double global_error = 0.;
+  Vector<double> temp(dual_dof_handler.n_dofs());
+  dual_system_matrix.vmult(temp,dual_weights);    // A z      NB: A is condensed
+  dual_constraints.distribute(temp);
+  for(unsigned int i=0;i<sol_size;++i)
+      global_error+=Rg_plus_uh0hat(i)*temp(i);           // (Rg^+uh0^)' A z
+  global_error = std::fabs(global_error);
+*/
+
+  dual_dof_handler.distribute_dofs(dual_fe);
+  DynamicSparsityPattern dsp(dual_dof_handler.n_dofs());
+  DoFTools::make_sparsity_pattern(dual_dof_handler, dsp);
+  SparsityPattern sparsity_pattern;
+  sparsity_pattern.copy_from(dsp);
+
+  // Globals
+  SparseMatrix<double> dual_system_matrix_without_constraints;
+  dual_system_matrix_without_constraints.reinit(sparsity_pattern);
+  Vector<double> F(dual_dof_handler.n_dofs());
+
+  // FE
+  const unsigned int dofs_per_cell = dual_fe.n_dofs_per_cell();
+
+  std::vector<Tensor<1, dim>> rg_gradients(n_q_points);
+
+  // Locals
+  FullMatrix<double> cell_matrix(dofs_per_cell, dofs_per_cell);
+  Vector<double> cell_F(dofs_per_cell);
+  std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
+  
+
+  for (const auto &cell : dual_dof_handler.active_cell_iterators())
+  {
+    fe_values.reinit(cell);
+    cell_matrix = 0;
+    cell_F = 0;
+
+    fe_values.get_function_gradients(Rg_dual, rg_gradients);
+
+    // Compute A_loc
+    for (const unsigned int q_index : fe_values.quadrature_point_indices())
+      for (const unsigned int i : fe_values.dof_indices()){
+        cell_F(i) += eps_r * eps_0*
+                        (fe_values.shape_grad(i, q_index) *     // grad phi_i(x_q)
+                        rg_gradients[q_index] *                 // grad_Rg(x_q)
+                        fe_values.JxW(q_index));                // dx
+        for (const unsigned int j : fe_values.dof_indices())
+          cell_matrix(i, j) += eps_r*eps_0*
+                  (fe_values.shape_grad(i, q_index) * // grad phi_i(x_q)
+                    fe_values.shape_grad(j, q_index) * // grad phi_j(x_q)
+                    fe_values.JxW(q_index));           // dx
+      }
+    // Local to global
+    cell->get_dof_indices(local_dof_indices);
+    for (const unsigned int i : fe_values.dof_indices()){
+      F(local_dof_indices[i]) += cell_F(i);
+      for (const unsigned int j : fe_values.dof_indices())
+        dual_system_matrix_without_constraints.add(local_dof_indices[i],        // <-- dual_system_matrix_without_constraints
+                                                    local_dof_indices[j],
+                                                    cell_matrix(i, j)); 
+    }
+  }
+
+  double dx = 0.0; double lx = 0.0;
+
+  Vector<double> temp(dual_dof_handler.n_dofs());
+  dual_system_matrix_without_constraints.vmult(temp,dual_weights);    // A z 
+
+  for(unsigned int i=0;i<sol_size;++i)
+      dx+=uh0_on_dual_space(i)*temp(i);           // u' A z   // Prova anche a togliere distribute da uh0_on_dual_space
+
+
+
+  /*
   double dx = 0.0; double lx = 0.0;
 
   // Compute   u' A z              NOTE: z is actually the dual weights (zh-∏zh)
@@ -560,7 +635,7 @@ void Problem<dim>::estimate_error(){
     F.add(local_dof_indices, cell_F);
   }
   dual_constraints.condense(F);
-  dual_constraints.distribute(F);
+  dual_constraints.distribute(F);*/
 
   // Compute     z' F    or    z•F
   for(unsigned int i=0;i<dual_weights.size();i++)
@@ -793,7 +868,7 @@ void Problem<dim>::test_convergence(){
   errors_sensor_3.push_back(abs_err_3);
   errors_sensor_4.push_back(abs_err_4);
   average_errors.push_back(compute_averaged_error());
-  localized_average_errors.push_back(localized_average_error(evaluation_point, R));
+  localized_average_errors.push_back(localized_average_error(evaluation_point, R/3.));
 
   // Prepare CSV file for writing
   std::ofstream csv_file;
