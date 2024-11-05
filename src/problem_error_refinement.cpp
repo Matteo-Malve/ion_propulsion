@@ -69,24 +69,29 @@ void Problem<dim>::local_estimate(){
 
   const unsigned int n_q_points = quadrature.size();
 
-  std::vector<Tensor<1,dim>> cell_primal_gradients(n_q_points);
-  std::vector<Tensor<1,dim>> cell_dual_gradients(n_q_points);
+  std::vector<Tensor<1,dim>> cell_Rg_plus_uh0hat_gradients(n_q_points);
+  std::vector<Tensor<1,dim>> cell_dual_weights_gradients(n_q_points);
+  std::vector<double> cell_rhs_values(quadrature.size());
+  std::vector<double> cell_dual_weights(quadrature.size());
 
   double sum;
 
   for (const auto &cell : dual_dof_handler.active_cell_iterators()){
 
     fe_values.reinit(cell);
-    fe_values.get_function_gradients(Rg_plus_uh0hat, cell_primal_gradients);
-    fe_values.get_function_gradients(dual_weights, cell_dual_gradients);
-
+    fe_values.get_function_gradients(Rg_plus_uh0hat, cell_Rg_plus_uh0hat_gradients);
+    fe_values.get_function_gradients(dual_weights, cell_dual_weights_gradients);
+    fe_values.get_function_values(dual_weights, cell_dual_weights);
+    rhs_function.value_list(fe_values.get_quadrature_points(), cell_rhs_values);
+    
     // Numerically approximate the integral of the scalar product between the gradients of the two
     sum = 0;
     
     for (unsigned int p = 0; p < n_q_points; ++p) {
         sum +=  eps_r * eps_0 *                        
-                ((cell_primal_gradients[p] * cell_dual_gradients[p]  )   // Scalar product btw Tensors
+                ((cell_Rg_plus_uh0hat_gradients[p] * cell_dual_weights_gradients[p]  )   // Scalar product btw Tensors
                   * fe_values.JxW(p));
+        sum += (cell_rhs_values[p] * cell_dual_weights[p] * fe_values.JxW(p));
     }
     error_indicators(cell->active_cell_index()) -= sum;  
 
@@ -263,6 +268,8 @@ double Problem<dim>::global_estimate(){
   // Locals
   FullMatrix<double> cell_matrix(dofs_per_cell, dofs_per_cell);
   Vector<double> cell_F(dofs_per_cell);
+  std::vector<double> cell_rhs_values(quadrature.size());
+
   std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
   
 
@@ -273,7 +280,8 @@ double Problem<dim>::global_estimate(){
     cell_F = 0;
 
     fe_values.get_function_gradients(Rg_dual, rg_gradients);
-
+    rhs_function.value_list(fe_values.get_quadrature_points(), cell_rhs_values);
+    
     // Compute A_loc
     for (const unsigned int q_index : fe_values.quadrature_point_indices())
       for (const unsigned int i : fe_values.dof_indices()){
@@ -281,6 +289,7 @@ double Problem<dim>::global_estimate(){
                         (fe_values.shape_grad(i, q_index) *     // grad phi_i(x_q)
                         rg_gradients[q_index] *                 // grad_Rg(x_q)
                         fe_values.JxW(q_index));                // dx
+        cell_F(i) += (cell_rhs_values[q_index] * fe_values.shape_value(i, q_index) * fe_values.JxW(q_index));                
         for (const unsigned int j : fe_values.dof_indices())
           cell_matrix(i, j) += eps_r*eps_0*
                   (fe_values.shape_grad(i, q_index) * // grad phi_i(x_q)
@@ -366,7 +375,7 @@ void Problem<dim>::estimate_error(){
 template <int dim>
 void Problem<dim>::refine_mesh() {
   if(REFINEMENT_STRATEGY == "GO"){
-    GridRefinement::refine_and_coarsen_fixed_number(triangulation,error_indicators, 0.1, 0);
+    GridRefinement::refine_and_coarsen_fixed_number(triangulation,error_indicators, 0.05, 0);
     
     // Prepare the solution transfer object
     SolutionTransfer<dim> primal_solution_transfer(primal_dof_handler);

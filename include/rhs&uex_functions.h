@@ -229,9 +229,13 @@ public:
 		double denominator = l * l * sigma2 * sigma2 * r;
 		double laplacian = Ve * numerator / denominator;
 		return - eps_0 * eps_r * laplacian;
-		
-			
-		
+	}
+	virtual void value_list(const std::vector< Point<dim>> &point_list, std::vector<double> &values, const unsigned int component = 0 ) const override {
+		(void)component;
+		AssertDimension (point_list.size(), values.size()); // Size check
+		for (unsigned int p=0; p<point_list.size(); ++p){
+			values[p] = this->value(point_list[p]);
+		}
 	}
 };
 
