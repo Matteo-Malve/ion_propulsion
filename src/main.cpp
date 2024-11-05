@@ -4,6 +4,7 @@
 
 int main() {
 	try {
+		std::cout << "deal.II version: " << DEAL_II_PACKAGE_VERSION << std::endl;
 		Problem<2> iprop_problem;
 		iprop_problem.run();
 	} catch (std::exception &exc) {

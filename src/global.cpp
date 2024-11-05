@@ -29,9 +29,9 @@ std::string PATH_TO_MESH = "../mesh/FullTestSquare.msh";
 const unsigned int NUM_PRELIMINARY_REF = 4; 
 const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 0; 
 
-int NUM_REFINEMENT_CYCLES = 2;
+int NUM_REFINEMENT_CYCLES = 12;
 
-const std::string TEST_NAME = "GO_4_0_12_newglobal"; 
+const std::string TEST_NAME = "GO_4_0_12_face_jumps"; 
 
 //const std::string REFINEMENT_STRATEGY = "GlobRef";
 const std::string REFINEMENT_STRATEGY = "GO";

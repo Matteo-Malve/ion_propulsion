@@ -43,6 +43,7 @@
 #include "globals.h"
 #include "postprocessors.h"
 #include "utilities.h"
+#include "rhs&uex_functions.h"
 
 
 using namespace dealii;
@@ -65,6 +66,10 @@ private:
 	void solve_dual();
 	void output_dual_results();
 
+	void interpolate_between_primal_and_dual();
+	void local_estimate();
+	void local_estimate_face_jumps();
+	double global_estimate();
 	void estimate_error();
 	void refine_mesh();
 
@@ -103,8 +108,10 @@ private:
 																Rg_dual;
 
 	Vector<double> 								uh0_on_dual_space,
-																Rg_plus_uh0hat, 
-																error_indicators;															
+																Rg_plus_uh0hat,
+																dual_weights, 
+																error_indicators,
+																error_indicators_face_jumps;															
 	
 	RightHandSide5<dim> 					rhs_function;
 	ExactSolution5<dim>						exact_solution_function;

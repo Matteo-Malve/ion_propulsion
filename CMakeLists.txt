@@ -19,7 +19,9 @@ set(SOURCE_FILES
     src/global.cpp
     src/utilities.cpp
     src/dual_functional.cpp
-    src/problem.cpp
+    src/problem_solver.cpp
+    src/problem_error_refinement.cpp
+    src/problem_convergence.cpp
     src/main.cpp
 )
 
