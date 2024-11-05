@@ -7,7 +7,6 @@ using std::cout;
 using std::endl;
 namespace plt = matplotlibcpp;
 
-
 // -----------------------------------------
 // GOAL ORIENTED REFINEMENT
 // -----------------------------------------
@@ -96,7 +95,139 @@ void Problem<dim>::local_estimate(){
 
 template <int dim>
 void Problem<dim>::local_estimate_face_jumps(){
- 
+  error_indicators_face_jumps.reinit(triangulation.n_active_cells());
+  // Having computed the dual weights we now proceed with computing the cell and face residuals 
+  // of the primal solution. First we set up a map between face iterators and their jump term 
+  // contributions of faces to the error estimator. The reason is that we compute the jump terms 
+  // only once, from one side of the face, and want to collect them only afterwards when looping 
+  // over all cells a second time.
+  // We initialize this map already with a value of -1e20 for all faces, since this value will 
+  // stand out in the results if something should go wrong and we fail to compute the value for a 
+  // face for some reason. Secondly, this initialization already makes the std::map object allocate 
+  // all objects it may possibly need.
+
+  // Map between face iterators and their jump term contributions
+  std::map<typename DoFHandler<dim>::face_iterator, double> face_integrals;
+  
+  // Quadrature rule for face integration
+  const QGauss<dim> quadrature(dual_fe.degree + 1);
+  const QGauss<dim - 1> face_quadrature(dual_fe.degree + 1);
+
+  std::vector<double> cell_rhs_values(quadrature.size());
+  std::vector<double> cell_dual_weights;
+  std::vector<double> cell_laplacians;
+
+  // FEValues objects for face integration
+  FEValues<dim> fe_values (dual_fe, quadrature,
+                                      update_values | update_hessians | 
+                                      update_quadrature_points | update_JxW_values);
+  FEFaceValues<dim> fe_face_values(dual_fe, face_quadrature,
+                                   update_values | update_gradients | update_JxW_values);
+  FEFaceValues<dim> fe_face_values_neighbor(dual_fe, face_quadrature,
+                                            update_values | update_gradients | update_JxW_values);
+  FESubfaceValues<dim> fe_subface_values(dual_fe, face_quadrature,
+                                         update_values | update_gradients | update_JxW_values);
+  
+  // Vectors to store gradients on the face quadrature points
+  std::vector<Tensor<1, dim>> cell_gradients(face_quadrature.size());
+  std::vector<Tensor<1, dim>> neighbor_gradients(face_quadrature.size());
+
+  // Initializing face_integrals to detect any uncomputed values
+  for (const auto &cell : dual_dof_handler.active_cell_iterators())
+    for (const auto &face : cell->face_iterators())
+      face_integrals[face] = -1e20;
+
+  // LOOP { ESTIMATE ON ONE CELL }
+
+
+  for (const auto &cell : dual_dof_handler.active_cell_iterators()){
+
+    // INTEGRATE OVER CELL (with laplacian)
+    fe_values.reinit(cell);
+    rhs_function.value_list(fe_values.get_quadrature_points(), cell_rhs_values);
+    fe_values.get_function_laplacians(Rg_plus_uh0hat, cell_laplacians);
+    fe_values.get_function_values(dual_weights, cell_dual_weights);
+    double sum = 0;
+    for (unsigned int p = 0; p < fe_values.n_quadrature_points; ++p)
+      sum += ((cell_rhs_values[p] + cell_laplacians[p]) *
+             cell_dual_weights[p] * fe_values.JxW(p));
+    error_indicators(cell->active_cell_index()) += sum;
+
+    for (const unsigned int face_no : cell->face_indices()){
+      const auto face = cell->face(face_no);
+      // If this face is part of the boundary, then there is nothing to do
+      if (cell->face(face_no)->at_boundary()){
+        face_integrals[cell->face(face_no)] = 0;
+        continue; 
+      }
+      // First, if the neighboring cell is on the same level as this one, i.e. neither further 
+      // refined not coarser, then the one with the lower index within this level does the work. 
+      // In other words: if the other one has a lower index, then skip work on this face:
+      if ((cell->neighbor(face_no)->has_children() == false) &&
+          (cell->neighbor(face_no)->level() == cell->level()) &&
+          (cell->neighbor(face_no)->index() < cell->index()))
+        continue;
+      // Likewise, we always work from the coarser cell if this and its neighbor differ in refinement. 
+      // Thus, if the neighboring cell is less refined than the present one, then do
+      // nothing since we integrate over the subfaces when we visit the coarse cell.
+      if (cell->at_boundary(face_no) == false)
+        if (cell->neighbor(face_no)->level() < cell->level())
+          continue;
+
+      // Now we know that we are in charge here, so actually compute the face jump terms.
+      if (cell->face(face_no)->has_children() == false){
+        // INTEGRATE OVER REGULAR FACE
+
+        fe_face_values.reinit(cell, face_no);
+        fe_face_values.get_function_gradients(Rg_plus_uh0hat, cell_gradients);
+
+        fe_face_values_neighbor.reinit(cell->neighbor(face_no), cell->neighbor_of_neighbor(face_no));
+        fe_face_values_neighbor.get_function_gradients(Rg_plus_uh0hat, neighbor_gradients);
+
+        // Calculate jump terms across the face and accumulate the contribution
+        double face_jump_contribution = 0.0;
+        for (unsigned int q = 0; q < face_quadrature.size(); ++q) {
+          const Tensor<1, dim> jump = cell_gradients[q] - neighbor_gradients[q];
+          face_jump_contribution += jump.norm_square() * fe_face_values.JxW(q);
+        }
+        face_integrals[face] = face_jump_contribution;
+
+      } else {
+
+        // INTEGRATE OVER IRREGULAR FACE
+
+        double face_jump_contribution = 0.0;
+        
+        for (unsigned int subface_no = 0; subface_no < face->n_children(); ++subface_no) {
+          fe_subface_values.reinit(cell, face_no, subface_no);
+          fe_subface_values.get_function_gradients(Rg_plus_uh0hat, cell_gradients);
+          
+          fe_face_values_neighbor.reinit(cell->neighbor_child_on_subface(face_no, subface_no), cell->neighbor_of_neighbor(face_no));
+          fe_face_values_neighbor.get_function_gradients(Rg_plus_uh0hat, neighbor_gradients);
+
+
+          for (unsigned int q = 0; q < face_quadrature.size(); ++q) {
+            const Tensor<1, dim> jump = cell_gradients[q] - neighbor_gradients[q];
+            face_jump_contribution += jump.norm_square() * fe_subface_values.JxW(q);
+          }
+        }
+        face_integrals[face] = face_jump_contribution;
+      } 
+    }
+  }
+
+  unsigned int present_cell = 0;
+  for (const auto &cell : dual_dof_handler.active_cell_iterators()){
+    for (const auto &face : cell->face_iterators()){
+      Assert(face_integrals.find(face) != face_integrals.end(), ExcInternalError());
+      error_indicators_face_jumps(present_cell) -= 0.5 * face_integrals[face];
+    }
+    ++present_cell;
+  }
+  std::cout << "   Estimated error [face jumps]: "
+            << std::accumulate(error_indicators_face_jumps.begin(),error_indicators_face_jumps.end(),0.)
+            << std::endl;
+
 }
 
 template <int dim>
@@ -191,7 +322,7 @@ void Problem<dim>::estimate_error(){
   // ------------------------------------------------------------      
   // CALL all steps
   // ------------------------------------------------------------   
-
+  
   interpolate_between_primal_and_dual();
   local_estimate();
   //local_estimate_face_jumps();
