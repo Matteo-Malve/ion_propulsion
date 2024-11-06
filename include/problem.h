@@ -120,7 +120,7 @@ private:
 
 	std::vector<double> errors_sensor_1, errors_sensor_2, errors_sensor_3, errors_sensor_4;
 	std::vector<double> average_errors, localized_average_errors;
-	std::vector<double> goal_oriented_local_errors;
+	std::vector<double> goal_oriented_global_errors, goal_oriented_local_errors, goal_oriented_local_errors_face_jumps;
 
 	std::vector<int> cycles, num_cells;
 

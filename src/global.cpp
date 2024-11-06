@@ -34,4 +34,4 @@ int NUM_REFINEMENT_CYCLES = 12;
 //const std::string REFINEMENT_STRATEGY = "GlobRef";
 const std::string REFINEMENT_STRATEGY = "GO";
 
-const std::string TEST_NAME = REFINEMENT_STRATEGY + "_4_0_12_prove"; 
+const std::string TEST_NAME = REFINEMENT_STRATEGY + "prove_jumps"; 

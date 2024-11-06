@@ -71,8 +71,8 @@ void Problem<dim>::local_estimate(){
 
   std::vector<Tensor<1,dim>> cell_Rg_plus_uh0hat_gradients(n_q_points);
   std::vector<Tensor<1,dim>> cell_dual_weights_gradients(n_q_points);
-  std::vector<double> cell_rhs_values(quadrature.size());
-  std::vector<double> cell_dual_weights(quadrature.size());
+  std::vector<double> cell_rhs_values(n_q_points);
+  std::vector<double> cell_dual_weights(n_q_points);
 
   double sum;
 
@@ -83,7 +83,7 @@ void Problem<dim>::local_estimate(){
     fe_values.get_function_gradients(dual_weights, cell_dual_weights_gradients);
     fe_values.get_function_values(dual_weights, cell_dual_weights);
     rhs_function.value_list(fe_values.get_quadrature_points(), cell_rhs_values);
-    
+
     // Numerically approximate the integral of the scalar product between the gradients of the two
     sum = 0;
     
@@ -118,48 +118,56 @@ void Problem<dim>::local_estimate_face_jumps(){
   const QGauss<dim> quadrature(dual_fe.degree + 1);
   const QGauss<dim - 1> face_quadrature(dual_fe.degree + 1);
 
-  std::vector<double> cell_rhs_values(quadrature.size());
-  std::vector<double> cell_dual_weights;
-  std::vector<double> cell_laplacians;
+  const unsigned int n_q_points = quadrature.size();
+  const unsigned int face_n_q_points = face_quadrature.size();
+
+  std::vector<double> cell_rhs_values(n_q_points);
+  std::vector<double> cell_dual_weights(n_q_points);
+  std::vector<double> cell_laplacians(n_q_points);
 
   // FEValues objects for face integration
   FEValues<dim> fe_values (dual_fe, quadrature,
                                       update_values | update_hessians | 
                                       update_quadrature_points | update_JxW_values);
-  FEFaceValues<dim> fe_face_values(dual_fe, face_quadrature,
-                                   update_values | update_gradients | update_JxW_values);
+  FEFaceValues<dim> fe_face_values_current_cell(dual_fe, face_quadrature,
+                                   update_values | update_gradients |
+                                   update_normal_vectors | update_JxW_values);
   FEFaceValues<dim> fe_face_values_neighbor(dual_fe, face_quadrature,
-                                            update_values | update_gradients | update_JxW_values);
-  FESubfaceValues<dim> fe_subface_values(dual_fe, face_quadrature,
-                                         update_values | update_gradients | update_JxW_values);
+                                            update_values | update_gradients | 
+                                            update_normal_vectors | update_JxW_values);
+  FESubfaceValues<dim> fe_subface_values_current_cell(dual_fe, face_quadrature,
+                                         update_values | update_gradients | 
+                                         update_normal_vectors | update_JxW_values);
   
   // Vectors to store gradients on the face quadrature points
-  std::vector<Tensor<1, dim>> cell_gradients(face_quadrature.size());
-  std::vector<Tensor<1, dim>> neighbor_gradients(face_quadrature.size());
+  std::vector<Tensor<1, dim>> cell_gradients(face_n_q_points);
+  std::vector<Tensor<1, dim>> neighbor_gradients(face_n_q_points);
+  std::vector<double> face_dual_weights(face_n_q_points);
 
   // Initializing face_integrals to detect any uncomputed values
   for (const auto &cell : dual_dof_handler.active_cell_iterators())
     for (const auto &face : cell->face_iterators())
       face_integrals[face] = -1e20;
 
-  // LOOP { ESTIMATE ON ONE CELL }
-
 
   for (const auto &cell : dual_dof_handler.active_cell_iterators()){
-
     // INTEGRATE OVER CELL (with laplacian)
     fe_values.reinit(cell);
     rhs_function.value_list(fe_values.get_quadrature_points(), cell_rhs_values);
     fe_values.get_function_laplacians(Rg_plus_uh0hat, cell_laplacians);
     fe_values.get_function_values(dual_weights, cell_dual_weights);
     double sum = 0;
-    for (unsigned int p = 0; p < fe_values.n_quadrature_points; ++p)
+    
+    for (unsigned int p = 0; p < n_q_points; ++p)
       sum += ((cell_rhs_values[p] + cell_laplacians[p]) *
              cell_dual_weights[p] * fe_values.JxW(p));
-    error_indicators(cell->active_cell_index()) += sum;
 
+    error_indicators_face_jumps(cell->active_cell_index()) += sum;
+  }
+
+  // LOOP { ESTIMATE ON ONE CELL }
+  for (const auto &cell : dual_dof_handler.active_cell_iterators()){
     for (const unsigned int face_no : cell->face_indices()){
-      const auto face = cell->face(face_no);
       // If this face is part of the boundary, then there is nothing to do
       if (cell->face(face_no)->at_boundary()){
         face_integrals[cell->face(face_no)] = 0;
@@ -182,30 +190,39 @@ void Problem<dim>::local_estimate_face_jumps(){
       // Now we know that we are in charge here, so actually compute the face jump terms.
       if (cell->face(face_no)->has_children() == false){
         // INTEGRATE OVER REGULAR FACE
+        std::vector<double> jump_residual(face_n_q_points);
 
-        fe_face_values.reinit(cell, face_no);
-        fe_face_values.get_function_gradients(Rg_plus_uh0hat, cell_gradients);
+        fe_face_values_current_cell.reinit(cell, face_no);
+        fe_face_values_current_cell.get_function_gradients(Rg_plus_uh0hat, cell_gradients);
 
         fe_face_values_neighbor.reinit(cell->neighbor(face_no), cell->neighbor_of_neighbor(face_no));
         fe_face_values_neighbor.get_function_gradients(Rg_plus_uh0hat, neighbor_gradients);
 
-        // Calculate jump terms across the face and accumulate the contribution
-        double face_jump_contribution = 0.0;
-        for (unsigned int q = 0; q < face_quadrature.size(); ++q) {
-          const Tensor<1, dim> jump = cell_gradients[q] - neighbor_gradients[q];
-          face_jump_contribution += jump.norm_square() * fe_face_values.JxW(q);
-        }
-        face_integrals[face] = face_jump_contribution;
+        for (unsigned int q = 0; q < face_n_q_points; ++q)
+          jump_residual[q] = ((cell_gradients[q] - neighbor_gradients[q]) 
+                              * fe_face_values_current_cell.normal_vector(q));
 
-      } else {
+        fe_face_values_current_cell.get_function_values(dual_weights,face_dual_weights);
+
+        double face_integral = 0;
+        for (unsigned int q = 0; q < face_n_q_points; ++q)
+          face_integral += (jump_residual[q] * face_dual_weights[q] 
+                            * fe_face_values_current_cell.JxW(q));
+
+        Assert(face_integrals.find(cell->face(face_no)) != face_integrals.end(),ExcInternalError());
+        Assert(face_integrals[cell->face(face_no)] == -1e20, ExcInternalError());
+        
+        face_integrals[cell->face(face_no)] = face_integral;
+
+      } /*else {
 
         // INTEGRATE OVER IRREGULAR FACE
 
         double face_jump_contribution = 0.0;
         
         for (unsigned int subface_no = 0; subface_no < face->n_children(); ++subface_no) {
-          fe_subface_values.reinit(cell, face_no, subface_no);
-          fe_subface_values.get_function_gradients(Rg_plus_uh0hat, cell_gradients);
+          fe_subface_values_current_cell.reinit(cell, face_no, subface_no);
+          fe_subface_values_current_cell.get_function_gradients(Rg_plus_uh0hat, cell_gradients);
           
           fe_face_values_neighbor.reinit(cell->neighbor_child_on_subface(face_no, subface_no), cell->neighbor_of_neighbor(face_no));
           fe_face_values_neighbor.get_function_gradients(Rg_plus_uh0hat, neighbor_gradients);
@@ -213,11 +230,11 @@ void Problem<dim>::local_estimate_face_jumps(){
 
           for (unsigned int q = 0; q < face_quadrature.size(); ++q) {
             const Tensor<1, dim> jump = cell_gradients[q] - neighbor_gradients[q];
-            face_jump_contribution += jump.norm_square() * fe_subface_values.JxW(q);
+            face_jump_contribution += jump.norm_square() * fe_subface_values_current_cell.JxW(q);
           }
         }
         face_integrals[face] = face_jump_contribution;
-      } 
+      }*/ 
     }
   }
 
@@ -334,7 +351,7 @@ void Problem<dim>::estimate_error(){
   
   interpolate_between_primal_and_dual();
   local_estimate();
-  //local_estimate_face_jumps();
+  local_estimate_face_jumps();
   double global_error = global_estimate();
 
   // ------------------------------------------------------------      
@@ -342,6 +359,7 @@ void Problem<dim>::estimate_error(){
   // ------------------------------------------------------------      
 
   cout<<"      Global error = " <<  global_error << endl;
+  goal_oriented_global_errors.push_back(global_error);
 
   // Sum contribution of each cell's local error to get a global estimate
   double global_error_as_sum_of_cell_errors=0.0;
@@ -351,16 +369,28 @@ void Problem<dim>::estimate_error(){
   cout<<"      Global error as sum of cells' errors = " << global_error_as_sum_of_cell_errors << endl;
   goal_oriented_local_errors.push_back(global_error_as_sum_of_cell_errors);
 
+  // Sum contribution of each cell's local error to get a global estimate
+  /*double global_error_as_sum_of_cell_errors_face_jumps = 0.0;
+  for(unsigned int i=0; i<error_indicators_face_jumps.size(); i++)
+      global_error_as_sum_of_cell_errors_face_jumps += error_indicators_face_jumps[i];
+  global_error_as_sum_of_cell_errors_face_jumps = std::abs(global_error_as_sum_of_cell_errors_face_jumps);
+  cout<<"      Global error as sum of cells' errors = " << global_error_as_sum_of_cell_errors_face_jumps << endl;
+  goal_oriented_local_errors_face_jumps.push_back(global_error_as_sum_of_cell_errors_face_jumps);*/
+
   // Take absolute value of each error
-  for (double &error_indicator : error_indicators) {
-      error_indicator = std::fabs(error_indicator);
-  }
+  for (double &error_indicator : error_indicators)
+    error_indicator = std::fabs(error_indicator);
+  
+  for (double &error_indicator : error_indicators_face_jumps) 
+    error_indicator = std::fabs(error_indicator);
 
   // Plot data
   plt::figure_size(800, 600);
   plt::clf(); // Clear previous plot
 
   plt::named_semilogy("local_estimate", cycles, goal_oriented_local_errors, "b-o");
+  //plt::named_semilogy("local_estimate_face_jumps", cycles, goal_oriented_local_errors_face_jumps, "b--o");
+  plt::named_semilogy("global_estimate", cycles, goal_oriented_global_errors, "r-o");
 
   plt::xlabel("Cycle");
   plt::ylabel("Error");
