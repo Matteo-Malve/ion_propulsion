@@ -5,6 +5,7 @@
 #include <cmath>
 #include <iostream>    
 
+
 using std::cout;
 using std::endl;
 
@@ -39,4 +40,5 @@ extern const unsigned int NUM_PRELIMINARY_GLOBAL_REF;
 extern const std::string TEST_NAME; 
 
 extern const std::string REFINEMENT_STRATEGY;
+
 #endif

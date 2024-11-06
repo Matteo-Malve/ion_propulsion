@@ -328,7 +328,9 @@ void Problem<dim>::assemble_dual_system() {
   else{
     cout<<"Choose an evaluation point suitable for "<<NUM_PRELIMINARY_REF<<"initial refinements"<<endl;
     abort();
-  }
+  }  
+
+  cout<<"      evalaution point = "<<evaluation_point(0)<<" "<<evaluation_point(1)<<endl;
   PointValueEvaluation<dim> dual_functional(evaluation_point);
   //BoundaryFluxEvaluation<dim> dual_functional(1);  // Pass boundary ID, e.g., 1
   //FaceBoundaryFluxEvaluation<dim> dual_functional(1);  // Pass boundary ID, e.g., 1
