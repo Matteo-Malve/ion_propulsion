@@ -87,7 +87,7 @@ void Problem<dim>::create_mesh() {
 
   for (unsigned int i = 0; i < NUM_PRELIMINARY_REF; ++i) {
 		Vector<float> criteria(triangulation.n_active_cells());
-		cout  << "Active cells " << triangulation.n_active_cells() << endl;
+		//cout  << "Active cells " << triangulation.n_active_cells() << endl;
 		unsigned int ctr = 0;
 
     // Threshold
@@ -106,7 +106,7 @@ void Problem<dim>::create_mesh() {
 		triangulation.execute_coarsening_and_refinement();
 	}
   
-  cout<<"   Executed preliminary coarsening and refinement"<<endl;
+  cout<<"Executed preliminary coarsening and refinement"<<endl;
 }
 
 // -----------------------------------------
@@ -222,7 +222,6 @@ void Problem<dim>::assemble_primal_system() {
   primal_constraints.condense(primal_rhs);
 
   MatrixTools::apply_boundary_values(boundary_values, primal_system_matrix, uh0, primal_rhs); 
-  cout<<"      Applied BCs"<<endl;
 }
 
 template <int dim>
@@ -330,7 +329,7 @@ void Problem<dim>::assemble_dual_system() {
     abort();
   }  
 
-  cout<<"      evalaution point = "<<evaluation_point(0)<<" "<<evaluation_point(1)<<endl;
+  //cout<<"      evalaution point = "<<evaluation_point(0)<<" "<<evaluation_point(1)<<endl;
   PointValueEvaluation<dim> dual_functional(evaluation_point);
   //BoundaryFluxEvaluation<dim> dual_functional(1);  // Pass boundary ID, e.g., 1
   //FaceBoundaryFluxEvaluation<dim> dual_functional(1);  // Pass boundary ID, e.g., 1

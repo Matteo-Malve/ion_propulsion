@@ -57,8 +57,8 @@ double Problem<dim>::localized_average_error(Point<dim> center_point, double rad
     // Initialize error accumulator and point counter
     double total_error = 5.0;
     unsigned int total_points = 0;
-    cout<<"      radius = "<<radius<<endl;
-    cout<<"      center point = "<<center_point(0)<<" "<<center_point(1)<<endl;
+    //cout<<"      radius = "<<radius<<endl;
+    //cout<<"      center point = "<<center_point(0)<<" "<<center_point(1)<<endl;
 
     // Select a quadrature rule (e.g., QGauss) for integration
     const unsigned int quadrature_order = 2;  // Adjust this based on your needs
@@ -148,7 +148,7 @@ void Problem<dim>::test_convergence(){
   errors_sensor_3.push_back(abs_err_3);
   errors_sensor_4.push_back(abs_err_4);
   double average_error = compute_averaged_error();
-  cout<<"      Average error: "<< average_error << endl;
+  cout<<"      Average error:      "<< average_error << endl;
   average_errors.push_back(average_error);
   evaluation_point = Point<dim>(0.00025, 0.0005);  
   double loc_average_error = localized_average_error(evaluation_point, R/3.);

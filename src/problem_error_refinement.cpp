@@ -198,6 +198,8 @@ void Problem<dim>::local_estimate_face_jumps(){
         fe_face_values_neighbor.reinit(cell->neighbor(face_no), cell->neighbor_of_neighbor(face_no));
         fe_face_values_neighbor.get_function_gradients(Rg_plus_uh0hat, neighbor_gradients);
 
+        Assert(cell->neighbor(face_no).state() == IteratorState::valid,ExcInternalError());
+
         for (unsigned int q = 0; q < face_n_q_points; ++q)
           jump_residual[q] = ((cell_gradients[q] - neighbor_gradients[q]) 
                               * fe_face_values_current_cell.normal_vector(q));
@@ -214,27 +216,52 @@ void Problem<dim>::local_estimate_face_jumps(){
         
         face_integrals[cell->face(face_no)] = face_integral;
 
-      } /*else {
+      } else {
 
         // INTEGRATE OVER IRREGULAR FACE
 
-        double face_jump_contribution = 0.0;
-        
-        for (unsigned int subface_no = 0; subface_no < face->n_children(); ++subface_no) {
+        std::vector<double> jump_residual(face_n_q_points);
+
+        const typename DoFHandler<dim>::cell_iterator neighbor = cell->neighbor(face_no);
+        const unsigned int neighbor_neighbor = cell->neighbor_of_neighbor(face_no);
+        const typename DoFHandler<dim>::face_iterator face = cell->face(face_no);
+
+        Assert(neighbor.state() == IteratorState::valid, ExcInternalError());
+        Assert(neighbor->has_children(), ExcInternalError());
+
+        for (unsigned int subface_no = 0; subface_no < face->n_children(); ++subface_no){
+          const typename DoFHandler<dim>::active_cell_iterator  neighbor_child = cell->neighbor_child_on_subface(face_no, subface_no);
+          Assert(neighbor_child->face(neighbor_neighbor) == cell->face(face_no)->child(subface_no), ExcInternalError());
+          
           fe_subface_values_current_cell.reinit(cell, face_no, subface_no);
           fe_subface_values_current_cell.get_function_gradients(Rg_plus_uh0hat, cell_gradients);
-          
-          fe_face_values_neighbor.reinit(cell->neighbor_child_on_subface(face_no, subface_no), cell->neighbor_of_neighbor(face_no));
+
+          fe_face_values_neighbor.reinit(neighbor_child, neighbor_neighbor);
           fe_face_values_neighbor.get_function_gradients(Rg_plus_uh0hat, neighbor_gradients);
 
+          for (unsigned int p = 0; p < face_n_q_points; ++p)
+            jump_residual[p] = ((neighbor_gradients[p] - cell_gradients[p]) *
+                                fe_face_values_neighbor.normal_vector(p));
 
-          for (unsigned int q = 0; q < face_quadrature.size(); ++q) {
-            const Tensor<1, dim> jump = cell_gradients[q] - neighbor_gradients[q];
-            face_jump_contribution += jump.norm_square() * fe_subface_values_current_cell.JxW(q);
-          }
+          fe_face_values_neighbor.get_function_values(dual_weights, face_dual_weights);           
+
+          double face_integral = 0;
+          for (unsigned int p = 0; p < face_n_q_points; ++p)
+            face_integral += (jump_residual[p] * face_dual_weights[p] *
+                              fe_face_values_neighbor.JxW(p));
+          
+          face_integrals[neighbor_child->face(neighbor_neighbor)] = face_integral;           
+
         }
-        face_integrals[face] = face_jump_contribution;
-      }*/ 
+
+        double sum = 0;
+        for (unsigned int subface_no = 0; subface_no < face->n_children(); ++subface_no){
+          Assert(face_integrals.find(face->child(subface_no)) != face_integrals.end(), ExcInternalError());
+          Assert(face_integrals[face->child(subface_no)] != -1e20, ExcInternalError());
+          sum += face_integrals[face->child(subface_no)];
+        }
+        face_integrals[face] = sum;
+      }
     }
   }
 
@@ -246,9 +273,9 @@ void Problem<dim>::local_estimate_face_jumps(){
     }
     ++present_cell;
   }
-  std::cout << "   Estimated error [face jumps]: "
+  /*std::cout << "   Estimated error [face jumps]: "
             << std::accumulate(error_indicators_face_jumps.begin(),error_indicators_face_jumps.end(),0.)
-            << std::endl;
+            << std::endl;*/
 
 }
 
@@ -370,12 +397,12 @@ void Problem<dim>::estimate_error(){
   goal_oriented_local_errors.push_back(global_error_as_sum_of_cell_errors);
 
   // Sum contribution of each cell's local error to get a global estimate
-  /*double global_error_as_sum_of_cell_errors_face_jumps = 0.0;
+  double global_error_as_sum_of_cell_errors_face_jumps = 0.0;
   for(unsigned int i=0; i<error_indicators_face_jumps.size(); i++)
       global_error_as_sum_of_cell_errors_face_jumps += error_indicators_face_jumps[i];
   global_error_as_sum_of_cell_errors_face_jumps = std::abs(global_error_as_sum_of_cell_errors_face_jumps);
-  cout<<"      Global error as sum of cells' errors = " << global_error_as_sum_of_cell_errors_face_jumps << endl;
-  goal_oriented_local_errors_face_jumps.push_back(global_error_as_sum_of_cell_errors_face_jumps);*/
+  cout<<"      Global error as sum of cells' errors [face jumps] = " << global_error_as_sum_of_cell_errors_face_jumps << endl;
+  goal_oriented_local_errors_face_jumps.push_back(global_error_as_sum_of_cell_errors_face_jumps);
 
   // Take absolute value of each error
   for (double &error_indicator : error_indicators)
