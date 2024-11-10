@@ -74,6 +74,8 @@ private:
 	void refine_mesh();
 
 	double compute_averaged_error() const;
+	double compute_L2_error();
+	double compute_H1_error();
 	double localized_average_error(dealii::Point<dim> center_point, double radius) const;
 
 	void test_convergence();
@@ -113,13 +115,13 @@ private:
 																error_indicators,
 																error_indicators_face_jumps;															
 	
-	RightHandSide5<dim> 					rhs_function;
-	ExactSolution5<dim>						exact_solution_function;
+	RightHandSide5b<dim> 					rhs_function;
+	ExactSolution5b<dim>						exact_solution_function;
 
 	int cycle = 0;
 
 	std::vector<double> errors_sensor_1, errors_sensor_2, errors_sensor_3, errors_sensor_4;
-	std::vector<double> average_errors, localized_average_errors;
+	std::vector<double> average_errors, localized_average_errors, errors_target_point, L2_errors, H1_errors;
 	std::vector<double> goal_oriented_global_errors, goal_oriented_local_errors, goal_oriented_local_errors_face_jumps;
 
 	std::vector<int> cycles, num_cells;

@@ -26,12 +26,12 @@ double AF = Ve;
 std::string PATH_TO_MESH = "../mesh/FullTestSquare.msh";
 //std::string PATH_TO_MESH = "../mesh/cerchi_concentrici.msh";
 
-const unsigned int NUM_PRELIMINARY_REF = 4; 
-const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 0; 
+const unsigned int NUM_PRELIMINARY_REF = 0; 
+const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 2; 
 
 int NUM_REFINEMENT_CYCLES = 12;
 
-//const std::string REFINEMENT_STRATEGY = "GlobRef";
-const std::string REFINEMENT_STRATEGY = "GO";
+const std::string REFINEMENT_STRATEGY = "GlobRef";
+//const std::string REFINEMENT_STRATEGY = "GO";
 
-const std::string TEST_NAME = REFINEMENT_STRATEGY + "prove_jumps"; 
+const std::string TEST_NAME = REFINEMENT_STRATEGY + "Q2errore_punto_L2_H1"; 

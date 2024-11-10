@@ -416,7 +416,7 @@ void Problem<dim>::estimate_error(){
   plt::clf(); // Clear previous plot
 
   plt::named_semilogy("local_estimate", cycles, goal_oriented_local_errors, "b-o");
-  //plt::named_semilogy("local_estimate_face_jumps", cycles, goal_oriented_local_errors_face_jumps, "b--o");
+  plt::named_semilogy("local_estimate_face_jumps", cycles, goal_oriented_local_errors_face_jumps, "b--o");
   plt::named_semilogy("global_estimate", cycles, goal_oriented_global_errors, "r-o");
 
   plt::xlabel("Cycle");
@@ -432,8 +432,9 @@ void Problem<dim>::estimate_error(){
 template <int dim>
 void Problem<dim>::refine_mesh() {
   if(REFINEMENT_STRATEGY == "GO"){
-    GridRefinement::refine_and_coarsen_fixed_number(triangulation,error_indicators, 0.05, 0);
-    
+    GridRefinement::refine_and_coarsen_fixed_number(triangulation,error_indicators, 0.05, 0.01);
+    //GridRefinement::refine_and_coarsen_fixed_number(triangulation,error_indicators_face_jumps, 0.05, 0);
+
     // Prepare the solution transfer object
     SolutionTransfer<dim> primal_solution_transfer(primal_dof_handler);
     // take a copy of the solution vector

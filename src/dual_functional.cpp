@@ -7,13 +7,36 @@ PointValueEvaluation<dim>::PointValueEvaluation(const Point<dim> &evaluation_poi
 template <int dim>
 void PointValueEvaluation<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler,Vector<double> &rhs) const{
   rhs.reinit(dof_handler.n_dofs());
+
+  // Keep track of nearest vertex
+  double min_distance = std::numeric_limits<double>::max();
+  typename DoFHandler<dim>::active_cell_iterator nearest_cell;
+  unsigned int nearest_vertex = 0;
+
   for(const auto &cell : dof_handler.active_cell_iterators())
-    for(const auto vertex : cell->vertex_indices())
-      if(cell->vertex(vertex).distance(evaluation_point) < cell->diameter() * 1e-8){
+    for(const auto vertex : cell->vertex_indices()){
+      double distance = cell->vertex(vertex).distance(evaluation_point);
+
+      // Check if the vertex is close enough to the evaluation point
+      if (distance < cell->diameter() * 1e-8) {
         rhs(cell->vertex_dof_index(vertex, 0)) = 1;
-        return; 
+        return;
       }
-  AssertThrow(false, ExcEvaluationPointNotFound(evaluation_point));
+
+      // Keep track of the nearest vertex if the exact point isn't found
+      if (distance < min_distance) {
+        min_distance = distance;
+        nearest_cell = cell;
+        nearest_vertex = vertex;
+      }
+    }
+    
+  // If no vertex within tolerance was found, set rhs at the nearest vertex
+  if (min_distance < std::numeric_limits<double>::max()) {
+    rhs(nearest_cell->vertex_dof_index(nearest_vertex, 0)) = 1;
+  } else {
+    AssertThrow(false, ExcEvaluationPointNotFound(evaluation_point));
+  }
 }
 
 

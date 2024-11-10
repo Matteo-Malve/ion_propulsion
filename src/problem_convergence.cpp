@@ -104,6 +104,72 @@ double Problem<dim>::localized_average_error(Point<dim> center_point, double rad
 
 
 template <int dim>
+double get_solution_at_vertex(const DoFHandler<dim> &dof_handler,
+                              const Vector<double> &solution,
+                              const Point<dim> &vertex_point)
+{
+  // Iterate over all active cells to find the vertex
+  for (const auto &cell : dof_handler.active_cell_iterators())
+  {
+    for (unsigned int v = 0; v < GeometryInfo<dim>::vertices_per_cell; ++v)
+    {
+      if (cell->vertex(v).distance(vertex_point) < 1e-12) // Match vertex point
+      {
+        // Get the global DoF index for the vertex
+        unsigned int vertex_dof_index = cell->vertex_dof_index(v, 0);
+        
+        // Return the solution value at that vertex
+        return solution(vertex_dof_index);
+      }
+    }
+  }
+  throw std::runtime_error("Vertex not found in the mesh.");
+}
+
+template <int dim>
+double Problem<dim>::compute_L2_error() {
+
+    // Set up an error vector
+    Vector<double> difference_per_cell(triangulation.n_active_cells());
+
+    // Compute the difference between the finite element solution and the exact solution
+    const QGauss<dim> quadrature_formula(2*primal_dof_handler.get_fe().degree + 1);
+    VectorTools::integrate_difference(
+        primal_dof_handler,
+        uh,
+        exact_solution_function,
+        difference_per_cell,
+        quadrature_formula,
+        VectorTools::L2_norm);
+
+    const double L2_error = VectorTools::compute_global_error(triangulation,
+                                                              difference_per_cell,
+                                                              VectorTools::L2_norm);
+    return L2_error;
+}
+
+template <int dim>
+double Problem<dim>::compute_H1_error() {
+
+    // Set up an error vector
+    Vector<double> difference_per_cell(triangulation.n_active_cells());
+
+    // Compute the difference between the finite element solution and the exact solution
+    const QGauss<dim> quadrature_formula(7);
+    VectorTools::integrate_difference(primal_dof_handler,                       // Different function for other Mappings
+                                      uh,
+                                      exact_solution_function,
+                                      difference_per_cell,
+                                      quadrature_formula,
+                                      VectorTools::H1_norm);
+
+    const double H1_error = VectorTools::compute_global_error(triangulation,
+                                                              difference_per_cell,
+                                                              VectorTools::H1_norm);  // Different function for other Mappings
+    return H1_error;
+}
+
+template <int dim>
 void Problem<dim>::test_convergence(){
   Point<dim> sensor_1(0.0002625, 0.0005);
   Point<dim> sensor_2(-0.00025, 0.0005);
@@ -111,6 +177,11 @@ void Problem<dim>::test_convergence(){
   Point<dim> sensor_4(-0.0004, -0.0013);
 
   cout<<"   Convergence test:"<<endl;
+
+  // ------------------------------------------------------------      
+  // Sensors
+  // ------------------------------------------------------------      
+
   double uh_at_sensor_1 = VectorTools::point_value(primal_dof_handler, uh, sensor_1);
   double uex_at_sensor_1 = exact_solution_function.value(sensor_1);
   double abs_err_1 = std::fabs(uh_at_sensor_1-uex_at_sensor_1);
@@ -147,13 +218,55 @@ void Problem<dim>::test_convergence(){
   errors_sensor_2.push_back(abs_err_2);
   errors_sensor_3.push_back(abs_err_3);
   errors_sensor_4.push_back(abs_err_4);
+
+  // ------------------------------------------------------------      
+  // Average on all mesh points
+  // ------------------------------------------------------------      
+
   double average_error = compute_averaged_error();
-  cout<<"      Average error:      "<< average_error << endl;
+  cout<<"      Average error:           "<< average_error << endl;
   average_errors.push_back(average_error);
+
+  // ------------------------------------------------------------      
+  // L2 error
+  // ------------------------------------------------------------      
+
+  double L2_error = compute_L2_error();
+  cout<<"      L2 error:                "<< L2_error << endl;
+  L2_errors.push_back(L2_error);
+
+  // ------------------------------------------------------------      
+  // H1 error
+  // ------------------------------------------------------------      
+
+  double H1_error = compute_H1_error();
+  cout<<"      H1 error:                "<< H1_error << endl;
+  H1_errors.push_back(H1_error);
+
+
+  // ------------------------------------------------------------      
+  // Localized average in a ball
+  // ------------------------------------------------------------      
+
   evaluation_point = Point<dim>(0.00025, 0.0005);  
   double loc_average_error = localized_average_error(evaluation_point, R/3.);
   cout<<"      Localized average error: "<< loc_average_error << endl;
   localized_average_errors.push_back(loc_average_error);
+
+  // ------------------------------------------------------------      
+  // Evaluation in target point
+  // ------------------------------------------------------------      
+
+  double exact_value = exact_solution_function.value(evaluation_point);
+  double computed_value = get_solution_at_vertex(primal_dof_handler, uh, evaluation_point);
+  double error_target_point = std::fabs(exact_value-computed_value);
+  cout<<"      Error at target point:   "<< error_target_point << endl;
+  errors_target_point.push_back(error_target_point);
+
+  // ------------------------------------------------------------      
+  // OUTPUT
+  // ------------------------------------------------------------      
+
 
   // Prepare CSV file for writing
   std::ofstream csv_file;
@@ -161,7 +274,7 @@ void Problem<dim>::test_convergence(){
   csv_file.open(file_name);
   
   // Write the header
-  csv_file << "num_cells,errors_sensor_1,errors_sensor_2,errors_sensor_3,errors_sensor_4,average_errors,localized_average_errors\n";
+  csv_file << "num_cells,errors_sensor_1,errors_sensor_2,errors_sensor_3,errors_sensor_4,average_errors,localized_average_errors,errors_target_point,L2_errors,H1_errors\n";
   
   // Write each cycle's data
   for (size_t i = 0; i < num_cells.size(); ++i) {
@@ -171,7 +284,11 @@ void Problem<dim>::test_convergence(){
                << errors_sensor_3[i] << ","
                << errors_sensor_4[i] << ","
                << average_errors[i] << ","
-               << localized_average_errors[i] << "\n";
+               << localized_average_errors[i] <<","
+               << errors_target_point[i] << ","
+               << L2_errors[i] << ","
+               << H1_errors[i]
+               << "\n";
   }
   
   // Close the CSV file
@@ -180,20 +297,16 @@ void Problem<dim>::test_convergence(){
   // Plot data
   plt::figure_size(800, 600);
   plt::clf();
-  
-  /*plt::named_plot("Sensor 1", cycles, errors_sensor_1, "r-o");
-  plt::named_plot("Sensor 2", cycles, errors_sensor_2, "g-o");
-  plt::named_plot("Sensor 3", cycles, errors_sensor_3, "b-o");
-  plt::named_plot("Sensor 4", cycles, errors_sensor_4, "k-o");
-  plt::named_plot("average", cycles, average_errors, "y-o");
-  plt::named_plot("localized average", cycles, localized_average_errors, "y:o");*/
 
-  plt::named_loglog("Sensor 1", num_cells, errors_sensor_1, "r-o");
-  plt::named_loglog("Sensor 2", num_cells, errors_sensor_2, "g-o");
-  plt::named_loglog("Sensor 3", num_cells, errors_sensor_3, "b-o");
-  plt::named_loglog("Sensor 4", num_cells, errors_sensor_4, "k-o");
-  plt::named_loglog("average", num_cells, average_errors, "y-o");
-  plt::named_loglog("localized average", num_cells, localized_average_errors, "y:o");
+  //plt::named_loglog("Sensor 1", num_cells, errors_sensor_1, "r-o");
+  //plt::named_loglog("Sensor 2", num_cells, errors_sensor_2, "g-o");
+  //plt::named_loglog("Sensor 3", num_cells, errors_sensor_3, "b-o");
+  //plt::named_loglog("Sensor 4", num_cells, errors_sensor_4, "k-o");
+  plt::named_loglog("average", num_cells, average_errors, "y:o");
+  plt::named_loglog("localized average", num_cells, localized_average_errors, "g:o");
+  plt::named_loglog("error at target point", num_cells, errors_target_point, "r-o");
+  plt::named_loglog("L2 error", num_cells, L2_errors, "g-o");
+  plt::named_loglog("H1 error", num_cells, H1_errors, "k-o");
 
 
   //plt::xlabel("Cycle");

@@ -25,102 +25,6 @@ public:
 	}
 };
 
-// -----------------------------------------
-// 1 - broken
-// -----------------------------------------
-
-template <int dim>
-class RightHandSide1 : public Function<dim>{
-public:
-	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
-		(void)component;
-		double k = 5.0;
-		const auto x = p[0];
-		const auto y = p[1];
-		double piL = pi / (l*l);
-		if(std::abs(x) <= k*l && y<= k*l){
-			double argX = x*x * piL;
-			double argY = y*y * piL;
-			return eps_0 * eps_r * 2. * Ve * piL *
-						 ( sin(argY) * (-2 * piL * sin(argX)*x*x + cos(argX)) +
-						   sin(argX) * (-2 * piL * sin(argY)*y*y + cos(argY)) );
-		}	else
-			return 0.;
-	}
-};
-
-template <int dim>
-class ExactSolution1 : public Function<dim>{
-public:
-	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
-		(void)component;
-		double k = 5.0;
-		const auto x = p[0];
-		const auto y = p[1];
-		if(std::abs(x) <= k*l && y<= k*l)
-			return Ve * (1 - 
-						 std::sin(std::abs(x)/l*pi) * 
-						 std::sin(y/l*pi) );
-						 //(1.-1./((k-1)*l)*(std::abs(x)-l)) *
-						 //(1.-1./((k-1)*l)*(y-l));
-		else
-			return 0.;
-	}
-};
-
-// -----------------------------------------
-// 2 - broken
-// -----------------------------------------
-
-template <int dim>
-class RightHandSide2 : public Function<dim>{
-public:
-	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
-		(void)component;
-		const auto x = p[0];
-		const auto y = p[1];
-		const auto r2 = x*x + y*y;
-		return 1./0.004 * eps_0 * eps_r * exp(-r2/0.004) * 4. * (1 - r2/0.004);
-	}
-};
-
-template <int dim>
-class ExactSolution2 : public Function<dim>{
-public:
-	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
-		(void)component;
-		const auto x = p[0];
-		const auto y = p[1];
-		const auto r2 = x*x + y*y;
-		return exp(-r2/0.004);
-	}
-};
-
-// -----------------------------------------
-// 3 - broken
-// -----------------------------------------
-
-template <int dim>
-class RightHandSide3 : public Function<dim>{
-public:
-	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
-		(void)component;
-		const auto x = p[0];
-		const auto y = p[1];
-		return eps_0 * eps_r *2. / (pow(0.004,4)) * (x*x + y*y);
-	}
-};
-
-template <int dim>
-class ExactSolution3 : public Function<dim>{
-public:
-	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
-		(void)component;
-		const auto x = p[0];
-		const auto y = p[1];
-		return 1. - x*x * y*y / pow(0.004,4);
-	}
-};
 
 // -----------------------------------------
 // 4 - WORKS
@@ -181,6 +85,83 @@ public:
 					 * (1. - sin(x/l*pi) * sin(y/l*pi));
       
 	}
+
+	virtual Tensor<1, dim> gradient(const Point<dim> &p, const unsigned int component = 0) const override {
+		(void)component;
+		double sigma2 = 0.0000005;
+
+		const auto x = p[0];
+		const auto y = p[1];
+		double r = sqrt(x*x + y*y);
+		double argX = pi * x / l;
+		double argY = pi * y / l;
+
+		double expTerm = std::exp(- std::pow(R - r, 2) / (2 * sigma2));
+	
+		double sinArgX = std::sin(argX);
+		double sinArgY = std::sin(argY);
+		double cosArgX = std::cos(argX);
+		double cosArgY = std::cos(argY);
+
+
+		Tensor<1, dim> grad;
+
+		grad[0] = - expTerm * Ve * ( -pi * sigma2 * r * cosArgX * sinArgY   +    L * x * (r-R) * (sinArgX*sinArgY - 1)) 
+							/ (L * sigma2 * r);
+		grad[1] = expTerm * Ve * ( -pi * sigma2 * r * cosArgY * sinArgX   +    L * y * (r-R) * (sinArgX*sinArgY - 1)) 
+							/ (L * sigma2 * r);
+		return grad;
+	}	
+
+};
+
+template <int dim>
+class GradX : public Function<dim>{
+public:
+	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
+		(void)component;
+		double sigma2 = 0.0000005;
+
+		const auto x = p[0];
+		const auto y = p[1];
+		double r = sqrt(x*x + y*y);
+		double argX = pi * x / l;
+		double argY = pi * y / l;
+
+		double expTerm = std::exp(- std::pow(R - r, 2) / (2 * sigma2));
+	
+		double sinArgX = std::sin(argX);
+		double sinArgY = std::sin(argY);
+		double cosArgX = std::cos(argX);
+		double cosArgY = std::cos(argY);
+
+		return -expTerm * Ve * ( -pi * sigma2 * r * cosArgX * sinArgY   +    L * x * (r-R) * (sinArgX*sinArgY - 1)) 
+							/ (L * sigma2 * r);
+	}
+};
+template <int dim>
+class GradY : public Function<dim>{
+public:
+	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
+		(void)component;
+		double sigma2 = 0.0000005;
+
+		const auto x = p[0];
+		const auto y = p[1];
+		double r = sqrt(x*x + y*y);
+		double argX = pi * x / l;
+		double argY = pi * y / l;
+
+		double expTerm = std::exp(- std::pow(R - r, 2) / (2 * sigma2));
+	
+		double sinArgX = std::sin(argX);
+		double sinArgY = std::sin(argY);
+		double cosArgX = std::cos(argX);
+		double cosArgY = std::cos(argY);
+		
+		return expTerm * Ve * ( -pi * sigma2 * r * cosArgY * sinArgX   +    L * y * (r-R) * (sinArgX*sinArgY - 1)) 
+							/ (L * sigma2 * r);
+	}
 };
 
 template <int dim>
@@ -240,6 +221,132 @@ public:
 };
 
 // -----------------------------------------
+// 5b 
+// -----------------------------------------
+
+
+template <int dim>
+class ExactSolution5b : public Function<dim>{
+public:
+	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
+		(void)component;
+		
+		double sigma2 = 0.0000005;
+
+		const auto x = p[0];
+		const auto y = p[1];
+		double r = sqrt(x*x + y*y);
+		double expTerm = std::exp(- std::pow(r-l, 2) / (2 * sigma2));
+		double freq = 0.5;
+		double argX = (std::abs(x)-l) * pi / l * freq;
+		double argY = (std::abs(y)-l) * pi / l * freq;
+    
+		return expTerm * Ve * (1 - sin(argX) * sin(argY));
+      
+	}
+
+	virtual Tensor<1, dim> gradient(const Point<dim> &p, const unsigned int component = 0) const override {
+		(void)component;
+		double sigma2 = 0.0000005;
+		double freq = 0.5;
+
+		const auto x = p[0];
+		const auto y = p[1];
+		double r = sqrt(x*x + y*y);
+		double expTerm = std::exp(- std::pow(r-l, 2) / (2 * sigma2));
+		double argX = (std::abs(x)-l) * pi / l * freq;
+		double argY = (std::abs(y)-l) * pi / l * freq;
+		double signX = x>=0 ? +1. : -1.;
+    double signY = y>=0 ? +1. : -1.;
+
+		Tensor<1, dim> grad;
+
+		grad[0] = Ve * expTerm * ( (- 1/sigma2 ) * (r-l) * (x/r) * (1 - sin(argX) * sin(argY))
+				 												-  cos(argX) * sin(argY) * (pi/l*freq * signX));
+		grad[1] = Ve * expTerm * ( (- 1/sigma2 ) * (r-l) * (y/r) * (1 - sin(argX) * sin(argY))
+				 												- sin(argX) * cos(argY) * (pi/l*freq * signY));
+		return grad;
+};
+};
+
+template <int dim>
+class GradXb : public Function<dim>{
+public:
+	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
+		(void)component;
+		double sigma2 = 0.0000005;
+
+		const auto x = p[0];
+		const auto y = p[1];
+		double r = sqrt(x*x + y*y);
+		double expTerm = std::exp(- std::pow(r-l, 2) / (2 * sigma2));
+		double freq = 0.5;
+		double argX = (std::abs(x)-l) * pi / l * freq;
+		double argY = (std::abs(y)-l) * pi / l * freq;
+		double signX = x>=0 ? +1. : -1.;
+    
+		return Ve * expTerm * (- 1/sigma2 ) * (r-l) * (x/r) * (1 - sin(argX) * sin(argY))
+				 - Ve * expTerm * cos(argX) * sin(argY) * (pi/l*freq * signX);
+	}
+};
+template <int dim>
+class GradYb : public Function<dim>{
+public:
+	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
+		(void)component;
+		double sigma2 = 0.0000005;
+
+		const auto x = p[0];
+		const auto y = p[1];
+		double r = sqrt(x*x + y*y);
+		double expTerm = std::exp(- std::pow(r-l, 2) / (2 * sigma2));
+		double freq = 0.5;
+		double argX = (std::abs(x)-l) * pi / l * freq;
+		double argY = (std::abs(y)-l) * pi / l * freq;
+    double signY = y>=0 ? +1. : -1.;
+    
+		return Ve * expTerm * (- 1/sigma2 ) * (r-l) * (y/r) * (1 - sin(argX) * sin(argY))
+				 - Ve * expTerm * sin(argX) * cos(argY) * (pi/l*freq * signY);
+	}
+};
+
+
+template <int dim>
+class RightHandSide5b : public Function<dim>{
+public:
+	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
+		(void)component;
+		double sigma2 = 0.0000005;
+		double freq = 0.5;
+
+		const auto x = p[0];
+		const auto y = p[1];
+		double r = sqrt(x*x + y*y);
+		double expTerm = std::exp(- std::pow(r-l, 2) / (2 * sigma2));
+		double argX = (std::abs(x)-l) * pi / l * freq;
+		double argY = (std::abs(y)-l) * pi / l * freq;
+		double signX = x>=0 ? +1. : -1.;
+    double signY = y>=0 ? +1. : -1.;
+
+		return - eps_0 * eps_r * 
+						(1 / ( l*l * sigma2*sigma2 * r)) * expTerm * Ve *
+						(   2 * freq * l * pi * sigma2 * x * (r-l) * cos(argX) * sin(argY) * signX +
+								freq*freq * pi*pi * sigma2*sigma2 * r * sin(argX) * sin(argY) +
+								2 * freq * l * pi * sigma2 * y * (r-l) * cos(argY) * sin(argX) * signY +
+								freq*freq * pi*pi * sigma2*sigma2 * r * sin(argX) * sin(argY) -
+								l * ( l * ( l*l * r + r * (r*r - 2*sigma2) +l * (sigma2 - 2*r*r) ) *  (- 1 + sin(argX) * sin(argY) ))
+						);
+	};
+	virtual void value_list(const std::vector< Point<dim>> &point_list, std::vector<double> &values, const unsigned int component = 0 ) const override {
+		(void)component;
+		AssertDimension (point_list.size(), values.size()); // Size check
+		for (unsigned int p=0; p<point_list.size(); ++p){
+			values[p] = this->value(point_list[p]);
+		}
+	};
+};
+
+// -----------------------------------------
 // 6 - to test - paraola per cerchi concentrici
 // -----------------------------------------
 
@@ -268,7 +375,7 @@ public:
 		double r = sqrt(x*x + y*y);
 
 		return - Ve * (r-l) * (r-L);
-	}
+	};
 	virtual void value_list(const std::vector< Point<dim>> &point_list, std::vector<double> &values, const unsigned int component = 0 ) const override {
 		(void)component;
 		AssertDimension (point_list.size(), values.size()); // Size check
@@ -278,8 +385,8 @@ public:
 			double r = sqrt(x*x + y*y);
 
 			values[p] = - Ve * (r-l) * (r-L);
-		}
-	}
+		};
+	};
 };
 
 #endif
