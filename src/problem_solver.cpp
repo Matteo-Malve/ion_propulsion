@@ -155,8 +155,7 @@ void Problem<dim>::setup_primal_system() {
 
 template <int dim>
 void Problem<dim>::assemble_primal_system() {
-  //const QGauss <dim> quadrature(4);
-  const QGaussChebyshev< dim > quadrature(4);
+  const QGauss <dim> quadrature(7);
   FEValues<dim> fe_values(primal_fe,
                           quadrature,
                           update_values | update_gradients | update_quadrature_points |
@@ -275,8 +274,7 @@ void Problem<dim>::output_primal_results() {
   Vector<double> u_ex(primal_dof_handler.n_dofs());
   VectorTools::project(primal_dof_handler, 
                       primal_constraints, 
-                      //QGauss<dim>(7),  // Quadrature rule (degree + 1 for accuracy)
-                      QGaussChebyshev<dim>(7),
+                      QGauss<dim>(7),  // Quadrature rule (degree + 1 for accuracy)
                       exact_solution_function,          // Analytical function Rg
                       u_ex);
   data_out.add_data_vector(u_ex, "u_ex");
@@ -285,8 +283,7 @@ void Problem<dim>::output_primal_results() {
   Vector<double> gradX(primal_dof_handler.n_dofs());
   VectorTools::project(primal_dof_handler, 
                       primal_constraints, 
-                      //QGauss<dim>(7),  // Quadrature rule (degree + 1 for accuracy)
-                      QGaussChebyshev<dim>(7),
+                      QGauss<dim>(7),  // Quadrature rule (degree + 1 for accuracy)
                       gradX_function,          // Analytical function Rg
                       gradX);
   data_out.add_data_vector(gradX, "GradX");
@@ -295,8 +292,7 @@ void Problem<dim>::output_primal_results() {
   Vector<double> gradY(primal_dof_handler.n_dofs());
   VectorTools::project(primal_dof_handler, 
                       primal_constraints, 
-                      //QGauss<dim>(7),  // Quadrature rule (degree + 1 for accuracy)
-                      QGaussChebyshev<dim>(7),
+                      QGauss<dim>(7),  // Quadrature rule (degree + 1 for accuracy)
                       gradY_function,          // Analytical function Rg
                       gradY);
   data_out.add_data_vector(gradY, "GradY");

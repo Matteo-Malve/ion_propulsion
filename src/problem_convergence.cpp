@@ -185,26 +185,26 @@ void Problem<dim>::test_convergence(){
   double uh_at_sensor_1 = VectorTools::point_value(primal_dof_handler, uh, sensor_1);
   double uex_at_sensor_1 = exact_solution_function.value(sensor_1);
   double abs_err_1 = std::fabs(uh_at_sensor_1-uex_at_sensor_1);
-  /*std::cout << "      Sensor 1:" << endl
+  std::cout << "      Sensor 1:" << endl
             << "         uh      =  " << uh_at_sensor_1 << endl
             << "         u_ex    =  " << uex_at_sensor_1 << endl
-            << "         abs_err =  " << abs_err_1 <<endl;*/
+            << "         abs_err =  " << abs_err_1 <<endl;
   
   double uh_at_sensor_2 = VectorTools::point_value(primal_dof_handler, uh, sensor_2);
   double uex_at_sensor_2 = exact_solution_function.value(sensor_2);
   double abs_err_2 = std::fabs(uh_at_sensor_2-uex_at_sensor_2);
-  /*std::cout << "      Sensor 2:" << endl
+  std::cout << "      Sensor 2:" << endl
             << "         uh      =  " << uh_at_sensor_2 << endl
             << "         u_ex    =  " << uex_at_sensor_2 << endl
-            << "         abs_err =  " << abs_err_2 <<endl;*/
+            << "         abs_err =  " << abs_err_2 <<endl;
   
   double uh_at_sensor_3 = VectorTools::point_value(primal_dof_handler, uh, sensor_3);
   double uex_at_sensor_3 = exact_solution_function.value(sensor_3);
   double abs_err_3 = std::fabs(uh_at_sensor_3-uex_at_sensor_3);
-  /*std::cout << "      Sensor 3:" << endl
+  std::cout << "      Sensor 3:" << endl
             << "         uh      =  " << uh_at_sensor_3 << endl
             << "         u_ex    =  " << uex_at_sensor_3 << endl
-            << "         abs_err =  " << abs_err_3 <<endl;*/
+            << "         abs_err =  " << abs_err_3 <<endl;
   
   double uh_at_sensor_4 = VectorTools::point_value(primal_dof_handler, uh, sensor_4);
   double uex_at_sensor_4 = exact_solution_function.value(sensor_4);

@@ -2,7 +2,8 @@
 
 const double eps_0 = 8.854; // 10^-12 [F/m]= [C^2 s^2 / kg / m^3]
 const double eps_r = 1.0006;
-const double Ve = 2.e+4; // [V]
+//const double Ve = 2.e+4; // [V]
+const double Ve = 1.; // [V]
 const double E_ON = 3.31e+6; // [V/m] corona inception threshold
 
 const double nn = 2;

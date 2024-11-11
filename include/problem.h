@@ -116,7 +116,7 @@ private:
 																error_indicators_face_jumps;															
 	
 	RightHandSide5b<dim> 					rhs_function;
-	ExactSolution5b<dim>						exact_solution_function;
+	ExactSolution5b<dim>					exact_solution_function;
 
 	int cycle = 0;
 
