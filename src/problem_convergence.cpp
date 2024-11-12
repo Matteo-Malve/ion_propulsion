@@ -123,7 +123,9 @@ double get_solution_at_vertex(const DoFHandler<dim> &dof_handler,
       }
     }
   }
-  throw std::runtime_error("Vertex not found in the mesh.");
+  //throw std::runtime_error("Vertex not found in the mesh.");
+  cout<<"Vertex not found in the mesh."<<endl;
+  return VectorTools::point_value(dof_handler, solution, vertex_point);
 }
 
 template <int dim>
@@ -182,7 +184,7 @@ void Problem<dim>::test_convergence(){
   // Sensors
   // ------------------------------------------------------------      
 
-  double uh_at_sensor_1 = VectorTools::point_value(primal_dof_handler, uh, sensor_1);
+  /*double uh_at_sensor_1 = VectorTools::point_value(primal_dof_handler, uh, sensor_1);
   double uex_at_sensor_1 = exact_solution_function.value(sensor_1);
   double abs_err_1 = std::fabs(uh_at_sensor_1-uex_at_sensor_1);
   std::cout << "      Sensor 1:" << endl
@@ -209,23 +211,23 @@ void Problem<dim>::test_convergence(){
   double uh_at_sensor_4 = VectorTools::point_value(primal_dof_handler, uh, sensor_4);
   double uex_at_sensor_4 = exact_solution_function.value(sensor_4);
   double abs_err_4 = std::fabs(uh_at_sensor_4-uex_at_sensor_4);
-  /*std::cout << "      Sensor 4:" << endl
+  std::cout << "      Sensor 4:" << endl
             << "         uh      =  " << uh_at_sensor_4 << endl
             << "         u_ex    =  " << uex_at_sensor_4 << endl
-            << "         abs_err =  " << abs_err_4 <<endl;*/
+            << "         abs_err =  " << abs_err_4 <<endl;
   
   errors_sensor_1.push_back(abs_err_1);
   errors_sensor_2.push_back(abs_err_2);
   errors_sensor_3.push_back(abs_err_3);
-  errors_sensor_4.push_back(abs_err_4);
+  errors_sensor_4.push_back(abs_err_4);*/
 
   // ------------------------------------------------------------      
   // Average on all mesh points
   // ------------------------------------------------------------      
 
-  double average_error = compute_averaged_error();
+  /*double average_error = compute_averaged_error();
   cout<<"      Average error:           "<< average_error << endl;
-  average_errors.push_back(average_error);
+  average_errors.push_back(average_error);*/
 
   // ------------------------------------------------------------      
   // L2 error
@@ -274,16 +276,17 @@ void Problem<dim>::test_convergence(){
   csv_file.open(file_name);
   
   // Write the header
-  csv_file << "num_cells,errors_sensor_1,errors_sensor_2,errors_sensor_3,errors_sensor_4,average_errors,localized_average_errors,errors_target_point,L2_errors,H1_errors\n";
+  //csv_file << "num_cells,errors_sensor_1,errors_sensor_2,errors_sensor_3,errors_sensor_4,average_errors,localized_average_errors,errors_target_point,L2_errors,H1_errors\n";
+  csv_file << "num_cells,localized_average_errors,errors_target_point,L2_errors,H1_errors\n";
   
   // Write each cycle's data
   for (size_t i = 0; i < num_cells.size(); ++i) {
       csv_file << num_cells[i] << ","
-               << errors_sensor_1[i] << ","
-               << errors_sensor_2[i] << ","
-               << errors_sensor_3[i] << ","
-               << errors_sensor_4[i] << ","
-               << average_errors[i] << ","
+               //<< errors_sensor_1[i] << ","
+               //<< errors_sensor_2[i] << ","
+               //<< errors_sensor_3[i] << ","
+               //<< errors_sensor_4[i] << ","
+               //<< average_errors[i] << ","
                << localized_average_errors[i] <<","
                << errors_target_point[i] << ","
                << L2_errors[i] << ","
@@ -302,7 +305,7 @@ void Problem<dim>::test_convergence(){
   //plt::named_loglog("Sensor 2", num_cells, errors_sensor_2, "g-o");
   //plt::named_loglog("Sensor 3", num_cells, errors_sensor_3, "b-o");
   //plt::named_loglog("Sensor 4", num_cells, errors_sensor_4, "k-o");
-  plt::named_loglog("average", num_cells, average_errors, "y:o");
+  //plt::named_loglog("average", num_cells, average_errors, "y:o");
   plt::named_loglog("localized average", num_cells, localized_average_errors, "g:o");
   plt::named_loglog("error at target point", num_cells, errors_target_point, "r-o");
   plt::named_loglog("L2 error", num_cells, L2_errors, "g-o");

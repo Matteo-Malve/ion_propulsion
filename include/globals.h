@@ -24,7 +24,7 @@ extern const double X ;
 extern const double g; 
 extern const double mesh_height ; 
 
-extern const double R; 
+extern const double Ri; 
 extern const double Rc;
 extern const double dR2;
 extern double AC;

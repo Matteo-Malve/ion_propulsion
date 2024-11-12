@@ -23,6 +23,7 @@ public:
 			values[p] = -Ve;
 		}
 	}
+	
 };
 
 
@@ -40,10 +41,32 @@ public:
 		const auto y = p[1];
 		double r2 = x*x + y*y;
     if(r2 <= Rc*Rc)
-      return AC*(pow((r2-R*R),3)) + AD*(pow((r2-R*R),2)) + AE*(r2-R*R) + AF;
+      return AC*(pow((r2-Ri*Ri),3)) + AD*(pow((r2-Ri*Ri),2)) + AE*(r2-Ri*Ri) + AF;
     else
       return 0.;
 	}
+
+	virtual void value_list(const std::vector< Point<dim>> &point_list, std::vector<double> &values, const unsigned int component = 0 ) const override {
+		(void)component;
+		AssertDimension (point_list.size(), values.size()); // Size check
+		for (unsigned int p=0; p<point_list.size(); ++p){
+			values[p] = this->value(point_list[p]);
+		}
+	}
+
+	virtual Tensor<1, dim> gradient(const Point<dim> &p, const unsigned int component = 0) const override {
+		(void)component;
+		
+		const auto x = p[0];
+		const auto y = p[1];
+		double r2 = x*x + y*y;
+
+		Tensor<1, dim> grad;
+
+		grad[0] = (r2 <= Rc*Rc) ?   2*x * ( AE + 2*AD * (r2 - Ri*Ri) + 3*AC * (r2 - Ri*Ri)*(r2 - Ri*Ri))    : 0.;
+		grad[1] = (r2 <= Rc*Rc) ?   2*y * ( AE + 2*AD * (r2 - Ri*Ri) + 3*AC * (r2 - Ri*Ri)*(r2 - Ri*Ri))    : 0.;
+		return grad;
+};
 };
 
 template <int dim>
@@ -57,9 +80,17 @@ public:
 
     if(r2 <= Rc*Rc){
 			return - eps_0 * eps_r
-						 * 4. * ( AE + AD*(-2.*R*R + 4.*r2) + 3.*AC*(R*R*R*R - 4.*R*R*r2 + 3.*r2*r2));
+						 * 4. * ( AE + AD*(-2.*Ri*Ri + 4.*r2) + 3.*AC*(Ri*Ri*Ri*Ri - 4.*Ri*Ri*r2 + 3.*r2*r2));
 		} else
       return 0.;
+	}
+
+	virtual void value_list(const std::vector< Point<dim>> &point_list, std::vector<double> &values, const unsigned int component = 0 ) const override {
+		(void)component;
+		AssertDimension (point_list.size(), values.size()); // Size check
+		for (unsigned int p=0; p<point_list.size(); ++p){
+			values[p] = this->value(point_list[p]);
+		}
 	}
 };
 
@@ -347,7 +378,7 @@ public:
 };
 
 // -----------------------------------------
-// 6 - to test - paraola per cerchi concentrici
+// 6 - to test - parabola per cerchi concentrici
 // -----------------------------------------
 
 
@@ -363,6 +394,14 @@ public:
 		return - eps_0 * eps_r *
 					 Ve * ( l + L - 4.*r ) / r;
 	}
+
+	virtual void value_list(const std::vector< Point<dim>> &point_list, std::vector<double> &values, const unsigned int component = 0 ) const override {
+		(void)component;
+		AssertDimension (point_list.size(), values.size()); // Size check
+		for (unsigned int p=0; p<point_list.size(); ++p){
+			values[p] = this->value(point_list[p]);
+		}
+	};
 };
 
 template <int dim>
@@ -387,6 +426,85 @@ public:
 			values[p] = - Ve * (r-l) * (r-L);
 		};
 	};
+
+	virtual Tensor<1, dim> gradient(const Point<dim> &p, const unsigned int component = 0) const override {
+		(void)component;
+		const auto x = p[0];
+		const auto y = p[1];
+		double r = sqrt(x*x + y*y);
+
+		Tensor<1, dim> grad;
+
+		grad[0] = 2 * Ve * x * ( l/r - 1);
+		grad[1] = 2 * Ve * y * ( l/r - 1);
+		return grad;
+};
+};
+
+// -----------------------------------------
+// 7 - Gauss * Gauss
+// -----------------------------------------
+
+
+template <int dim>
+class RightHandSide7 : public Function<dim>{
+public:
+	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
+		(void)component;
+		double sigma2 = 0.0000005;
+
+		const auto x = p[0];
+		const auto y = p[1];
+		double r = sqrt(x*x + y*y);
+
+		return - eps_0 * eps_r *
+					 Ve * ( l + L - 4.*r ) / r;
+	}
+
+	virtual void value_list(const std::vector< Point<dim>> &point_list, std::vector<double> &values, const unsigned int component = 0 ) const override {
+		(void)component;
+		AssertDimension (point_list.size(), values.size()); // Size check
+		for (unsigned int p=0; p<point_list.size(); ++p){
+			values[p] = this->value(point_list[p]);
+		}
+	};
+};
+
+template <int dim>
+class ExactSolution7 : public Function<dim>{
+public:
+	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
+		(void)component;
+		const auto x = p[0];
+		const auto y = p[1];
+		double r = sqrt(x*x + y*y);
+
+		return - Ve * (r-l) * (r-L);
+	};
+	virtual void value_list(const std::vector< Point<dim>> &point_list, std::vector<double> &values, const unsigned int component = 0 ) const override {
+		(void)component;
+		AssertDimension (point_list.size(), values.size()); // Size check
+		for (unsigned int p=0; p<point_list.size(); ++p){
+			const auto x = point_list[p][0];
+			const auto y = point_list[p][1];
+			double r = sqrt(x*x + y*y);
+
+			values[p] = - Ve * (r-l) * (r-L);
+		};
+	};
+
+	virtual Tensor<1, dim> gradient(const Point<dim> &p, const unsigned int component = 0) const override {
+		(void)component;
+		const auto x = p[0];
+		const auto y = p[1];
+		double r = sqrt(x*x + y*y);
+
+		Tensor<1, dim> grad;
+
+		grad[0] = 2 * Ve * x * ( l/r - 1);
+		grad[1] = 2 * Ve * y * ( l/r - 1);
+		return grad;
+};
 };
 
 #endif

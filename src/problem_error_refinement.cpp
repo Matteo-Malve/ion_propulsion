@@ -432,9 +432,10 @@ void Problem<dim>::estimate_error(){
 template <int dim>
 void Problem<dim>::refine_mesh() {
   if(REFINEMENT_STRATEGY == "GO"){
-    GridRefinement::refine_and_coarsen_fixed_number(triangulation,error_indicators, 0.05, 0.01);
+    //GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators, 0.6, 0.01);
+    GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators_face_jumps, 0.6, 0.1);
     //GridRefinement::refine_and_coarsen_fixed_number(triangulation,error_indicators_face_jumps, 0.05, 0);
-
+    triangulation.prepare_coarsening_and_refinement();
     // Prepare the solution transfer object
     SolutionTransfer<dim> primal_solution_transfer(primal_dof_handler);
     // take a copy of the solution vector
