@@ -147,7 +147,6 @@ double PointYDerivativeEvaluation<dim>::operator()(
       if (distance < 1e-6 * cell->diameter()) {
         // Exact point found
         exact_match_found = true;
-        cout<<"exact match found"<<endl;
         break;
       }
 
@@ -164,7 +163,7 @@ double PointYDerivativeEvaluation<dim>::operator()(
   // Set the evaluation point to the nearest vertex if no exact match was found
   if (!exact_match_found) {
     adjusted_evaluation_point = nearest_cell->vertex(nearest_vertex);
-    cout<<"adjusted evaluation point"<<endl;
+    cout<<"         Adjusted the evaluation point"<<endl;
 
   }
 

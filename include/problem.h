@@ -35,6 +35,8 @@
 #include <deal.II/numerics/matrix_tools.h>
 #include <deal.II/numerics/data_out_faces.h>
 
+#include <deal.II/base/convergence_table.h>
+
 #include <fstream>
 #include "matplotlibcpp.h"
 

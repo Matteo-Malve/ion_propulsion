@@ -247,6 +247,8 @@ void Problem<dim>::test_convergence(){
   Evaluation::PointYDerivativeEvaluation<dim> postprocessor(EVALUATION_POINT);
   double computed_value = postprocessor(primal_dof_handler,uh);
   double error_target_point = std::fabs(exact_value-computed_value);
+  cout<<"      d(phi)/d(y) exact:      "<< exact_value << endl;
+  cout<<"      d(phi)/d(y) computed:   "<< computed_value << endl;
   cout<<"      Error of d(phi)/d(y) at target point:   "<< error_target_point << endl;
   //errors_target_point.push_back(error_target_point);
   }
