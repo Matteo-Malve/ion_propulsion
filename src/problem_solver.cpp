@@ -29,7 +29,8 @@ void Problem<dim>::run() {
       assemble_primal_system();
       solve_primal();
       output_primal_results();
-      test_convergence();
+      if(ENABLE_CONVERGENCE_ANALYSIS)
+        test_convergence();
       // --------------------  
       if(cycle==NUM_REFINEMENT_CYCLES){
         // Last cycle primal -------------------- 
@@ -64,7 +65,8 @@ void Problem<dim>::run() {
       assemble_primal_system();
       solve_primal();
       output_primal_results();
-      test_convergence();
+      if(ENABLE_CONVERGENCE_ANALYSIS)
+        test_convergence();
       refine_mesh();
       ++cycle;
 	  }
@@ -363,13 +365,27 @@ void Problem<dim>::assemble_dual_system() {
   // ---------------------------------------
   // RHS
   // ---------------------------------------
-  evaluation_point = Point<dim>(0.00025, 0.0005);  
+  std::unique_ptr<DualFunctionalBase<dim>> dual_functional;
+  if(GOAL_FUNCTIONAL == "PointValue")
+    dual_functional = std::make_unique<PointValueEvaluation<dim>>(EVALUATION_POINT);
+  else if(GOAL_FUNCTIONAL == "PointYDerivative")
+    cout<<"TO BE IMPLEMENTED";
+  else if(GOAL_FUNCTIONAL == "BoundaryFluxEvaluation")
+    dual_functional = std::make_unique<BoundaryFluxEvaluation<dim>>(1);  // Pass boundary ID, e.g., 1
+  else if(GOAL_FUNCTIONAL == "FaceBoundaryFluxEvaluation")
+    dual_functional = std::make_unique<FaceBoundaryFluxEvaluation<dim>>(1);  // Pass boundary ID, e.g., 1
+  else{
+    cout<< "ERROR: Goal Functional strategy required is unkown."<<endl;
+    abort();
+  }
 
-  //cout<<"      evalaution point = "<<evaluation_point(0)<<" "<<evaluation_point(1)<<endl;
-  PointValueEvaluation<dim> dual_functional(evaluation_point);
-  //BoundaryFluxEvaluation<dim> dual_functional(1);  // Pass boundary ID, e.g., 1
-  //FaceBoundaryFluxEvaluation<dim> dual_functional(1);  // Pass boundary ID, e.g., 1
-  dual_functional.assemble_rhs(dual_dof_handler, dual_rhs);
+  // Now `dual_functional` is in scope here, so we can call the method
+  if (dual_functional) {
+      dual_functional->assemble_rhs(dual_dof_handler, dual_rhs);
+  } else {
+      cout << "ERROR: The selected goal functional is not yet implemented." << endl;
+      abort();
+  }
 
   // ---------------------------------------
   // MATRIX

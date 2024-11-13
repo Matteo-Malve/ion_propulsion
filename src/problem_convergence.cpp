@@ -102,32 +102,6 @@ double Problem<dim>::localized_average_error(Point<dim> center_point, double rad
     return averaged_error;
 }
 
-
-template <int dim>
-double get_solution_at_vertex(const DoFHandler<dim> &dof_handler,
-                              const Vector<double> &solution,
-                              const Point<dim> &vertex_point)
-{
-  // Iterate over all active cells to find the vertex
-  for (const auto &cell : dof_handler.active_cell_iterators())
-  {
-    for (unsigned int v = 0; v < GeometryInfo<dim>::vertices_per_cell; ++v)
-    {
-      if (cell->vertex(v).distance(vertex_point) < 1e-12) // Match vertex point
-      {
-        // Get the global DoF index for the vertex
-        unsigned int vertex_dof_index = cell->vertex_dof_index(v, 0);
-        
-        // Return the solution value at that vertex
-        return solution(vertex_dof_index);
-      }
-    }
-  }
-  //throw std::runtime_error("Vertex not found in the mesh.");
-  cout<<"Vertex not found in the mesh."<<endl;
-  return VectorTools::point_value(dof_handler, solution, vertex_point);
-}
-
 template <int dim>
 double Problem<dim>::compute_L2_error() {
 
@@ -250,20 +224,32 @@ void Problem<dim>::test_convergence(){
   // Localized average in a ball
   // ------------------------------------------------------------      
 
-  evaluation_point = Point<dim>(0.00025, 0.0005);  
-  double loc_average_error = localized_average_error(evaluation_point, R/3.);
+  double loc_average_error = localized_average_error(EVALUATION_POINT, R/3.);
   cout<<"      Localized average error: "<< loc_average_error << endl;
   localized_average_errors.push_back(loc_average_error);
 
   // ------------------------------------------------------------      
   // Evaluation in target point
   // ------------------------------------------------------------      
-
-  double exact_value = exact_solution_function.value(evaluation_point);
-  double computed_value = get_solution_at_vertex(primal_dof_handler, uh, evaluation_point);
+  {
+  double exact_value = exact_solution_function.value(EVALUATION_POINT);
+  Evaluation::PointValueEvaluation<dim> postprocessor(EVALUATION_POINT);
+  double computed_value = postprocessor(primal_dof_handler,uh);
   double error_target_point = std::fabs(exact_value-computed_value);
   cout<<"      Error at target point:   "<< error_target_point << endl;
   errors_target_point.push_back(error_target_point);
+  }
+   // ------------------------------------------------------------      
+  // Evaluation of d(phi)/d(y) at target point
+  // ------------------------------------------------------------      
+  {
+  double exact_value = exact_solution_function.gradient(EVALUATION_POINT)[1];
+  Evaluation::PointYDerivativeEvaluation<dim> postprocessor(EVALUATION_POINT);
+  double computed_value = postprocessor(primal_dof_handler,uh);
+  double error_target_point = std::fabs(exact_value-computed_value);
+  cout<<"      Error of d(phi)/d(y) at target point:   "<< error_target_point << endl;
+  //errors_target_point.push_back(error_target_point);
+  }
 
   // ------------------------------------------------------------      
   // OUTPUT

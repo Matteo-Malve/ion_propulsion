@@ -4,7 +4,7 @@
 #include <string>
 #include <cmath>
 #include <iostream>    
-
+#include <deal.II/base/point.h>
 
 using std::cout;
 using std::endl;
@@ -35,7 +35,12 @@ extern double AF;
 extern int NUM_REFINEMENT_CYCLES;
 extern std::string PATH_TO_MESH;
 extern const unsigned int NUM_PRELIMINARY_REF; 
-extern const unsigned int NUM_PRELIMINARY_GLOBAL_REF; 
+extern const unsigned int NUM_PRELIMINARY_GLOBAL_REF;
+
+extern const bool ENABLE_CONVERGENCE_ANALYSIS;
+
+extern const std::string GOAL_FUNCTIONAL;
+extern const dealii::Point<2> EVALUATION_POINT;
 
 extern const std::string TEST_NAME; 
 

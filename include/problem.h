@@ -43,6 +43,7 @@
 #include "globals.h"
 #include "postprocessors.h"
 #include "utilities.h"
+#include "Evaluation.h"
 #include "rhs&uex_functions.h"
 
 
@@ -103,8 +104,6 @@ private:
 	Vector<double> 								uh0, 
 																uh, 
 																zh;
-
-	Point<dim> 										evaluation_point;
 
 	Vector<double> 								Rg_primal, 
 																Rg_dual;

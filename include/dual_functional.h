@@ -39,6 +39,28 @@ protected:
   const Point<dim> evaluation_point;
 };
 
+template <int dim>
+class PointYDerivativeEvaluation : public DualFunctionalBase<dim>
+{
+public:
+  PointYDerivativeEvaluation(const Point<dim> &evaluation_point);
+  virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
+                            Vector<double>        &rhs) const;
+  DeclException1(
+    ExcEvaluationPointNotFound,
+    Point<dim>,
+    << "The evaluation point " << arg1
+    << " was not found among the vertices of the present grid.");
+protected:
+  const Point<dim> evaluation_point;
+};
+
+template <int dim>
+PointYDerivativeEvaluation<dim>::PointYDerivativeEvaluation(
+  const Point<dim> &evaluation_point)
+  : evaluation_point(evaluation_point)
+{}
+
 
 template <int dim>
 class BoundaryFluxEvaluation : public DualFunctionalBase<dim> {
