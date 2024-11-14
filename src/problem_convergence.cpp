@@ -230,31 +230,33 @@ void Problem<dim>::test_convergence(){
 
   // ------------------------------------------------------------      
   // Evaluation in target point
-  // ------------------------------------------------------------      
+  // ------------------------------------------------------------     
+  double error_target_point = 0.;
   {
   double exact_value = exact_solution_function.value(EVALUATION_POINT);
   Evaluation::PointValueEvaluation<dim> postprocessor(EVALUATION_POINT);
   double computed_value = postprocessor(primal_dof_handler,uh);
-  double error_target_point = std::fabs(exact_value-computed_value);
+  error_target_point = std::fabs(exact_value-computed_value);
   cout<<"      Error at target point:   "<< error_target_point << endl;
   errors_target_point.push_back(error_target_point);
   }
    // ------------------------------------------------------------      
   // Evaluation of d(phi)/d(y) at target point
   // ------------------------------------------------------------      
+  double error_dy_target_point = 0.;
   {
   double exact_value = exact_solution_function.gradient(EVALUATION_POINT)[1];
   Evaluation::PointYDerivativeEvaluation<dim> postprocessor(EVALUATION_POINT);
   double computed_value = postprocessor(primal_dof_handler,uh);
-  double error_target_point = std::fabs(exact_value-computed_value);
+  error_dy_target_point = std::fabs(exact_value-computed_value);
   cout<<"      d(phi)/d(y) exact:      "<< exact_value << endl;
   cout<<"      d(phi)/d(y) computed:   "<< computed_value << endl;
-  cout<<"      Error of d(phi)/d(y) at target point:   "<< error_target_point << endl;
-  //errors_target_point.push_back(error_target_point);
+  cout<<"      Error of d(phi)/d(y) at target point:   "<< error_dy_target_point << endl;
+  //errors_target_point.push_back(error_dy_target_point);
   }
 
   // ------------------------------------------------------------      
-  // OUTPUT
+  // TEXT OUTPUT
   // ------------------------------------------------------------      
 
 
@@ -285,6 +287,11 @@ void Problem<dim>::test_convergence(){
   // Close the CSV file
   csv_file.close();
 
+  // ------------------------------------------------------------      
+  // PLOT
+  // ------------------------------------------------------------      
+
+
   // Plot data
   plt::figure_size(800, 600);
   plt::clf();
@@ -309,6 +316,20 @@ void Problem<dim>::test_convergence(){
 
   // Save the plot
   plt::save(TEST_NAME+"-convergence_test.png");
+
+  // ------------------------------------------------------------      
+  // TABLE
+  // ------------------------------------------------------------      
+  
+  convergence_table.add_value("cycle", cycle);
+  convergence_table.add_value("cells", triangulation.n_active_cells());
+
+  convergence_table.add_value("L2", L2_error);
+  convergence_table.add_value("H1", H1_error);
+  convergence_table.add_value("point", error_target_point);
+  convergence_table.add_value("point-dy", error_dy_target_point);
+
+
 }
 
 

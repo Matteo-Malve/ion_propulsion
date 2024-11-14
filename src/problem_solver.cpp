@@ -53,6 +53,12 @@ void Problem<dim>::run() {
       }
       ++cycle;
 	  }
+
+    GO_table.add_column_to_supercolumn("cycle", "n cells");
+    GO_table.add_column_to_supercolumn("cells", "n cells");    
+    cout<<endl;
+    GO_table.write_text(std::cout);
+
   } else if(REFINEMENT_STRATEGY == "GlobRef"){
     while (cycle <= NUM_REFINEMENT_CYCLES) {
       cout << endl << "Cycle " << cycle << ':' << endl;
@@ -70,11 +76,21 @@ void Problem<dim>::run() {
       refine_mesh();
       ++cycle;
 	  }
+    convergence_table.evaluate_convergence_rates("L2", ConvergenceTable::reduction_rate_log2);
+    convergence_table.evaluate_convergence_rates("H1", ConvergenceTable::reduction_rate_log2);
+    convergence_table.evaluate_convergence_rates("point", ConvergenceTable::reduction_rate_log2);
+    convergence_table.evaluate_convergence_rates("point-dy", ConvergenceTable::reduction_rate_log2);
   } else {
     cout << "Refinement strategy undefined" << endl;
     abort();
   }
-	
+  convergence_table.set_scientific("H1", true);
+  convergence_table.set_scientific("point-dy", true);
+  convergence_table.add_column_to_supercolumn("cycle", "n cells");
+  convergence_table.add_column_to_supercolumn("cells", "n cells");    
+  cout<<endl;
+  convergence_table.write_text(std::cout);
+  cout<<endl;
 }
 
 template <int dim>

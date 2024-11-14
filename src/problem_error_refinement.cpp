@@ -384,7 +384,7 @@ void Problem<dim>::estimate_error(){
   // ------------------------------------------------------------      
   // SUM UP and OUTPUT
   // ------------------------------------------------------------      
-
+  
   cout<<"      Global error = " <<  global_error << endl;
   goal_oriented_global_errors.push_back(global_error);
 
@@ -411,7 +411,10 @@ void Problem<dim>::estimate_error(){
   for (double &error_indicator : error_indicators_face_jumps) 
     error_indicator = std::fabs(error_indicator);
 
-  // Plot data
+  // ------------------------------------------------------------      
+  // PLOT
+  // ------------------------------------------------------------      
+
   plt::figure_size(800, 600);
   plt::clf(); // Clear previous plot
 
@@ -427,6 +430,17 @@ void Problem<dim>::estimate_error(){
 
   // Save the plot
   plt::save(TEST_NAME+"-goal_oriented_convergence.png");
+
+  // ------------------------------------------------------------      
+  // TABLE
+  // ------------------------------------------------------------      
+
+  GO_table.add_value("cycle", cycle);
+  GO_table.add_value("cells", triangulation.n_active_cells());
+  GO_table.add_value("global", global_error);
+  GO_table.add_value("local", global_error_as_sum_of_cell_errors);
+  GO_table.add_value("l. jumps", global_error_as_sum_of_cell_errors_face_jumps);
+
 }
 
 template <int dim>

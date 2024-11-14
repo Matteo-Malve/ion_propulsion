@@ -116,8 +116,8 @@ private:
 																error_indicators,
 																error_indicators_face_jumps;															
 	
-	RightHandSide4<dim> 					rhs_function;
-	ExactSolution4<dim>					exact_solution_function;
+	RightHandSide5<dim> 					rhs_function;
+	ExactSolution5<dim>					exact_solution_function;
 
 	int cycle = 0;
 
@@ -126,6 +126,9 @@ private:
 	std::vector<double> goal_oriented_global_errors, goal_oriented_local_errors, goal_oriented_local_errors_face_jumps;
 
 	std::vector<int> cycles, num_cells;
+
+	ConvergenceTable GO_table;
+	ConvergenceTable convergence_table;
 
 };
 
