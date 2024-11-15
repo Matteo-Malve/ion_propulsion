@@ -11,7 +11,8 @@ template <int dim>
 Problem<dim>::Problem() : primal_dof_handler(triangulation), 
                           dual_dof_handler(triangulation),
                           primal_fe(1), 
-                          dual_fe(2)
+                          dual_fe(2),
+                          cell_data_storage()
                           {}
 
 template <int dim>
@@ -112,8 +113,17 @@ void Problem<dim>::create_mesh() {
 		GridRefinement::refine(triangulation, criteria, 0.5);
 		triangulation.execute_coarsening_and_refinement();
 	}
-  
   cout<<"Executed preliminary coarsening and refinement"<<endl;
+
+  
+  for (auto &cell : triangulation.active_cell_iterators()){
+    // Allocate storage for 1 data point per cell
+    cell_data_storage.initialize(cell, 1);
+    // Access the allocated data (vector of shared_ptrs)
+    auto data_vector = cell_data_storage.get_data(cell);
+    // Initialize the custom data
+    data_vector[0]->refinement_level = cell->level();
+  }   
 }
 
 // -----------------------------------------

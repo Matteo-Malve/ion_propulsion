@@ -32,22 +32,21 @@ const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 0;
 
 int NUM_REFINEMENT_CYCLES = 5;
 
-const bool ENABLE_CONVERGENCE_ANALYSIS = true;
-//const bool ENABLE_CONVERGENCE_ANALYSIS = false;
+const bool ENABLE_CONVERGENCE_ANALYSIS = false;
 
 //const std::string REFINEMENT_STRATEGY = "GlobRef";
 const std::string REFINEMENT_STRATEGY = "GO";
 
-//const std::string GOAL_FUNCTIONAL = "PointValue";
+const std::string GOAL_FUNCTIONAL = "PointValue";
 //const std::string GOAL_FUNCTIONAL = "PointYDerivative";
-const std::string GOAL_FUNCTIONAL = "AreaEvaluation";
+//const std::string GOAL_FUNCTIONAL = "AreaEvaluation";
 //const std::string GOAL_FUNCTIONAL = "BoundaryFluxEvaluation";
 //const std::string GOAL_FUNCTIONAL = "FaceBoundaryFluxEvaluation";
 
 //const dealii::Point<2> EVALUATION_POINT(0.00025, 0.0005); 
-const dealii::Point<2> EVALUATION_POINT(0.0, 0.001); 
-//const dealii::Point<2> EVALUATION_POINT(0.00025, 0.0004125); 
+//const dealii::Point<2> EVALUATION_POINT(0.0, 0.001); 
+const dealii::Point<2> EVALUATION_POINT(0.00025, 0.0004125); 
 
 const double EVALUATION_RADIUS = 0.0002;
 
-const std::string TEST_NAME = REFINEMENT_STRATEGY + "_" + "first_area_evaluation"; 
+const std::string TEST_NAME = REFINEMENT_STRATEGY + "_" + "fix_coarsening"; 

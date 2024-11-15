@@ -5,6 +5,8 @@
 #include <deal.II/base/timer.h> // for the timer
 #include <deal.II/base/utilities.h>
 #include <deal.II/base/logstream.h>
+#include <deal.II/base/convergence_table.h>
+#include <deal.II/base/quadrature_point_data.h>
 
 #include <deal.II/dofs/dof_handler.h>
 #include <deal.II/dofs/dof_tools.h>
@@ -35,8 +37,6 @@
 #include <deal.II/numerics/matrix_tools.h>
 #include <deal.II/numerics/data_out_faces.h>
 
-#include <deal.II/base/convergence_table.h>
-
 #include <fstream>
 #include "matplotlibcpp.h"
 
@@ -50,6 +50,11 @@
 
 
 using namespace dealii;
+
+struct CellInfo
+{
+  int refinement_level;
+};
 
 template <int dim>
 class Problem {
@@ -130,6 +135,7 @@ private:
 	ConvergenceTable GO_table;
 	ConvergenceTable convergence_table;
 
+	CellDataStorage<typename Triangulation<dim>::cell_iterator,CellInfo> cell_data_storage;
 };
 
 #endif
