@@ -46,59 +46,24 @@ template <int dim>
 double PointValueEvaluation<dim>::operator()(const DoFHandler<dim> &dof_handler, 
                                           const Vector<double>  &solution) const
 {
-  double point_value = 1e20;
-
-  // Variables to track the closest point if exact match is not found
-  double min_distance = std::numeric_limits<double>::max();
-  typename DoFHandler<dim>::active_cell_iterator nearest_cell;
-  unsigned int nearest_vertex = 0;
-  bool exact_match_found = false;
-
-  // Placeholder for the final point to be used in evaluation
-  Point<dim> adjusted_evaluation_point = evaluation_point;
-
-  // First loop to find the exact evaluation point or the closest one if it doesn't exist
-  for (const auto &cell : dof_handler.active_cell_iterators()) {
-    for (const auto vertex : cell->vertex_indices()) {
-      double distance = cell->vertex(vertex).distance(evaluation_point);
-
-      if (distance < 1e-6 * cell->diameter()) {
-        // Exact point found
-        exact_match_found = true;
-        break;
-      }
-
-      // Track the nearest vertex
-      if (distance < min_distance) {
-        min_distance = distance;
-        nearest_cell = cell;
-        nearest_vertex = vertex;
+  // Iterate over all active cells to find the vertex
+  for (const auto &cell : dof_handler.active_cell_iterators())
+  {
+    for (unsigned int v = 0; v < GeometryInfo<dim>::vertices_per_cell; ++v)
+    {
+      if (cell->vertex(v).distance(evaluation_point) < 1e-12) // Match vertex point
+      {
+        // Get the global DoF index for the vertex
+        unsigned int vertex_dof_index = cell->vertex_dof_index(v, 0);
+        
+        // Return the solution value at that vertex
+        return solution(vertex_dof_index);
       }
     }
-    if (exact_match_found) break;
   }
-
-  // Set the evaluation point to the nearest vertex if no exact match was found
-  if (!exact_match_found) {
-    adjusted_evaluation_point = nearest_cell->vertex(nearest_vertex);
-    cout<<"         Adjusted the evaluation point"<<endl;
-
-  }
-
-  bool evaluation_point_found = false;
-  for (const auto &cell : dof_handler.active_cell_iterators())
-    if (!evaluation_point_found)
-      for (const auto vertex : cell->vertex_indices())
-        if (cell->vertex(vertex).distance(adjusted_evaluation_point) <
-            cell->diameter() * 1e-8)
-          {
-            point_value = solution(cell->vertex_dof_index(vertex, 0));
-            evaluation_point_found = true;
-            break; 
-}
-  AssertThrow(evaluation_point_found,
-              ExcEvaluationPointNotFound(adjusted_evaluation_point));
-  return point_value;
+  //throw std::runtime_error("Vertex not found in the mesh.");
+  cout<<"      Vertex not found in the mesh."<<endl;
+  return VectorTools::point_value(dof_handler, solution, evaluation_point);
 }
 
 

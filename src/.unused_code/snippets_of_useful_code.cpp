@@ -26,3 +26,33 @@ double get_solution_at_vertex(const DoFHandler<dim> &dof_handler,
   cout<<"Vertex not found in the mesh."<<endl;
   return VectorTools::point_value(dof_handler, solution, vertex_point);
 }
+
+
+
+compilers:
+- compiler:
+    spec: apple-clang@=15.0.0
+    paths:
+      cc: /usr/bin/clang
+      cxx: /usr/bin/clang++
+      f77: /opt/homebrew/bin/gfortran
+      fc: /opt/homebrew/bin/gfortran
+    flags: {}
+    operating_system: sonoma
+    target: aarch64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: gcc@=14.2.0
+    paths:
+      cc: /opt/homebrew/bin/gcc-14
+      cxx: /opt/homebrew/bin/g++-14
+      f77: /opt/homebrew/bin/gfortran
+      fc: /opt/homebrew/bin/gfortran
+    flags: {}
+    operating_system: sonoma
+    target: aarch64
+    modules: []
+    environment: {}
+    extra_rpaths: []

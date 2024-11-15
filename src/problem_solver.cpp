@@ -23,7 +23,6 @@ void Problem<dim>::run() {
       cycles.push_back(cycle);
       std::cout << "   Number of active cells:       "<< triangulation.n_active_cells() << std::endl;
       num_cells.push_back(triangulation.n_active_cells());
-      // Primal --------------
       cout<<"   Primal:"<<endl;
       setup_primal_system();
       assemble_primal_system();
@@ -31,21 +30,11 @@ void Problem<dim>::run() {
       output_primal_results();
       if(ENABLE_CONVERGENCE_ANALYSIS)
         test_convergence();
-      // --------------------  
-      if(cycle==NUM_REFINEMENT_CYCLES){
-        // Last cycle primal -------------------- 
-        cout << "   Primal " << " [FINAL]" << ':' << endl;
-        setup_primal_system();
-        assemble_primal_system();
-        solve_primal();
-        output_primal_results();
-      } else {
-        // Dual ---------------    
+      if(cycle<NUM_REFINEMENT_CYCLES){
         cout<<"   Dual:"<<endl;
         setup_dual_system();
         assemble_dual_system();
         solve_dual();
-        // Error evaluation and grid refinement --------------- 
         cout<<"   Error estimation:"<<endl;
         estimate_error();
         output_dual_results();
@@ -385,7 +374,9 @@ void Problem<dim>::assemble_dual_system() {
   if(GOAL_FUNCTIONAL == "PointValue")
     dual_functional = std::make_unique<PointValueEvaluation<dim>>(EVALUATION_POINT);
   else if(GOAL_FUNCTIONAL == "PointYDerivative")
-    cout<<"TO BE IMPLEMENTED";
+    dual_functional = std::make_unique<PointYDerivativeEvaluation<dim>>(EVALUATION_POINT);
+  else if(GOAL_FUNCTIONAL == "AreaEvaluation")
+    dual_functional = std::make_unique<AreaEvaluation<dim>>(EVALUATION_POINT, EVALUATION_RADIUS);
   else if(GOAL_FUNCTIONAL == "BoundaryFluxEvaluation")
     dual_functional = std::make_unique<BoundaryFluxEvaluation<dim>>(1);  // Pass boundary ID, e.g., 1
   else if(GOAL_FUNCTIONAL == "FaceBoundaryFluxEvaluation")

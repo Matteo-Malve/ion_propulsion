@@ -41,6 +41,7 @@ extern const bool ENABLE_CONVERGENCE_ANALYSIS;
 
 extern const std::string GOAL_FUNCTIONAL;
 extern const dealii::Point<2> EVALUATION_POINT;
+extern const double EVALUATION_RADIUS;
 
 extern const std::string TEST_NAME; 
 

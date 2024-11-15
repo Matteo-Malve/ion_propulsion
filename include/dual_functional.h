@@ -23,6 +23,9 @@ public:
                             Vector<double>        &rhs) const = 0;
 };
 
+// ------------------------------------------------------------      
+// POINT evaluation
+// ------------------------------------------------------------      
 
 template <int dim>
 class PointValueEvaluation : public DualFunctionalBase<dim>{
@@ -39,13 +42,17 @@ protected:
   const Point<dim> evaluation_point;
 };
 
+// ------------------------------------------------------------      
+// POINT dY
+// ------------------------------------------------------------      
+
 template <int dim>
 class PointYDerivativeEvaluation : public DualFunctionalBase<dim>
 {
 public:
   PointYDerivativeEvaluation(const Point<dim> &evaluation_point);
   virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
-                            Vector<double>        &rhs) const;
+                            Vector<double>        &rhs) const override;
   DeclException1(
     ExcEvaluationPointNotFound,
     Point<dim>,
@@ -55,12 +62,29 @@ protected:
   const Point<dim> evaluation_point;
 };
 
-template <int dim>
-PointYDerivativeEvaluation<dim>::PointYDerivativeEvaluation(
-  const Point<dim> &evaluation_point)
-  : evaluation_point(evaluation_point)
-{}
+// ------------------------------------------------------------      
+// AREA evaluation
+// ------------------------------------------------------------  
 
+template <int dim>
+class AreaEvaluation : public DualFunctionalBase<dim>{
+public:
+  AreaEvaluation(const Point<dim> &center_point, const double radius);
+  virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
+                            Vector<double>        &rhs) const override;
+  DeclException1(
+    ExcEvaluationPointNotFound,
+    Point<dim>,
+    << "The evaluation point " << arg1
+    << " was not found among the vertices of the present grid.");
+protected:
+  const Point<dim> center_point;
+  const double radius;
+};
+
+// ------------------------------------------------------------      
+// BOUNDARY FLUX
+// ------------------------------------------------------------      
 
 template <int dim>
 class BoundaryFluxEvaluation : public DualFunctionalBase<dim> {

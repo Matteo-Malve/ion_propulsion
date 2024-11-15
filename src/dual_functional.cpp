@@ -1,5 +1,10 @@
 #include "dual_functional.h"
 
+
+// ------------------------------------------------------------      
+// POINT evaluation
+// ------------------------------------------------------------      
+
 template <int dim>
 PointValueEvaluation<dim>::PointValueEvaluation(const Point<dim> &evaluation_point): evaluation_point(evaluation_point)
 {}
@@ -39,6 +44,16 @@ void PointValueEvaluation<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler,
   }
 }
 
+// ------------------------------------------------------------      
+// POINT dY
+// ------------------------------------------------------------      
+
+template <int dim>
+PointYDerivativeEvaluation<dim>::PointYDerivativeEvaluation(
+  const Point<dim> &evaluation_point)
+  : evaluation_point(evaluation_point)
+{}
+
 template <int dim>
 void PointYDerivativeEvaluation<dim>::assemble_rhs(
   const DoFHandler<dim> &dof_handler,
@@ -76,6 +91,60 @@ void PointYDerivativeEvaluation<dim>::assemble_rhs(
               ExcEvaluationPointNotFound(evaluation_point));
   rhs /= total_volume;
 }
+
+// ------------------------------------------------------------      
+// AREA evaluation
+// ------------------------------------------------------------      
+
+
+template <int dim>
+AreaEvaluation<dim>::AreaEvaluation(
+  const Point<dim> &center_point,
+  const double radius)
+  : center_point(center_point), radius(radius)
+{}
+
+template <int dim>
+void AreaEvaluation<dim>::assemble_rhs(
+  const DoFHandler<dim> &dof_handler,
+  Vector<double>        &rhs) const
+{
+  rhs.reinit(dof_handler.n_dofs());
+  const QGauss<dim>  quadrature(dof_handler.get_fe().degree + 1);
+  FEValues<dim>      fe_values(dof_handler.get_fe(),
+                          quadrature,
+                          update_values | update_quadrature_points |
+                            update_JxW_values);
+  const unsigned int n_q_points    = fe_values.n_quadrature_points;
+  const unsigned int dofs_per_cell = dof_handler.get_fe().dofs_per_cell;
+  Vector<double>            cell_rhs(dofs_per_cell);
+  std::vector<unsigned int> local_dof_indices(dofs_per_cell);
+  double total_volume = 0;
+  for (const auto &cell : dof_handler.active_cell_iterators())
+    if (cell->center().distance(center_point) <= radius)
+      {
+        fe_values.reinit(cell);
+        cell_rhs = 0;
+        for (unsigned int q = 0; q < n_q_points; ++q)
+          {
+            for (unsigned int i = 0; i < dofs_per_cell; ++i)
+              cell_rhs(i) +=
+                fe_values.shape_value(i, q) // phi_i(x_q)
+                * fe_values.JxW(q);           // * dx
+            total_volume += fe_values.JxW(q);
+          }
+        cell->get_dof_indices(local_dof_indices);
+        for (unsigned int i = 0; i < dofs_per_cell; ++i)
+          rhs(local_dof_indices[i]) += cell_rhs(i);
+      }
+  AssertThrow(total_volume > 0,
+              ExcEvaluationPointNotFound(center_point));
+  rhs /= total_volume;
+}
+
+// ------------------------------------------------------------      
+// BOUNDARY FLUX
+// ------------------------------------------------------------      
 
 template <int dim>
 BoundaryFluxEvaluation<dim>::BoundaryFluxEvaluation(const unsigned int boundary_id)
@@ -239,6 +308,8 @@ void FaceBoundaryFluxEvaluation<dim>::assemble_rhs(const DoFHandler<dim> &dof_ha
 // Template initialization
 // #######################################
 template class PointValueEvaluation<2>;
+template class PointYDerivativeEvaluation<2>;
+template class AreaEvaluation<2>;
 template class BoundaryFluxEvaluation<2>;
 template class FaceBoundaryFluxEvaluation<2>;
 
