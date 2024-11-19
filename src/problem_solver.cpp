@@ -45,11 +45,13 @@ void Problem<dim>::run() {
       cout<<endl;
       GO_table.write_text(std::cout);
       
-      convergence_table.set_scientific("H1", true);
-      convergence_table.set_scientific("point-dy", true);
-      cout<<endl;
-      convergence_table.write_text(std::cout);
-      cout<<endl;
+      if(ENABLE_CONVERGENCE_ANALYSIS){
+        convergence_table.set_scientific("H1", true);
+        convergence_table.set_scientific("point-dy", true);
+        cout<<endl;
+        convergence_table.write_text(std::cout);
+        cout<<endl;
+      }
 
       ++cycle;
 	  }
@@ -71,16 +73,18 @@ void Problem<dim>::run() {
       refine_mesh();
       ++cycle;
 
-      convergence_table.evaluate_convergence_rates("L2", ConvergenceTable::reduction_rate_log2);
-      convergence_table.evaluate_convergence_rates("H1", ConvergenceTable::reduction_rate_log2);
-      convergence_table.evaluate_convergence_rates("point", ConvergenceTable::reduction_rate_log2);
-      convergence_table.evaluate_convergence_rates("point-dy", ConvergenceTable::reduction_rate_log2);
-  
-      convergence_table.set_scientific("H1", true);
-      convergence_table.set_scientific("point-dy", true);
-      cout<<endl;
-      convergence_table.write_text(std::cout);
-      cout<<endl;
+      if(ENABLE_CONVERGENCE_ANALYSIS){
+        convergence_table.evaluate_convergence_rates("L2", ConvergenceTable::reduction_rate_log2);
+        convergence_table.evaluate_convergence_rates("H1", ConvergenceTable::reduction_rate_log2);
+        convergence_table.evaluate_convergence_rates("point", ConvergenceTable::reduction_rate_log2);
+        convergence_table.evaluate_convergence_rates("point-dy", ConvergenceTable::reduction_rate_log2);
+    
+        convergence_table.set_scientific("H1", true);
+        convergence_table.set_scientific("point-dy", true);
+        cout<<endl;
+        convergence_table.write_text(std::cout);
+        cout<<endl;
+      }
 
 	  }
     
@@ -399,8 +403,6 @@ void Problem<dim>::assemble_dual_system() {
     dual_functional = std::make_unique<AreaEvaluation<dim>>(EVALUATION_POINT, EVALUATION_RADIUS);
   else if(GOAL_FUNCTIONAL == "BoundaryFluxEvaluation")
     dual_functional = std::make_unique<BoundaryFluxEvaluation<dim>>(1);  // Pass boundary ID, e.g., 1
-  else if(GOAL_FUNCTIONAL == "FaceBoundaryFluxEvaluation")
-    dual_functional = std::make_unique<FaceBoundaryFluxEvaluation<dim>>(1);  // Pass boundary ID, e.g., 1
   else{
     cout<< "ERROR: Goal Functional strategy required is unkown."<<endl;
     abort();

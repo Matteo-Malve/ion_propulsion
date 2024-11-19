@@ -97,14 +97,4 @@ protected:
 };
 
 
-template <int dim>
-class FaceBoundaryFluxEvaluation : public DualFunctionalBase<dim> {
-public:
-  FaceBoundaryFluxEvaluation(const unsigned int boundary_id);
-  virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
-                            Vector<double>        &rhs) const override;
-protected:
-  const unsigned int boundary_id;
-};
-
 #endif

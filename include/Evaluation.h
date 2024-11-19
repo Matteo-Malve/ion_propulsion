@@ -20,6 +20,10 @@ void EvaluationBase<dim>::set_refinement_cycle(const unsigned int step)
   refinement_cycle = step;
 }
 
+// ------------------------------------------------------------      
+// POINT evaluation
+// ------------------------------------------------------------  
+
 template <int dim>
 class PointValueEvaluation : public EvaluationBase<dim>
 {
@@ -34,11 +38,7 @@ public:
     << " was not found among the vertices of the present grid.");
 private:
   const Point<dim> evaluation_point;
-};
-
-// ------------------------------------------------------------      
-// POINT evaluation
-// ------------------------------------------------------------      
+};    
 
 template <int dim>
 PointValueEvaluation<dim>::PointValueEvaluation(
@@ -205,10 +205,45 @@ double PointYDerivativeEvaluation<dim>::operator()(
 }
 
 // ------------------------------------------------------------      
-// AREA evaluation
+// Flux evaluation
 // ------------------------------------------------------------      
 
-  
+template <int dim>
+class FluxEvaluation : public EvaluationBase<dim>
+{
+public:
+  FluxEvaluation();
+  virtual double operator()(const DoFHandler<dim> &dof_handler,
+                          const Vector<double>  &solution) const override;
+};    
 
+template <int dim>
+FluxEvaluation<dim>::FluxEvaluation()
+{}
+
+template <int dim>
+double FluxEvaluation<dim>::operator()(const DoFHandler<dim> &dof_handler, 
+                                      const Vector<double>  &solution) const
+{
+  double flux = 0;
+  const QGauss<dim-1> face_quadrature(dof_handler.get_fe().degree + 1);  
+  FEFaceValues<dim> fe_face_values(dof_handler.get_fe(), 
+                                   face_quadrature,
+                                   update_gradients | update_normal_vectors | update_JxW_values);
+  const unsigned int n_face_q_points = face_quadrature.size();
+  std::vector<Tensor<1, dim>> solution_gradients(n_face_q_points);
+
+  for (const auto &cell : dof_handler.active_cell_iterators())
+    for (const auto &face : cell->face_iterators()) 
+      if (face->at_boundary() && face->boundary_id() == 1) {
+        fe_face_values.reinit(cell, face);
+        fe_face_values.get_function_gradients(solution, solution_gradients);
+        for (unsigned int q_point = 0; q_point < n_face_q_points; ++q_point) {
+          const Tensor<1, dim> &n = fe_face_values.normal_vector(q_point);
+          flux += ((-solution_gradients[q_point]) * (-n)) * fe_face_values.JxW(q_point);
+        }
+      }
+  return flux;  
+}
 
 }

@@ -66,7 +66,17 @@ public:
 		grad[0] = (r2 <= Rc*Rc) ?   2*x * ( AE + 2*AD * (r2 - Ri*Ri) + 3*AC * (r2 - Ri*Ri)*(r2 - Ri*Ri))    : 0.;
 		grad[1] = (r2 <= Rc*Rc) ?   2*y * ( AE + 2*AD * (r2 - Ri*Ri) + 3*AC * (r2 - Ri*Ri)*(r2 - Ri*Ri))    : 0.;
 		return grad;
-};
+	};
+
+	double emitter_flux() const{
+		if(PATH_TO_MESH == "../mesh/cerchi_concentrici.msh")
+			return - 4 * pi * Ri*Ri * AE;
+		else{
+			cout<<"!! No manual exact computation of the emitter flux has been provided for this mesh."<<endl;
+			abort();
+		}
+	}
+
 };
 
 template <int dim>

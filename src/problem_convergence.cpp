@@ -309,7 +309,7 @@ void Problem<dim>::test_convergence(){
   cout<<"      Error at target point:   "<< error_target_point << endl;
   errors_target_point.push_back(error_target_point);
   }
-   // ------------------------------------------------------------      
+	// ------------------------------------------------------------      
   // Evaluation of d(phi)/d(y) at target point
   // ------------------------------------------------------------      
   double error_dy_target_point = 0.;
@@ -324,6 +324,19 @@ void Problem<dim>::test_convergence(){
   //errors_target_point.push_back(error_dy_target_point);
   }
 
+	// ------------------------------------------------------------      
+  // Emitter Flux evaluation
+  // ------------------------------------------------------------ 
+	double flux_error = 0;
+	if(ENABLE_FLUX_EVALUATION){
+		double exact_flux = exact_solution_function.emitter_flux();
+		cout<<"      Flux exact:             "<< exact_flux <<endl;
+		Evaluation::FluxEvaluation<dim> postprocessor;
+		double computed_flux = postprocessor(primal_dof_handler, uh);
+		cout<<"      Flux computed:          "<< computed_flux <<endl;
+		flux_error = std::fabs(exact_flux-computed_flux);
+		cout<<"      Flux error:             "<< flux_error <<endl;
+	}
   // ------------------------------------------------------------      
   // TEXT OUTPUT
   // ------------------------------------------------------------      
@@ -402,6 +415,8 @@ void Problem<dim>::test_convergence(){
   convergence_table.add_value("point-dy", error_dy_target_point);
 	convergence_table.add_value("loc L2", loc_L2_error);
   convergence_table.add_value("loc H1", loc_H1_error);
+	if(ENABLE_FLUX_EVALUATION)
+		convergence_table.add_value("flux", flux_error);
 
 }
 

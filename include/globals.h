@@ -38,6 +38,7 @@ extern const unsigned int NUM_PRELIMINARY_REF;
 extern const unsigned int NUM_PRELIMINARY_GLOBAL_REF;
 
 extern const bool ENABLE_CONVERGENCE_ANALYSIS;
+extern const bool ENABLE_FLUX_EVALUATION;
 
 extern const std::string GOAL_FUNCTIONAL;
 extern const dealii::Point<2> EVALUATION_POINT;
