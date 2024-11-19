@@ -103,6 +103,60 @@ double Problem<dim>::localized_average_error(Point<dim> center_point, double rad
 }
 
 template <int dim>
+double Problem<dim>::compute_localized_L2_error(const Point<dim> &center_point, const double radius) {
+    // Set up an error vector
+    Vector<double> difference_per_cell(triangulation.n_active_cells());
+
+    // Compute the difference between the finite element solution and the exact solution
+    const QGauss<dim> quadrature_formula(2 * primal_dof_handler.get_fe().degree + 1);
+    VectorTools::integrate_difference(
+        primal_dof_handler,
+        uh,
+        exact_solution_function,
+        difference_per_cell,
+        quadrature_formula,
+        VectorTools::L2_norm);
+
+    // Loop through cells and filter the ones within the radius
+    double localized_L2_error = 0.0;
+    for (const auto &cell : triangulation.active_cell_iterators()) {
+        const Point<dim> cell_center = cell->center();
+        if (cell_center.distance(center_point) < radius) {
+            localized_L2_error += difference_per_cell[cell->active_cell_index()];
+        }
+    }
+
+    return std::sqrt(localized_L2_error);
+}
+
+template <int dim>
+double Problem<dim>::compute_localized_H1_error(const Point<dim> &center_point, const double radius) {
+    // Set up an error vector
+    Vector<double> difference_per_cell(triangulation.n_active_cells());
+
+    // Compute the difference between the finite element solution and the exact solution
+    const QGauss<dim> quadrature_formula(7);
+    VectorTools::integrate_difference(primal_dof_handler,
+                                      uh,
+                                      exact_solution_function,
+                                      difference_per_cell,
+                                      quadrature_formula,
+                                      VectorTools::H1_norm);
+
+    // Loop through cells and filter the ones within the radius
+    double localized_H1_error_squared = 0.0;
+    for (const auto &cell : triangulation.active_cell_iterators()) {
+        const Point<dim> cell_center = cell->center();
+        if (cell_center.distance(center_point) < radius) {
+            localized_H1_error_squared += difference_per_cell[cell->active_cell_index()];
+        }
+    }
+
+    // Return the square root of the accumulated error
+    return std::sqrt(localized_H1_error_squared);
+}
+
+template <int dim>
 double Problem<dim>::compute_L2_error() {
 
     // Set up an error vector
@@ -219,12 +273,27 @@ void Problem<dim>::test_convergence(){
   cout<<"      H1 error:                "<< H1_error << endl;
   H1_errors.push_back(H1_error);
 
+	// ------------------------------------------------------------      
+  // localized L2 error
+  // ------------------------------------------------------------      
+
+  double loc_L2_error = compute_localized_L2_error(EVALUATION_POINT, EVALUATION_RADIUS);
+  cout<<"      Localized L2 error:      "<< loc_L2_error << endl;
+  localized_L2_errors.push_back(loc_L2_error);
+
+  // ------------------------------------------------------------      
+  // localized H1 error
+  // ------------------------------------------------------------      
+
+  double loc_H1_error = compute_localized_H1_error(EVALUATION_POINT, EVALUATION_RADIUS);
+	cout<<"      Localized H1 error:      "<< loc_H1_error << endl;
+  localized_H1_errors.push_back(loc_H1_error);
 
   // ------------------------------------------------------------      
   // Localized average in a ball
   // ------------------------------------------------------------      
 
-  double loc_average_error = localized_average_error(EVALUATION_POINT, R/3.);
+  double loc_average_error = localized_average_error(EVALUATION_POINT, EVALUATION_RADIUS);
   cout<<"      Localized average error: "<< loc_average_error << endl;
   localized_average_errors.push_back(loc_average_error);
 
@@ -280,7 +349,9 @@ void Problem<dim>::test_convergence(){
                << localized_average_errors[i] <<","
                << errors_target_point[i] << ","
                << L2_errors[i] << ","
-               << H1_errors[i]
+               << H1_errors[i] << ","
+							 << localized_L2_errors[i] << ","
+							 << localized_L2_errors[i]
                << "\n";
   }
   
@@ -305,7 +376,8 @@ void Problem<dim>::test_convergence(){
   plt::named_loglog("error at target point", num_cells, errors_target_point, "r-o");
   plt::named_loglog("L2 error", num_cells, L2_errors, "g-o");
   plt::named_loglog("H1 error", num_cells, H1_errors, "k-o");
-
+	plt::named_loglog("loc L2 error", num_cells, localized_L2_errors, "g:o");
+  plt::named_loglog("loc H1 error", num_cells, localized_H1_errors, "k:o");
 
   //plt::xlabel("Cycle");
   plt::xlabel("Number of Cells");
@@ -328,7 +400,8 @@ void Problem<dim>::test_convergence(){
   convergence_table.add_value("H1", H1_error);
   convergence_table.add_value("point", error_target_point);
   convergence_table.add_value("point-dy", error_dy_target_point);
-
+	convergence_table.add_value("loc L2", loc_L2_error);
+  convergence_table.add_value("loc H1", loc_H1_error);
 
 }
 

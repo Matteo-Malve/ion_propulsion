@@ -41,13 +41,18 @@ void Problem<dim>::run() {
         output_dual_results();
         refine_mesh();
       }
+
+      cout<<endl;
+      GO_table.write_text(std::cout);
+      
+      convergence_table.set_scientific("H1", true);
+      convergence_table.set_scientific("point-dy", true);
+      cout<<endl;
+      convergence_table.write_text(std::cout);
+      cout<<endl;
+
       ++cycle;
 	  }
-
-    GO_table.add_column_to_supercolumn("cycle", "n cells");
-    GO_table.add_column_to_supercolumn("cells", "n cells");    
-    cout<<endl;
-    GO_table.write_text(std::cout);
 
   } else if(REFINEMENT_STRATEGY == "GlobRef"){
     while (cycle <= NUM_REFINEMENT_CYCLES) {
@@ -65,22 +70,26 @@ void Problem<dim>::run() {
         test_convergence();
       refine_mesh();
       ++cycle;
+
+      convergence_table.evaluate_convergence_rates("L2", ConvergenceTable::reduction_rate_log2);
+      convergence_table.evaluate_convergence_rates("H1", ConvergenceTable::reduction_rate_log2);
+      convergence_table.evaluate_convergence_rates("point", ConvergenceTable::reduction_rate_log2);
+      convergence_table.evaluate_convergence_rates("point-dy", ConvergenceTable::reduction_rate_log2);
+  
+      convergence_table.set_scientific("H1", true);
+      convergence_table.set_scientific("point-dy", true);
+      cout<<endl;
+      convergence_table.write_text(std::cout);
+      cout<<endl;
+
 	  }
-    convergence_table.evaluate_convergence_rates("L2", ConvergenceTable::reduction_rate_log2);
-    convergence_table.evaluate_convergence_rates("H1", ConvergenceTable::reduction_rate_log2);
-    convergence_table.evaluate_convergence_rates("point", ConvergenceTable::reduction_rate_log2);
-    convergence_table.evaluate_convergence_rates("point-dy", ConvergenceTable::reduction_rate_log2);
+    
+
   } else {
     cout << "Refinement strategy undefined" << endl;
     abort();
   }
-  convergence_table.set_scientific("H1", true);
-  convergence_table.set_scientific("point-dy", true);
-  convergence_table.add_column_to_supercolumn("cycle", "n cells");
-  convergence_table.add_column_to_supercolumn("cells", "n cells");    
-  cout<<endl;
-  convergence_table.write_text(std::cout);
-  cout<<endl;
+  
 }
 
 template <int dim>
@@ -115,15 +124,6 @@ void Problem<dim>::create_mesh() {
 	}
   cout<<"Executed preliminary coarsening and refinement"<<endl;
 
-  
-  for (auto &cell : triangulation.active_cell_iterators()){
-    // Allocate storage for 1 data point per cell
-    cell_data_storage.initialize(cell, 1);
-    // Access the allocated data (vector of shared_ptrs)
-    auto data_vector = cell_data_storage.get_data(cell);
-    // Initialize the custom data
-    data_vector[0]->refinement_level = cell->level();
-  }   
 }
 
 // -----------------------------------------
@@ -132,7 +132,17 @@ void Problem<dim>::create_mesh() {
 
 template <int dim>
 void Problem<dim>::setup_primal_system() {
+
   primal_dof_handler.distribute_dofs(primal_fe);
+
+  for (auto &cell : triangulation.active_cell_iterators()){
+    // Allocate storage for 1 data point per cell
+    cell_data_storage.initialize(cell, 1);
+    // Access the allocated data (vector of shared_ptrs)
+    auto data_vector = cell_data_storage.get_data(cell);
+    // Initialize the custom data
+    data_vector[0]->refinement_level = cell->level();
+  }   
   
 	uh0.reinit(primal_dof_handler.n_dofs());
   uh.reinit(primal_dof_handler.n_dofs());

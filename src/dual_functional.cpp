@@ -110,6 +110,59 @@ void AreaEvaluation<dim>::assemble_rhs(
   Vector<double>        &rhs) const
 {
   rhs.reinit(dof_handler.n_dofs());
+
+  const FiniteElement<dim> &fe = dof_handler.get_fe();
+
+  QGauss<dim> quadrature_formula(fe.degree + 2);
+  FEValues<dim> fe_values(fe, quadrature_formula,
+                          update_values | update_quadrature_points | update_JxW_values);
+
+  // Loop over all cells to assemble the rhs vector
+  for (const auto &cell : dof_handler.active_cell_iterators()){
+    fe_values.reinit(cell);
+    // Check if the cell intersects with the circular region C
+    bool cell_in_circle = false;
+    for (const auto &q_point : fe_values.get_quadrature_points()){
+      if (center_point.distance(q_point) < radius){
+          cell_in_circle = true;
+          break;
+      }
+    }
+
+    if (!cell_in_circle)
+      continue;
+
+    // Local contribution to the right-hand side
+    std::vector<types::global_dof_index> local_dof_indices(fe.dofs_per_cell);
+    cell->get_dof_indices(local_dof_indices);
+
+    for (unsigned int q_point = 0; q_point < fe_values.n_quadrature_points; ++q_point){
+      const Point<2> y = fe_values.quadrature_point(q_point);
+      if (center_point.distance(y) < radius) // Only integrate points within the circle
+        for (unsigned int i = 0; i < fe.dofs_per_cell; ++i)
+          rhs(local_dof_indices[i]) += fe_values.shape_value(i, q_point) * fe_values.JxW(q_point);
+    }
+  }
+}
+
+/*template <int dim>
+void AreaEvaluation<dim>::assemble_rhs(
+  const DoFHandler<dim> &dof_handler,
+  Vector<double>        &rhs) const
+{
+  rhs.reinit(dof_handler.n_dofs());
+  for (const auto &cell : dof_handler.active_cell_iterators())
+    for (const auto vertex : cell->vertex_indices())
+      if (cell->vertex(vertex).distance(center_point) < radius)
+        rhs(cell->vertex_dof_index(vertex, 0)) = 1;
+}*/
+
+/*template <int dim>
+void AreaEvaluation<dim>::assemble_rhs(
+  const DoFHandler<dim> &dof_handler,
+  Vector<double>        &rhs) const
+{
+  rhs.reinit(dof_handler.n_dofs());
   const QGauss<dim>  quadrature(dof_handler.get_fe().degree + 1);
   FEValues<dim>      fe_values(dof_handler.get_fe(),
                           quadrature,
@@ -140,7 +193,7 @@ void AreaEvaluation<dim>::assemble_rhs(
   AssertThrow(total_volume > 0,
               ExcEvaluationPointNotFound(center_point));
   rhs /= total_volume;
-}
+}*/
 
 // ------------------------------------------------------------      
 // BOUNDARY FLUX

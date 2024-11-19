@@ -36,6 +36,10 @@ private:
   const Point<dim> evaluation_point;
 };
 
+// ------------------------------------------------------------      
+// POINT evaluation
+// ------------------------------------------------------------      
+
 template <int dim>
 PointValueEvaluation<dim>::PointValueEvaluation(
   const Point<dim> &evaluation_point)
@@ -66,6 +70,9 @@ double PointValueEvaluation<dim>::operator()(const DoFHandler<dim> &dof_handler,
   return VectorTools::point_value(dof_handler, solution, evaluation_point);
 }
 
+// ------------------------------------------------------------      
+// POINT-dY evaluation
+// ------------------------------------------------------------      
 
 
 template <int dim>
@@ -196,6 +203,12 @@ double PointYDerivativeEvaluation<dim>::operator()(
   point_derivative /= evaluation_point_hits;
   return point_derivative;
 }
+
+// ------------------------------------------------------------      
+// AREA evaluation
+// ------------------------------------------------------------      
+
+  
 
 
 }

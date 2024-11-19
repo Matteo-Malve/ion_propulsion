@@ -85,6 +85,9 @@ private:
 	double compute_L2_error();
 	double compute_H1_error();
 	double localized_average_error(dealii::Point<dim> center_point, double radius) const;
+	double compute_localized_L2_error(const dealii::Point<dim> & center_point, const double radius);
+	double compute_localized_H1_error(const dealii::Point<dim> & center_point, const double radius);
+
 
 	void test_convergence();
 
@@ -127,7 +130,7 @@ private:
 	int cycle = 0;
 
 	std::vector<double> errors_sensor_1, errors_sensor_2, errors_sensor_3, errors_sensor_4;
-	std::vector<double> average_errors, localized_average_errors, errors_target_point, L2_errors, H1_errors;
+	std::vector<double> average_errors, localized_average_errors, errors_target_point, L2_errors, H1_errors, localized_L2_errors, localized_H1_errors;
 	std::vector<double> goal_oriented_global_errors, goal_oriented_local_errors, goal_oriented_local_errors_face_jumps;
 
 	std::vector<int> cycles, num_cells;
