@@ -32,7 +32,7 @@ const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 0;
 
 int NUM_REFINEMENT_CYCLES = 2;
 
-const bool ENABLE_CONVERGENCE_ANALYSIS = true;
+const bool ENABLE_CONVERGENCE_ANALYSIS = false;
 const bool ENABLE_FLUX_EVALUATION = true;
 
 
@@ -50,4 +50,4 @@ const dealii::Point<2> EVALUATION_POINT(0.0, 0.001);
 
 const double EVALUATION_RADIUS = 0.0002;
 
-const std::string TEST_NAME = REFINEMENT_STRATEGY + "_" + "flux"; 
+const std::string TEST_NAME = REFINEMENT_STRATEGY + "_" + "flux-patches0-prove"; 

@@ -63,7 +63,7 @@ void Problem<dim>::local_estimate(){
   error_indicators.reinit(triangulation.n_active_cells());
 
   const QGauss<dim> quadrature(dual_dof_handler.get_fe().degree + 1);
-  FEValues<dim> fe_values(dual_fe,
+  FEValues<dim> fe_values(*dual_fe,
                           quadrature,
                           update_values | update_gradients | update_quadrature_points | update_JxW_values);
 
@@ -115,8 +115,8 @@ void Problem<dim>::local_estimate_face_jumps(){
   std::map<typename DoFHandler<dim>::face_iterator, double> face_integrals;
   
   // Quadrature rule for face integration
-  const QGauss<dim> quadrature(dual_fe.degree + 1);
-  const QGauss<dim - 1> face_quadrature(dual_fe.degree + 1);
+  const QGauss<dim> quadrature(dual_fe->degree + 1);
+  const QGauss<dim - 1> face_quadrature(dual_fe->degree + 1);
 
   const unsigned int n_q_points = quadrature.size();
   const unsigned int face_n_q_points = face_quadrature.size();
@@ -126,16 +126,16 @@ void Problem<dim>::local_estimate_face_jumps(){
   std::vector<double> cell_laplacians(n_q_points);
 
   // FEValues objects for face integration
-  FEValues<dim> fe_values (dual_fe, quadrature,
+  FEValues<dim> fe_values (*dual_fe, quadrature,
                                       update_values | update_hessians | 
                                       update_quadrature_points | update_JxW_values);
-  FEFaceValues<dim> fe_face_values_current_cell(dual_fe, face_quadrature,
+  FEFaceValues<dim> fe_face_values_current_cell(*dual_fe, face_quadrature,
                                    update_values | update_gradients |
                                    update_normal_vectors | update_JxW_values);
-  FEFaceValues<dim> fe_face_values_neighbor(dual_fe, face_quadrature,
+  FEFaceValues<dim> fe_face_values_neighbor(*dual_fe, face_quadrature,
                                             update_values | update_gradients | 
                                             update_normal_vectors | update_JxW_values);
-  FESubfaceValues<dim> fe_subface_values_current_cell(dual_fe, face_quadrature,
+  FESubfaceValues<dim> fe_subface_values_current_cell(*dual_fe, face_quadrature,
                                          update_values | update_gradients | 
                                          update_normal_vectors | update_JxW_values);
   
@@ -285,7 +285,7 @@ double Problem<dim>::global_estimate(){
   // GLOBAL ESTIMATE
   // ------------------------------------------------------------      
   const QGauss<dim> quadrature(dual_dof_handler.get_fe().degree + 1);
-  FEValues<dim> fe_values(dual_fe,
+  FEValues<dim> fe_values(*dual_fe,
                           quadrature,
                           update_values | update_gradients | update_quadrature_points | update_JxW_values);
 
@@ -293,7 +293,7 @@ double Problem<dim>::global_estimate(){
   const auto sol_size = uh0_on_dual_space.size();
 
 
-  dual_dof_handler.distribute_dofs(dual_fe);
+  dual_dof_handler.distribute_dofs(*dual_fe);
   DynamicSparsityPattern dsp(dual_dof_handler.n_dofs());
   DoFTools::make_sparsity_pattern(dual_dof_handler, dsp);
   SparsityPattern sparsity_pattern;
@@ -305,7 +305,7 @@ double Problem<dim>::global_estimate(){
   Vector<double> F(dual_dof_handler.n_dofs());
 
   // FE
-  const unsigned int dofs_per_cell = dual_fe.n_dofs_per_cell();
+  const unsigned int dofs_per_cell = dual_fe->n_dofs_per_cell();
 
   std::vector<Tensor<1, dim>> rg_gradients(n_q_points);
 
@@ -456,7 +456,7 @@ void Problem<dim>::refine_mesh() {
       if (cell->level() <= data_vector[0]->refinement_level)
         cell->clear_coarsen_flag();       
     }
-    
+
     triangulation.prepare_coarsening_and_refinement();
 
     // Prepare the solution transfer object

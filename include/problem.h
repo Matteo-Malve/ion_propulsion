@@ -96,8 +96,8 @@ private:
 	DoFHandler<dim>               primal_dof_handler, 
 																dual_dof_handler;
 																
-	FE_Q<dim>                     primal_fe, 
-																dual_fe;
+	FE_Q<dim>                     primal_fe;
+	std::unique_ptr<FE_Q<dim>> 		dual_fe;															
 
 	AffineConstraints<double> 		primal_constraints, 
 																dual_constraints;

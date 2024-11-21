@@ -11,7 +11,7 @@ template <int dim>
 Problem<dim>::Problem() : primal_dof_handler(triangulation), 
                           dual_dof_handler(triangulation),
                           primal_fe(1), 
-                          dual_fe(2),
+                          dual_fe(std::make_unique<FE_Q<dim>>(2)),
                           cell_data_storage()
                           {}
 
@@ -20,6 +20,13 @@ void Problem<dim>::run() {
 	create_mesh();
   if(REFINEMENT_STRATEGY == "GO"){
     while (cycle <= NUM_REFINEMENT_CYCLES) {
+
+      /*if (cycle == 0) {
+        dual_fe = std::make_unique<FE_Q<dim>>(2); // Use second-order FE for cycle 0
+      } else {
+        dual_fe = std::make_unique<FE_Q<dim>>(1); // Use first-order FE for subsequent cycles
+      }*/
+
       cout << endl << "Cycle " << cycle << ':' << endl;
       cycles.push_back(cycle);
       std::cout << "   Number of active cells:       "<< triangulation.n_active_cells() << std::endl;
@@ -370,7 +377,7 @@ void Problem<dim>::output_primal_results() {
 
 template <int dim>
 void Problem<dim>::setup_dual_system() {
-  dual_dof_handler.distribute_dofs(dual_fe);
+  dual_dof_handler.distribute_dofs(*dual_fe);
 
   zh.reinit(dual_dof_handler.n_dofs());
   dual_rhs.reinit(dual_dof_handler.n_dofs());
@@ -420,11 +427,11 @@ void Problem<dim>::assemble_dual_system() {
   // MATRIX
   // ---------------------------------------
   const QGauss<dim> quadrature(dual_dof_handler.get_fe().degree + 1);
-  FEValues<dim> fe_values(dual_fe,
+  FEValues<dim> fe_values(*dual_fe,
                           quadrature,
                           update_values | update_gradients | update_quadrature_points | update_JxW_values);
 
-  const unsigned int dofs_per_cell = dual_fe.n_dofs_per_cell();
+  const unsigned int dofs_per_cell = dual_fe->n_dofs_per_cell();
 
   FullMatrix<double> cell_matrix(dofs_per_cell, dofs_per_cell);
   std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
@@ -455,7 +462,7 @@ void Problem<dim>::assemble_dual_system() {
   // Apply boundary values
   std::map<types::global_dof_index, double> emitter_and_collector_boundary_values;
   VectorTools::interpolate_boundary_values(dual_dof_handler,1, Functions::ZeroFunction<dim>(), emitter_and_collector_boundary_values);
-  VectorTools::interpolate_boundary_values(dual_dof_handler,2, Functions::ZeroFunction<dim>(), emitter_and_collector_boundary_values);
+  VectorTools::interpolate_boundary_values(dual_dof_handler,9, Functions::ZeroFunction<dim>(), emitter_and_collector_boundary_values);
   
   // Condense constraints
   dual_constraints.condense(dual_system_matrix);
