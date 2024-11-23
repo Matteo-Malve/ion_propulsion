@@ -47,5 +47,8 @@ extern const double EVALUATION_RADIUS;
 extern const std::string TEST_NAME; 
 
 extern const std::string REFINEMENT_STRATEGY;
+extern const unsigned int DUAL_OUTPUT_PATCHES;
+
+extern const bool READ_FROM_MESH_FILE;
 
 #endif

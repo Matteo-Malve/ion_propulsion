@@ -446,15 +446,16 @@ void Problem<dim>::estimate_error(){
 template <int dim>
 void Problem<dim>::refine_mesh() {
   if(REFINEMENT_STRATEGY == "GO"){
-    GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators, 0.6, 0.2);
+    //GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators, 0.6, 0.2);
+    GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators_face_jumps, 0.8, 0.02);   // step-14
     //GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators_face_jumps, 0.6, 0);
     //GridRefinement::refine_and_coarsen_fixed_number(triangulation,error_indicators_face_jumps, 0.05, 0);
     
     // Prevent coarsening below base level
     for (auto &cell : triangulation.active_cell_iterators()) {
       auto data_vector = cell_data_storage.get_data(cell);
-      if (cell->level() <= data_vector[0]->refinement_level)
-        cell->clear_coarsen_flag();       
+      //if (cell->level() <= data_vector[0]->refinement_level)
+        //cell->clear_coarsen_flag();       
     }
 
     triangulation.prepare_coarsening_and_refinement();

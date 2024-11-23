@@ -328,7 +328,7 @@ void Problem<dim>::test_convergence(){
   // Emitter Flux evaluation
   // ------------------------------------------------------------ 
 	double flux_error = 0;
-	if(ENABLE_FLUX_EVALUATION){
+	/*if(ENABLE_FLUX_EVALUATION){
 		double exact_flux = exact_solution_function.emitter_flux();
 		cout<<"      Flux exact:             "<< exact_flux <<endl;
 		Evaluation::FluxEvaluation<dim> postprocessor;
@@ -336,7 +336,7 @@ void Problem<dim>::test_convergence(){
 		cout<<"      Flux computed:          "<< computed_flux <<endl;
 		flux_error = std::fabs(exact_flux-computed_flux);
 		cout<<"      Flux error:             "<< flux_error <<endl;
-	}
+	}*/
   // ------------------------------------------------------------      
   // TEXT OUTPUT
   // ------------------------------------------------------------      

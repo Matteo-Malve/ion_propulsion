@@ -12,6 +12,8 @@ Problem<dim>::Problem() : primal_dof_handler(triangulation),
                           dual_dof_handler(triangulation),
                           primal_fe(1), 
                           dual_fe(std::make_unique<FE_Q<dim>>(2)),
+                          rhs_function(1.),
+                          exact_solution_function(0.),
                           cell_data_storage()
                           {}
 
@@ -35,6 +37,11 @@ void Problem<dim>::run() {
       setup_primal_system();
       assemble_primal_system();
       solve_primal();
+      {
+        Evaluation::PointValueEvaluation<dim> postprocessor(EVALUATION_POINT);
+        double computed_value = postprocessor(primal_dof_handler,uh);
+        cout<<"      Point Value:   "<< computed_value << endl;
+      }
       output_primal_results();
       if(ENABLE_CONVERGENCE_ANALYSIS)
         test_convergence();
@@ -49,6 +56,9 @@ void Problem<dim>::run() {
         refine_mesh();
       }
 
+      GO_table.set_scientific("global", true);
+      GO_table.set_scientific("local", true);
+      GO_table.set_scientific("l. jumps", true);
       cout<<endl;
       GO_table.write_text(std::cout);
       
@@ -105,36 +115,85 @@ void Problem<dim>::run() {
 
 template <int dim>
 void Problem<dim>::create_mesh() {
-	cout << endl << "Reading file: " << extract_mesh_name() << endl;
-	std::ifstream input_file(PATH_TO_MESH);
-	GridIn<2>       grid_in;
-	grid_in.attach_triangulation(triangulation);
-	grid_in.read_msh(input_file);
+  
+  if(READ_FROM_MESH_FILE){
+    cout << endl << "Reading file: " << extract_mesh_name() << endl;
+    std::ifstream input_file(PATH_TO_MESH);
+    GridIn<2>       grid_in;
+    grid_in.attach_triangulation(triangulation);
+    grid_in.read_msh(input_file);
 
-  triangulation.refine_global(NUM_PRELIMINARY_GLOBAL_REF);
+    triangulation.refine_global(NUM_PRELIMINARY_GLOBAL_REF);
 
-  for (unsigned int i = 0; i < NUM_PRELIMINARY_REF; ++i) {
-		Vector<float> criteria(triangulation.n_active_cells());
-		//cout  << "Active cells " << triangulation.n_active_cells() << endl;
-		unsigned int ctr = 0;
+    for (unsigned int i = 0; i < NUM_PRELIMINARY_REF; ++i) {
+      Vector<float> criteria(triangulation.n_active_cells());
+      //cout  << "Active cells " << triangulation.n_active_cells() << endl;
+      unsigned int ctr = 0;
 
-    // Threshold
-    const double max_thickness = 2. * l;
-    const double min_thickness = 1.05 * l;
-    const double D = min_thickness + (max_thickness-min_thickness)/(NUM_PRELIMINARY_REF-1)*(NUM_PRELIMINARY_REF-1-i);
+      // Threshold
+      const double max_thickness = 2. * l;
+      const double min_thickness = 1.05 * l;
+      const double D = min_thickness + (max_thickness-min_thickness)/(NUM_PRELIMINARY_REF-1)*(NUM_PRELIMINARY_REF-1-i);
 
-		for (auto &cell : triangulation.active_cell_iterators()) {                
-			const Point<dim> c = cell->center();
-        if(std::abs(c[1])<D && std::abs(c[0])<D)
-          criteria[ctr++] = 1;
-        else
-          criteria[ctr++] = 0;
-		}
-		GridRefinement::refine(triangulation, criteria, 0.5);
-		triangulation.execute_coarsening_and_refinement();
-	}
-  cout<<"Executed preliminary coarsening and refinement"<<endl;
+      for (auto &cell : triangulation.active_cell_iterators()) {                
+        const Point<dim> c = cell->center();
+          if(std::abs(c[1])<D && std::abs(c[0])<D)
+            criteria[ctr++] = 1;
+          else
+            criteria[ctr++] = 0;
+      }
+      GridRefinement::refine(triangulation, criteria, 0.5);
+      triangulation.execute_coarsening_and_refinement();
+    }
+    cout<<"Executed preliminary coarsening and refinement"<<endl;
+  }else{
+    const std::vector<Point<2>> vertices = {
+      {-1.0, -1.0}, {-0.5, -1.0}, {+0.0, -1.0}, {+0.5, -1.0}, {+1.0, -1.0},
+      {-1.0, -0.5}, {-0.5, -0.5}, {+0.0, -0.5}, {+0.5, -0.5}, {+1.0, -0.5},
+      {-1.0, +0.0}, {-0.5, +0.0}, {+0.5, +0.0}, {+1.0, +0.0},
+      {-1.0, +0.5}, {-0.5, +0.5}, {+0.0, +0.5}, {+0.5, +0.5}, {+1.0, +0.5},
+      {-1.0, +1.0}, {-0.5, +1.0}, {+0.0, +1.0}, {+0.5, +1.0}, {+1.0, +1.0}};
+    const std::vector<std::array<int, GeometryInfo<dim>::vertices_per_cell>>
+      cell_vertices = {{{0, 1, 5, 6}},
+                       {{1, 2, 6, 7}},
+                       {{2, 3, 7, 8}},
+                       {{3, 4, 8, 9}},
+                       {{5, 6, 10, 11}},
+                       {{8, 9, 12, 13}},
+                       {{10, 11, 14, 15}},
+                       {{12, 13, 17, 18}},
+                       {{14, 15, 19, 20}},
+                       {{15, 16, 20, 21}},
+                       {{16, 17, 21, 22}},
+                       {{17, 18, 22, 23}}};
+    const unsigned int n_cells = cell_vertices.size();
+    std::vector<CellData<dim>> cells(n_cells, CellData<dim>());
+    for (unsigned int i = 0; i < n_cells; ++i)
+      {
+        for (unsigned int j = 0; j < cell_vertices[i].size(); ++j)
+          cells[i].vertices[j] = cell_vertices[i][j];
+        cells[i].material_id = 0;
+      }
+    //GridTools::consistently_order_cells(cells);
+    std::cout << "Vertices:" << std::endl;
+    for (const auto &vertex : vertices)
+        std::cout << vertex << std::endl;
 
+    std::cout << "Cells:" << std::endl;
+    for (const auto &cell : cells)
+    {
+        for (unsigned int j = 0; j < GeometryInfo<dim>::vertices_per_cell; ++j)
+            std::cout << cell.vertices[j] << " ";
+        std::cout << std::endl;
+    }
+    triangulation.create_triangulation(vertices, cells, SubCellData());
+    triangulation.refine_global(1);
+
+    std::ofstream out("mesh.msh");
+    GridOut grid_out;
+    grid_out.write_msh(triangulation, out);
+    std::cout << "Mesh written to mesh.msh" << std::endl;
+  }
 }
 
 // -----------------------------------------
@@ -252,6 +311,7 @@ void Problem<dim>::assemble_primal_system() {
 
   // Apply boundary values
   std::map<types::global_dof_index, double> boundary_values;
+  VectorTools::interpolate_boundary_values(primal_dof_handler,0, Functions::ZeroFunction<dim>(), boundary_values);
   VectorTools::interpolate_boundary_values(primal_dof_handler,1, Functions::ZeroFunction<dim>(), boundary_values);
   VectorTools::interpolate_boundary_values(primal_dof_handler,9, Functions::ZeroFunction<dim>(), boundary_values);
 
@@ -461,6 +521,7 @@ void Problem<dim>::assemble_dual_system() {
 
   // Apply boundary values
   std::map<types::global_dof_index, double> emitter_and_collector_boundary_values;
+  VectorTools::interpolate_boundary_values(dual_dof_handler,0, Functions::ZeroFunction<dim>(), emitter_and_collector_boundary_values);
   VectorTools::interpolate_boundary_values(dual_dof_handler,1, Functions::ZeroFunction<dim>(), emitter_and_collector_boundary_values);
   VectorTools::interpolate_boundary_values(dual_dof_handler,9, Functions::ZeroFunction<dim>(), emitter_and_collector_boundary_values);
   
@@ -509,7 +570,7 @@ void Problem<dim>::output_dual_results() {
   data_out.add_data_vector(Rg_plus_uh0hat, "Rg_plus_uh0hat");
   data_out.add_data_vector(error_indicators, "error_indicators");
   
-  data_out.build_patches(5); // mapping
+  data_out.build_patches(); // mapping
 
   std::string filename;
   std::string meshName = extract_mesh_name();
