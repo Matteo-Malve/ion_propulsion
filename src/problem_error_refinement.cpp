@@ -23,7 +23,7 @@ void Problem<dim>::interpolate_between_primal_and_dual(){
                         dual_dof_handler, 
                         dual_constraints,
                         uh0_on_dual_space);
-  dual_constraints.distribute(uh0_on_dual_space); // just added, shouldn't have been necessary
+  //dual_constraints.distribute(uh0_on_dual_space); // just added, shouldn't have been necessary
 
   Rg_dual.reinit(dual_dof_handler.n_dofs());
   FETools::interpolate(primal_dof_handler,
@@ -42,7 +42,7 @@ void Problem<dim>::interpolate_between_primal_and_dual(){
                                     primal_dof_handler,
                                     primal_constraints,
                                     dual_weights);               // zh-∏zh
-  dual_constraints.distribute(dual_weights); 
+  //dual_constraints.distribute(dual_weights); 
 
   // ------------------------------------------------------------      
   // RETRIEVE LIFTING: Rg + uh0hat
@@ -240,7 +240,7 @@ void Problem<dim>::local_estimate_face_jumps(){
           fe_face_values_neighbor.get_function_gradients(Rg_plus_uh0hat, neighbor_gradients);
 
           for (unsigned int p = 0; p < face_n_q_points; ++p)
-            jump_residual[p] = ((neighbor_gradients[p] - cell_gradients[p]) *
+            jump_residual[p] = ((neighbor_gradients[p] - cell_gradients[p]) *       
                                 fe_face_values_neighbor.normal_vector(p));
 
           fe_face_values_neighbor.get_function_values(dual_weights, face_dual_weights);           
@@ -436,10 +436,58 @@ void Problem<dim>::estimate_error(){
   // ------------------------------------------------------------      
 
   GO_table.add_value("cycle", cycle);
-  GO_table.add_value("cells", triangulation.n_active_cells());
-  GO_table.add_value("global", global_error);
-  GO_table.add_value("local", global_error_as_sum_of_cell_errors);
+  GO_table.add_value("DoF", primal_dof_handler.n_dofs());
+  //GO_table.add_value("global", global_error);
+  //GO_table.add_value("local", global_error_as_sum_of_cell_errors);
   GO_table.add_value("l. jumps", global_error_as_sum_of_cell_errors_face_jumps);
+
+  Evaluation::PointValueEvaluation<dim> postprocessor(EVALUATION_POINT);
+  double computed_value = postprocessor(primal_dof_handler,uh);
+  cout<<"      Point Value:   "<< computed_value << endl;
+
+  GO_table.add_value("Point value", computed_value);
+
+  // ------------------------------------------------------------      
+  // TEXT OUTPUT
+  // ------------------------------------------------------------      
+
+  const double exact_value = 0.0334473;
+  const double exact_error = std::fabs(exact_value-computed_value);
+
+  // Prepare CSV file for writing
+  std::ofstream csv_file;
+  std::string file_name = TEST_NAME + "-convergence_data.csv";
+
+  if(cycle==0){
+    csv_file.open(file_name);
+
+    // Write the header
+    csv_file << "num_cells,DoFs,estimated_error,exact_error\n";
+
+    // Write the first line of data
+    csv_file << num_cells[0] << ","
+             << primal_dof_handler.n_dofs() << ","
+             << global_error_as_sum_of_cell_errors_face_jumps << ","
+             << exact_error
+             << "\n";
+
+    // Close the file
+    csv_file.close();
+
+  } else{
+    // Open the file in append mode to add new lines
+    csv_file.open(file_name, std::ios::app);
+
+    // Write the current cycle's data
+    csv_file << num_cells[cycle] << ","
+             << primal_dof_handler.n_dofs() << ","
+             << global_error_as_sum_of_cell_errors_face_jumps << ","
+             << exact_error
+             << "\n";
+
+    // Close the file
+    csv_file.close();
+  }     
 
 }
 
@@ -447,7 +495,8 @@ template <int dim>
 void Problem<dim>::refine_mesh() {
   if(REFINEMENT_STRATEGY == "GO"){
     //GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators, 0.6, 0.2);
-    GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators_face_jumps, 0.8, 0.02);   // step-14
+    GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators_face_jumps, 0.80, 0.02);   // step-14
+    //GridRefinement::refine_and_coarsen_fixed_number(triangulation,error_indicators_face_jumps, 0.2, 0.4);   // step-14
     //GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators_face_jumps, 0.6, 0);
     //GridRefinement::refine_and_coarsen_fixed_number(triangulation,error_indicators_face_jumps, 0.05, 0);
     
@@ -481,6 +530,7 @@ void Problem<dim>::refine_mesh() {
 
     // Handle boundary conditions again (for hanging nodes)
     std::map<types::global_dof_index, double> boundary_values;
+    VectorTools::interpolate_boundary_values(primal_dof_handler, 0, exact_solution_function, boundary_values);
     VectorTools::interpolate_boundary_values(primal_dof_handler, 1, exact_solution_function, boundary_values);
     VectorTools::interpolate_boundary_values(primal_dof_handler, 9, exact_solution_function, boundary_values);
     for (const auto &boundary_value : boundary_values)

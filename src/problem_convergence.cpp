@@ -337,39 +337,8 @@ void Problem<dim>::test_convergence(){
 		flux_error = std::fabs(exact_flux-computed_flux);
 		cout<<"      Flux error:             "<< flux_error <<endl;
 	}*/
-  // ------------------------------------------------------------      
-  // TEXT OUTPUT
-  // ------------------------------------------------------------      
-
-
-  // Prepare CSV file for writing
-  std::ofstream csv_file;
-  std::string file_name = TEST_NAME + "-convergence_data.csv";
-  csv_file.open(file_name);
   
-  // Write the header
-  //csv_file << "num_cells,errors_sensor_1,errors_sensor_2,errors_sensor_3,errors_sensor_4,average_errors,localized_average_errors,errors_target_point,L2_errors,H1_errors\n";
-  csv_file << "num_cells,localized_average_errors,errors_target_point,L2_errors,H1_errors\n";
   
-  // Write each cycle's data
-  for (size_t i = 0; i < num_cells.size(); ++i) {
-      csv_file << num_cells[i] << ","
-               //<< errors_sensor_1[i] << ","
-               //<< errors_sensor_2[i] << ","
-               //<< errors_sensor_3[i] << ","
-               //<< errors_sensor_4[i] << ","
-               //<< average_errors[i] << ","
-               << localized_average_errors[i] <<","
-               << errors_target_point[i] << ","
-               << L2_errors[i] << ","
-               << H1_errors[i] << ","
-							 << localized_L2_errors[i] << ","
-							 << localized_L2_errors[i]
-               << "\n";
-  }
-  
-  // Close the CSV file
-  csv_file.close();
 
   // ------------------------------------------------------------      
   // PLOT
