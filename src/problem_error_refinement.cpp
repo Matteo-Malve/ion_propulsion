@@ -429,11 +429,11 @@ void Problem<dim>::refine_mesh() {
 
     
     // Prevent coarsening below base level
-    for (auto &cell : triangulation.active_cell_iterators()) {
+    /*for (auto &cell : triangulation.active_cell_iterators()) {
       auto data_vector = cell_data_storage.get_data(cell);
       if (cell->level() <= data_vector[0]->refinement_level)
         cell->clear_coarsen_flag();       
-    }
+    }*/
 
     triangulation.prepare_coarsening_and_refinement();
 

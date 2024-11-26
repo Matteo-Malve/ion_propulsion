@@ -27,8 +27,8 @@ double AF = Ve;
 std::string PATH_TO_MESH = "../mesh/FullTestSquare.msh";
 //std::string PATH_TO_MESH = "../mesh/cerchi_concentrici.msh";
 
-const unsigned int NUM_PRELIMINARY_REF = 4; 
-const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 0; 
+const unsigned int NUM_PRELIMINARY_REF = 0; 
+const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 1; 
 
 int NUM_REFINEMENT_CYCLES = 10;
 
@@ -49,4 +49,4 @@ const dealii::Point<2> EVALUATION_POINT(0.0, 0.001);
 
 const double EVALUATION_RADIUS = 0.0002;
 
-const std::string TEST_NAME = REFINEMENT_STRATEGY + "_" + "4_0"; 
+const std::string TEST_NAME = REFINEMENT_STRATEGY + "_" + "likestep14"; 

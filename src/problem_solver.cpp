@@ -12,6 +12,8 @@ Problem<dim>::Problem() : triangulation(Triangulation<dim>::smoothing_on_refinem
                           dual_dof_handler(triangulation),
                           primal_fe(1), 
                           dual_fe(std::make_unique<FE_Q<dim>>(2)),
+                          //rhs_function(1.),
+                          //exact_solution_function(0.),
                           cell_data_storage()
                           {}
 
@@ -52,8 +54,15 @@ void Problem<dim>::run() {
       
 
       cout<<endl;
+      GO_table.set_scientific("global", true);
+      GO_table.set_scientific("local", true);
+      GO_table.set_scientific("l. jumps", true);
       GO_table.write_text(std::cout);
       cout<<endl;
+      convergence_table.set_scientific("estimated_error", true);
+      convergence_table.set_scientific("ex. point err", true);
+      convergence_table.set_scientific("L2", true);
+      convergence_table.set_scientific("H1", true);
       convergence_table.write_text(std::cout);
       cout<<endl;
 
@@ -106,18 +115,41 @@ void Problem<dim>::create_mesh() {
 	grid_in.attach_triangulation(triangulation);
 	grid_in.read_msh(input_file);
 
+  // Distribute DoFs for the first time
+  primal_dof_handler.distribute_dofs(primal_fe);
+
+  
+  // Initialize Rg_primal for the first time
+  Rg_primal.reinit(primal_dof_handler.n_dofs());
+  std::map<types::global_dof_index, double> boundary_values;
+  VectorTools::interpolate_boundary_values(primal_dof_handler, 1, exact_solution_function, boundary_values);
+  VectorTools::interpolate_boundary_values(primal_dof_handler, 9, exact_solution_function, boundary_values);
+  for (const auto &boundary_value : boundary_values)
+    Rg_primal(boundary_value.first) = boundary_value.second;
+  
+  // ------------------------------------------------------------
+  // Global refinements
+  // ------------------------------------------------------------
+
+  Vector<double> old_Rg_values = Rg_primal;
+  SolutionTransfer<dim> solution_transfer(primal_dof_handler);
+  solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_values);
   triangulation.refine_global(NUM_PRELIMINARY_GLOBAL_REF);
+  primal_dof_handler.distribute_dofs(primal_fe);
+  Rg_primal.reinit(primal_dof_handler.n_dofs());
+  solution_transfer.interpolate(old_Rg_values, Rg_primal);
+
+  // ------------------------------------------------------------
+  // Concentric refinements
+  // ------------------------------------------------------------
 
   for (unsigned int i = 0; i < NUM_PRELIMINARY_REF; ++i) {
 		Vector<float> criteria(triangulation.n_active_cells());
-		//cout  << "Active cells " << triangulation.n_active_cells() << endl;
 		unsigned int ctr = 0;
 
-    // Threshold
     const double max_thickness = 2. * l;
     const double min_thickness = 1.05 * l;
     const double D = min_thickness + (max_thickness-min_thickness)/(NUM_PRELIMINARY_REF-1)*(NUM_PRELIMINARY_REF-1-i);
-
 		for (auto &cell : triangulation.active_cell_iterators()) {                
 			const Point<dim> c = cell->center();
         if(std::abs(c[1])<D && std::abs(c[0])<D)
@@ -126,11 +158,27 @@ void Problem<dim>::create_mesh() {
           criteria[ctr++] = 0;
 		}
 		GridRefinement::refine(triangulation, criteria, 0.5);
+
+    triangulation.prepare_coarsening_and_refinement();
+    SolutionTransfer<dim> primal_solution_transfer(primal_dof_handler);
+    Vector<double> old_Rg_dof_values(Rg_primal);
+    primal_solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_dof_values);
 		triangulation.execute_coarsening_and_refinement();
+
+    primal_dof_handler.distribute_dofs(primal_fe);
+    Rg_primal.reinit(primal_dof_handler.n_dofs());
+    primal_solution_transfer.interpolate(old_Rg_dof_values, Rg_primal);
+
+    // Handle boundary conditions again (for hanging nodes)
+    std::map<types::global_dof_index, double> boundary_values;
+    VectorTools::interpolate_boundary_values(primal_dof_handler, 1, exact_solution_function, boundary_values);
+    VectorTools::interpolate_boundary_values(primal_dof_handler, 9, exact_solution_function, boundary_values);
+    for (const auto &boundary_value : boundary_values)
+      Rg_primal(boundary_value.first) = boundary_value.second;
 	}
-  cout<<"Executed preliminary coarsening and refinement"<<endl;
 
 }
+
 
 // -----------------------------------------
 // PRIMAL
@@ -141,32 +189,20 @@ void Problem<dim>::setup_primal_system() {
 
   primal_dof_handler.distribute_dofs(primal_fe);
 
-  for (auto &cell : triangulation.active_cell_iterators()){
+  /*for (auto &cell : triangulation.active_cell_iterators()){
     // Allocate storage for 1 data point per cell
     cell_data_storage.initialize(cell, 1);
     // Access the allocated data (vector of shared_ptrs)
     auto data_vector = cell_data_storage.get_data(cell);
     // Initialize the custom data
     data_vector[0]->refinement_level = cell->level();
-  }   
+  }*/   
   
 	uh0.reinit(primal_dof_handler.n_dofs());
   uh.reinit(primal_dof_handler.n_dofs());
   primal_rhs.reinit(primal_dof_handler.n_dofs());
 
-  if (cycle == 0){
-    // Initialize Rg_primal for the first time
-    Rg_primal.reinit(primal_dof_handler.n_dofs());
-
-    // Interpolate boundary values only once
-    std::map<types::global_dof_index, double> boundary_values;
-    VectorTools::interpolate_boundary_values(primal_dof_handler, 1, exact_solution_function, boundary_values);
-    VectorTools::interpolate_boundary_values(primal_dof_handler, 9, exact_solution_function, boundary_values);
-
-    for (const auto &boundary_value : boundary_values)
-      Rg_primal(boundary_value.first) = boundary_value.second;
-   
-  }
+  
 
   primal_constraints.clear();
 	DoFTools::make_hanging_node_constraints(primal_dof_handler, primal_constraints);
