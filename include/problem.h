@@ -127,8 +127,8 @@ private:
 	
 	//Functions::ConstantFunction<dim> 					rhs_function;
 	//Functions::ConstantFunction<dim>						exact_solution_function;
-	RightHandSide4<dim> 					rhs_function;
-	ExactSolution4<dim>						exact_solution_function;
+	RightHandSide8<dim> 					rhs_function;
+	ExactSolution8<dim>						exact_solution_function;
 
 	int cycle = 0;
 

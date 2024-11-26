@@ -28,15 +28,15 @@ std::string PATH_TO_MESH = "../mesh/FullTestSquare.msh";
 //std::string PATH_TO_MESH = "../mesh/cerchi_concentrici.msh";
 
 const unsigned int NUM_PRELIMINARY_REF = 0; 
-const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 1; 
+const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 0; 
 
 int NUM_REFINEMENT_CYCLES = 10;
 
 const bool ENABLE_CONVERGENCE_ANALYSIS = true;
 
 
-//const std::string REFINEMENT_STRATEGY = "GlobRef";
-const std::string REFINEMENT_STRATEGY = "GO";
+const std::string REFINEMENT_STRATEGY = "GlobRef";
+//const std::string REFINEMENT_STRATEGY = "GO";
 
 const std::string GOAL_FUNCTIONAL = "PointValue";
 //const std::string GOAL_FUNCTIONAL = "PointYDerivative";
@@ -49,4 +49,4 @@ const dealii::Point<2> EVALUATION_POINT(0.0, 0.001);
 
 const double EVALUATION_RADIUS = 0.0002;
 
-const std::string TEST_NAME = REFINEMENT_STRATEGY + "_" + "likestep14"; 
+const std::string TEST_NAME = REFINEMENT_STRATEGY + "_" + "func8"; 

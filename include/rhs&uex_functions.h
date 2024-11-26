@@ -513,4 +513,67 @@ public:
 };
 };
 
+// -----------------------------------------
+// 8 - sinsin
+// -----------------------------------------
+
+template <int dim>
+class ExactSolution8 : public Function<dim>{
+public:
+	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
+		(void)component;
+		const auto x = p[0];
+		const auto y = p[1];
+
+		return sin(pi/(L-l)*(std::abs(x)-l))*sin(pi/(L-l)*(std::abs(y)-l));
+	};
+	virtual void value_list(const std::vector< Point<dim>> &point_list, std::vector<double> &values, const unsigned int component = 0 ) const override {
+		(void)component;
+		AssertDimension (point_list.size(), values.size()); // Size check
+		for (unsigned int p=0; p<point_list.size(); ++p){
+			values[p] = this->value(point_list[p]);
+		}
+	};
+
+	virtual Tensor<1, dim> gradient(const Point<dim> &p, const unsigned int component = 0) const override {
+		(void)component;
+		const auto x = p[0];
+		const auto y = p[1];
+		double signX = x>0 ? +1. : (x==0 ? 0. : -1.);
+    double signY = y>0 ? +1. : (y==0 ? 0. : -1.);
+
+		Tensor<1, dim> grad;
+
+		grad[0] = pi * cos(pi / (L-l) * (std::abs(x)-l)) * sin(pi / (L-l) * (std::abs(y)-l)) / (L-l) * signX;
+		grad[1] = pi * sin(pi / (L-l) * (std::abs(x)-l)) * cos(pi / (L-l) * (std::abs(y)-l)) / (L-l) * signY;
+		return grad;
+};
+};
+
+
+template <int dim>
+class RightHandSide8 : public Function<dim>{
+public:
+	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
+		(void)component;
+		const auto x = p[0];
+		const auto y = p[1];
+		double signX = x>0 ? +1. : (x==0 ? 0. : -1.);
+    double signY = y>0 ? +1. : (y==0 ? 0. : -1.);
+
+		double laplacian = - pi / ((L-l)*(L-l)) *
+											( pi * sin(pi / (L-l) * (std::abs(x)-l)) * sin(pi / (L-l) * (std::abs(y)-l)) * signX*signX +
+												pi * sin(pi / (L-l) * (std::abs(x)-l)) * sin(pi / (L-l) * (std::abs(y)-l)) * signY*signY);
+		return - eps_0 * eps_r * laplacian;
+	}
+
+	virtual void value_list(const std::vector< Point<dim>> &point_list, std::vector<double> &values, const unsigned int component = 0 ) const override {
+		(void)component;
+		AssertDimension (point_list.size(), values.size()); // Size check
+		for (unsigned int p=0; p<point_list.size(); ++p){
+			values[p] = this->value(point_list[p]);
+		}
+	}
+};
+
 #endif

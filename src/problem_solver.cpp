@@ -60,6 +60,7 @@ void Problem<dim>::run() {
       GO_table.write_text(std::cout);
       cout<<endl;
       convergence_table.set_scientific("estimated_error", true);
+      convergence_table.set_scientific("estimated_error", true);
       convergence_table.set_scientific("ex. point err", true);
       convergence_table.set_scientific("L2", true);
       convergence_table.set_scientific("H1", true);
