@@ -78,9 +78,9 @@ void Problem<dim>::run() {
       if(ENABLE_CONVERGENCE_ANALYSIS){
         convergence_table.evaluate_convergence_rates("L2", ConvergenceTable::reduction_rate_log2);
         convergence_table.evaluate_convergence_rates("H1", ConvergenceTable::reduction_rate_log2);
-        convergence_table.evaluate_convergence_rates("point", ConvergenceTable::reduction_rate_log2);
+        convergence_table.evaluate_convergence_rates("ex. point err", ConvergenceTable::reduction_rate_log2);
 
-        convergence_table.set_scientific("point", true);
+        convergence_table.set_scientific("ex. point err", false);
         convergence_table.set_scientific("L2", true);
         convergence_table.set_scientific("H1", true);
         cout<<endl;
@@ -188,7 +188,7 @@ void Problem<dim>::setup_primal_system() {
 
 template <int dim>
 void Problem<dim>::assemble_primal_system() {
-  const QGauss <dim> quadrature(7);
+  const QGauss <dim> quadrature(dual_fe->get_degree()+1);
   FEValues<dim> fe_values(primal_fe,
                           quadrature,
                           update_values | update_gradients | update_quadrature_points |
@@ -260,11 +260,11 @@ void Problem<dim>::assemble_primal_system() {
 template <int dim>
 void Problem<dim>::solve_primal() {
   // Solver setup
-  const unsigned int it_max = 1e+4;
-  const double rel_tol = 1.e-6*primal_rhs.l2_norm();
-  const double abs_tol = 1.e-12;
-  const double tol = abs_tol + rel_tol;
-  SolverControl            solver_control(it_max, tol);
+  //const unsigned int it_max = 1e+4;
+  //const double rel_tol = 1.e-6*primal_rhs.l2_norm();
+  //const double abs_tol = 1.e-12;
+  //const double tol = abs_tol + rel_tol;
+  SolverControl            solver_control(5000, 1e-12);
   SolverCG<Vector<double>> solver(solver_control);
 
   // Solve linear system --> uh0
@@ -305,11 +305,12 @@ void Problem<dim>::output_primal_results() {
   data_out.add_data_vector(boundary_ids, "boundary_ids");
   
   Vector<double> u_ex(primal_dof_handler.n_dofs());
-  VectorTools::project(primal_dof_handler, 
+  /*VectorTools::project(primal_dof_handler, 
                       primal_constraints, 
                       QGauss<dim>(7),  // Quadrature rule (degree + 1 for accuracy)
                       exact_solution_function,          // Analytical function Rg
-                      u_ex);
+                      u_ex);*/
+  VectorTools::interpolate(primal_dof_handler, exact_solution_function, u_ex);
   data_out.add_data_vector(u_ex, "u_ex");
 
   /*GradXb<dim> gradX_function;
@@ -421,7 +422,7 @@ void Problem<dim>::assemble_dual_system() {
   // ---------------------------------------
   // MATRIX
   // ---------------------------------------
-  const QGauss<dim> quadrature(dual_dof_handler.get_fe().degree + 1);
+  const QGauss<dim> quadrature(dual_fe->get_degree() + 1);
   FEValues<dim> fe_values(*dual_fe,
                           quadrature,
                           update_values | update_gradients | update_quadrature_points | update_JxW_values);
@@ -468,12 +469,13 @@ void Problem<dim>::assemble_dual_system() {
 
 template <int dim>
 void Problem<dim>::solve_dual() {
-  const unsigned int it_max = 1e+4;
-  const double rel_tol = 1.e-6*dual_rhs.l2_norm();
-  const double abs_tol = 1.e-12;
+  //const unsigned int it_max = 1e+4;
+  //const double rel_tol = 1.e-6*dual_rhs.l2_norm();
+  //const double abs_tol = 1.e-12;
 
-  const double tol = abs_tol + rel_tol;
-  SolverControl            solver_control(it_max, tol);
+  //const double tol = abs_tol + rel_tol;
+  //SolverControl            solver_control(it_max, tol);
+  SolverControl            solver_control(5000, 1e-12);
   SolverCG<Vector<double>> solver(solver_control);
 
   double relaxation_parameter = 1.2;
@@ -503,7 +505,7 @@ void Problem<dim>::output_dual_results() {
   data_out.add_data_vector(dual_rhs, "rhs");
   data_out.add_data_vector(uh0_on_dual_space, "uh0_on_dual_space");
   data_out.add_data_vector(Rg_plus_uh0hat, "Rg_plus_uh0hat");
-  data_out.add_data_vector(error_indicators, "error_indicators");
+  data_out.add_data_vector(error_indicators_face_jumps, "error_indicators_face_jumps");
   
   data_out.build_patches(5); // mapping
 

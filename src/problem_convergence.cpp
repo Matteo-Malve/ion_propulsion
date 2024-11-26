@@ -261,6 +261,8 @@ void Problem<dim>::test_convergence(){
     Evaluation::PointValueEvaluation<dim> postprocessor(EVALUATION_POINT);
     double computed_value = postprocessor(primal_dof_handler,uh);
     error_target_point = std::fabs(exact_value-computed_value);
+    cout<<"      Exact value:             "<< exact_value << endl;
+    cout<<"      Computed value:          "<< computed_value << endl;
     cout<<"      Error at target point:   "<< error_target_point << endl;
   }
 	// ------------------------------------------------------------      

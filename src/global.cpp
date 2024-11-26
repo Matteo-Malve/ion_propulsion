@@ -30,7 +30,7 @@ std::string PATH_TO_MESH = "../mesh/FullTestSquare.msh";
 const unsigned int NUM_PRELIMINARY_REF = 4; 
 const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 0; 
 
-int NUM_REFINEMENT_CYCLES = 12;
+int NUM_REFINEMENT_CYCLES = 10;
 
 const bool ENABLE_CONVERGENCE_ANALYSIS = true;
 
@@ -49,4 +49,4 @@ const dealii::Point<2> EVALUATION_POINT(0.0, 0.001);
 
 const double EVALUATION_RADIUS = 0.0002;
 
-const std::string TEST_NAME = REFINEMENT_STRATEGY + "_" + "smoothing_off"; 
+const std::string TEST_NAME = REFINEMENT_STRATEGY + "_" + "4_0"; 

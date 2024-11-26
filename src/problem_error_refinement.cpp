@@ -22,7 +22,7 @@ void Problem<dim>::interpolate_between_primal_and_dual(){
                         dual_dof_handler, 
                         dual_constraints,
                         uh0_on_dual_space);
-  dual_constraints.distribute(uh0_on_dual_space); // just added, shouldn't have been necessary
+  //dual_constraints.distribute(uh0_on_dual_space); // just added, shouldn't have been necessary
 
   Rg_dual.reinit(dual_dof_handler.n_dofs());
   FETools::interpolate(primal_dof_handler,
@@ -41,7 +41,7 @@ void Problem<dim>::interpolate_between_primal_and_dual(){
                                     primal_dof_handler,
                                     primal_constraints,
                                     dual_weights);               // zh-∏zh
-  dual_constraints.distribute(dual_weights); 
+  //dual_constraints.distribute(dual_weights); 
 
   // ------------------------------------------------------------      
   // RETRIEVE LIFTING: Rg + uh0hat
@@ -425,7 +425,7 @@ void Problem<dim>::estimate_error(){
 template <int dim>
 void Problem<dim>::refine_mesh() {
   if(REFINEMENT_STRATEGY == "GO"){
-    GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators, 0.8, 0.02);
+    GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators_face_jumps, 0.8, 0.02);
 
     
     // Prevent coarsening below base level
