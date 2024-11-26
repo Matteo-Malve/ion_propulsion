@@ -5,7 +5,6 @@
 using namespace dealii;
 using std::cout;
 using std::endl;
-namespace plt = matplotlibcpp;
 
 // -----------------------------------------
 // GOAL ORIENTED REFINEMENT
@@ -386,7 +385,6 @@ void Problem<dim>::estimate_error(){
   // ------------------------------------------------------------      
   
   cout<<"      Global error = " <<  global_error << endl;
-  goal_oriented_global_errors.push_back(global_error);
 
   // Sum contribution of each cell's local error to get a global estimate
   double global_error_as_sum_of_cell_errors=0.0;
@@ -394,15 +392,13 @@ void Problem<dim>::estimate_error(){
       global_error_as_sum_of_cell_errors += error_indicators[i];
   global_error_as_sum_of_cell_errors = std::abs(global_error_as_sum_of_cell_errors);
   cout<<"      Global error as sum of cells' errors = " << global_error_as_sum_of_cell_errors << endl;
-  goal_oriented_local_errors.push_back(global_error_as_sum_of_cell_errors);
 
   // Sum contribution of each cell's local error to get a global estimate
-  double global_error_as_sum_of_cell_errors_face_jumps = 0.0;
+  estimated_error = 0.0;
   for(unsigned int i=0; i<error_indicators_face_jumps.size(); i++)
-      global_error_as_sum_of_cell_errors_face_jumps += error_indicators_face_jumps[i];
-  global_error_as_sum_of_cell_errors_face_jumps = std::abs(global_error_as_sum_of_cell_errors_face_jumps);
-  cout<<"      Global error as sum of cells' errors [face jumps] = " << global_error_as_sum_of_cell_errors_face_jumps << endl;
-  goal_oriented_local_errors_face_jumps.push_back(global_error_as_sum_of_cell_errors_face_jumps);
+      estimated_error += error_indicators_face_jumps[i];
+  estimated_error = std::abs(estimated_error);
+  cout<<"      Global error as sum of cells' errors [face jumps] = " << estimated_error << endl;
 
   // Take absolute value of each error
   for (double &error_indicator : error_indicators)
@@ -411,25 +407,7 @@ void Problem<dim>::estimate_error(){
   for (double &error_indicator : error_indicators_face_jumps) 
     error_indicator = std::fabs(error_indicator);
 
-  // ------------------------------------------------------------      
-  // PLOT
-  // ------------------------------------------------------------      
-
-  plt::figure_size(800, 600);
-  plt::clf(); // Clear previous plot
-
-  plt::named_semilogy("local_estimate", cycles, goal_oriented_local_errors, "b-o");
-  plt::named_semilogy("local_estimate_face_jumps", cycles, goal_oriented_local_errors_face_jumps, "b--o");
-  plt::named_semilogy("global_estimate", cycles, goal_oriented_global_errors, "r-o");
-
-  plt::xlabel("Cycle");
-  plt::ylabel("Error");
-  plt::title("Goal-oriented error");
-  plt::legend();
-  plt::grid(true);
-
-  // Save the plot
-  plt::save(TEST_NAME+"-goal_oriented_convergence.png");
+  
 
   // ------------------------------------------------------------      
   // TABLE
@@ -437,18 +415,18 @@ void Problem<dim>::estimate_error(){
 
   GO_table.add_value("cycle", cycle);
   GO_table.add_value("cells", triangulation.n_active_cells());
+  GO_table.add_value("DoFs", primal_dof_handler.n_dofs());
   GO_table.add_value("global", global_error);
   GO_table.add_value("local", global_error_as_sum_of_cell_errors);
-  GO_table.add_value("l. jumps", global_error_as_sum_of_cell_errors_face_jumps);
+  GO_table.add_value("l. jumps", estimated_error);
 
 }
 
 template <int dim>
 void Problem<dim>::refine_mesh() {
   if(REFINEMENT_STRATEGY == "GO"){
-    GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators, 0.6, 0.2);
-    //GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators_face_jumps, 0.6, 0);
-    //GridRefinement::refine_and_coarsen_fixed_number(triangulation,error_indicators_face_jumps, 0.05, 0);
+    GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators, 0.8, 0.02);
+
     
     // Prevent coarsening below base level
     for (auto &cell : triangulation.active_cell_iterators()) {

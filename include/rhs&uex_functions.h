@@ -19,7 +19,6 @@ public:
 		for (unsigned int p=0; p<point_list.size(); ++p){
 			const auto x = point_list[p][0];
 			const auto y = point_list[p][1];
-			double r = sqrt(x*x + y*y);
 			values[p] = -Ve;
 		}
 	}
@@ -174,7 +173,6 @@ public:
 		double sinArgX = std::sin(argX);
 		double sinArgY = std::sin(argY);
 		double cosArgX = std::cos(argX);
-		double cosArgY = std::cos(argY);
 
 		return -expTerm * Ve * ( -pi * sigma2 * r * cosArgX * sinArgY   +    L * x * (r-R) * (sinArgX*sinArgY - 1)) 
 							/ (L * sigma2 * r);
@@ -197,7 +195,6 @@ public:
 	
 		double sinArgX = std::sin(argX);
 		double sinArgY = std::sin(argY);
-		double cosArgX = std::cos(argX);
 		double cosArgY = std::cos(argY);
 		
 		return expTerm * Ve * ( -pi * sigma2 * r * cosArgY * sinArgX   +    L * y * (r-R) * (sinArgX*sinArgY - 1)) 
@@ -461,7 +458,6 @@ class RightHandSide7 : public Function<dim>{
 public:
 	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
 		(void)component;
-		double sigma2 = 0.0000005;
 
 		const auto x = p[0];
 		const auto y = p[1];

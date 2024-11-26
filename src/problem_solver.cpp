@@ -5,10 +5,10 @@
 using namespace dealii;
 using std::cout;
 using std::endl;
-namespace plt = matplotlibcpp;
 
 template <int dim>
-Problem<dim>::Problem() : primal_dof_handler(triangulation), 
+Problem<dim>::Problem() : triangulation(Triangulation<dim>::smoothing_on_refinement),
+                          primal_dof_handler(triangulation), 
                           dual_dof_handler(triangulation),
                           primal_fe(1), 
                           dual_fe(std::make_unique<FE_Q<dim>>(2)),
@@ -28,16 +28,13 @@ void Problem<dim>::run() {
       }*/
 
       cout << endl << "Cycle " << cycle << ':' << endl;
-      cycles.push_back(cycle);
       std::cout << "   Number of active cells:       "<< triangulation.n_active_cells() << std::endl;
-      num_cells.push_back(triangulation.n_active_cells());
       cout<<"   Primal:"<<endl;
       setup_primal_system();
       assemble_primal_system();
       solve_primal();
       output_primal_results();
-      if(ENABLE_CONVERGENCE_ANALYSIS)
-        test_convergence();
+
       if(cycle<NUM_REFINEMENT_CYCLES){
         cout<<"   Dual:"<<endl;
         setup_dual_system();
@@ -46,19 +43,19 @@ void Problem<dim>::run() {
         cout<<"   Error estimation:"<<endl;
         estimate_error();
         output_dual_results();
+        test_convergence();
         refine_mesh();
+      } else {
+        test_convergence();
       }
+
+      
 
       cout<<endl;
       GO_table.write_text(std::cout);
-      
-      if(ENABLE_CONVERGENCE_ANALYSIS){
-        convergence_table.set_scientific("H1", true);
-        convergence_table.set_scientific("point-dy", true);
-        cout<<endl;
-        convergence_table.write_text(std::cout);
-        cout<<endl;
-      }
+      cout<<endl;
+      convergence_table.write_text(std::cout);
+      cout<<endl;
 
       ++cycle;
 	  }
@@ -66,9 +63,7 @@ void Problem<dim>::run() {
   } else if(REFINEMENT_STRATEGY == "GlobRef"){
     while (cycle <= NUM_REFINEMENT_CYCLES) {
       cout << endl << "Cycle " << cycle << ':' << endl;
-      cycles.push_back(cycle);
       std::cout << "   Number of active cells:       "<< triangulation.n_active_cells() << std::endl;
-      num_cells.push_back(triangulation.n_active_cells());
       
       cout<<"   Primal:"<<endl;
       setup_primal_system();
@@ -84,10 +79,10 @@ void Problem<dim>::run() {
         convergence_table.evaluate_convergence_rates("L2", ConvergenceTable::reduction_rate_log2);
         convergence_table.evaluate_convergence_rates("H1", ConvergenceTable::reduction_rate_log2);
         convergence_table.evaluate_convergence_rates("point", ConvergenceTable::reduction_rate_log2);
-        convergence_table.evaluate_convergence_rates("point-dy", ConvergenceTable::reduction_rate_log2);
-    
+
+        convergence_table.set_scientific("point", true);
+        convergence_table.set_scientific("L2", true);
         convergence_table.set_scientific("H1", true);
-        convergence_table.set_scientific("point-dy", true);
         cout<<endl;
         convergence_table.write_text(std::cout);
         cout<<endl;
@@ -505,6 +500,7 @@ void Problem<dim>::output_dual_results() {
 
   data_out.add_data_vector(constraint_indicator, "constraints");
   data_out.add_data_vector(Rg_dual, "Rg_dual");
+  data_out.add_data_vector(dual_rhs, "rhs");
   data_out.add_data_vector(uh0_on_dual_space, "uh0_on_dual_space");
   data_out.add_data_vector(Rg_plus_uh0hat, "Rg_plus_uh0hat");
   data_out.add_data_vector(error_indicators, "error_indicators");

@@ -38,7 +38,6 @@
 #include <deal.II/numerics/data_out_faces.h>
 
 #include <fstream>
-#include "matplotlibcpp.h"
 
 
 #include "dual_functional.h"
@@ -122,18 +121,14 @@ private:
 																Rg_plus_uh0hat,
 																dual_weights, 
 																error_indicators,
-																error_indicators_face_jumps;															
+																error_indicators_face_jumps;			
+
+	double 												estimated_error;									
 	
 	RightHandSide4<dim> 					rhs_function;
-	ExactSolution4<dim>					exact_solution_function;
+	ExactSolution4<dim>						exact_solution_function;
 
 	int cycle = 0;
-
-	std::vector<double> errors_sensor_1, errors_sensor_2, errors_sensor_3, errors_sensor_4;
-	std::vector<double> average_errors, localized_average_errors, errors_target_point, L2_errors, H1_errors, localized_L2_errors, localized_H1_errors;
-	std::vector<double> goal_oriented_global_errors, goal_oriented_local_errors, goal_oriented_local_errors_face_jumps;
-
-	std::vector<int> cycles, num_cells;
 
 	ConvergenceTable GO_table;
 	ConvergenceTable convergence_table;

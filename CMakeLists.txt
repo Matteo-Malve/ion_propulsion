@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 
 find_package(deal.II 9.3.3 REQUIRED
-  HINTS ${DEAL_II_DIR} ../ ../../ $ENV{DEAL_II_DIR}
+  /Applications/deal.II.app/Contents/Resources/spack/opt/dealii-9.6.0-rc1-3efk/lib/cmake/deal.II
   )
 deal_ii_initialize_cached_variables()
 
@@ -24,6 +24,8 @@ set(SOURCE_FILES
     src/problem_convergence.cpp
     src/main.cpp
 )
+set(CMAKE_OSX_SYSROOT "/Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk")
+
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 deal_ii_setup_target(${PROJECT_NAME})
@@ -31,13 +33,11 @@ deal_ii_setup_target(${PROJECT_NAME})
 #--------------------------------------------------
 
 # Find Python library
-find_package(PythonLibs 3 REQUIRED)
+cmake_minimum_required(VERSION 3.12) # Ensure modern CMake
+find_package(Python 3 REQUIRED COMPONENTS Interpreter Development)
 
-# Include Python directories
-include_directories(${PYTHON_INCLUDE_DIRS})
-
-# Link Python library
-target_link_libraries(${PROJECT_NAME} ${PYTHON_LIBRARIES})
+include_directories(${Python_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} ${Python_LIBRARIES})
 
 # Custom target to run the program
 add_custom_target(run
