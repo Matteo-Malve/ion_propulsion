@@ -24,11 +24,13 @@ double AF = Ve;
 
 //std::string PATH_TO_MESH = "../mesh/input_mesh.msh";
 //std::string PATH_TO_MESH = "../mesh/TestSquare.msh";
-std::string PATH_TO_MESH = "../mesh/FullTestSquare.msh";
+//std::string PATH_TO_MESH = "../mesh/FullTestSquare.msh";
+std::string PATH_TO_MESH = "../mesh/FullTestSquareCoarsened.msh";
+
 //std::string PATH_TO_MESH = "../mesh/cerchi_concentrici.msh";
 
 const unsigned int NUM_PRELIMINARY_REF = 0; 
-const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 0; 
+const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 2; 
 
 int NUM_REFINEMENT_CYCLES = 10;
 
@@ -44,7 +46,9 @@ const std::string GOAL_FUNCTIONAL = "PointValue";
 //const std::string GOAL_FUNCTIONAL = "BoundaryFluxEvaluation";
 
 //const dealii::Point<2> EVALUATION_POINT(0.00025, 0.0005); 
-const dealii::Point<2> EVALUATION_POINT(0.0, 0.001); 
+//const dealii::Point<2> EVALUATION_POINT(0.0, 0.001); 
+const dealii::Point<2> EVALUATION_POINT(0.001, 0.001); 
+
 //const dealii::Point<2> EVALUATION_POINT(0.00025, 0.0004125); 
 
 const double EVALUATION_RADIUS = 0.0002;

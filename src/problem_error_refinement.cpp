@@ -460,6 +460,8 @@ void Problem<dim>::refine_mesh() {
     std::map<types::global_dof_index, double> boundary_values;
     VectorTools::interpolate_boundary_values(primal_dof_handler, 1, exact_solution_function, boundary_values);
     VectorTools::interpolate_boundary_values(primal_dof_handler, 9, exact_solution_function, boundary_values);
+    //VectorTools::interpolate_boundary_values(primal_dof_handler, 1, Functions::ZeroFunction<dim>(), boundary_values);
+    //VectorTools::interpolate_boundary_values(primal_dof_handler, 9, Functions::ZeroFunction<dim>(), boundary_values);
     for (const auto &boundary_value : boundary_values)
       Rg_primal(boundary_value.first) = boundary_value.second;
 
@@ -476,6 +478,14 @@ void Problem<dim>::refine_mesh() {
 
     Rg_primal.reinit(primal_dof_handler.n_dofs());
     solution_transfer.interpolate(old_Rg_values, Rg_primal);
+
+    std::map<types::global_dof_index, double> boundary_values;
+    VectorTools::interpolate_boundary_values(primal_dof_handler, 1, exact_solution_function, boundary_values);
+    VectorTools::interpolate_boundary_values(primal_dof_handler, 9, exact_solution_function, boundary_values);
+    //VectorTools::interpolate_boundary_values(primal_dof_handler, 1, Functions::ZeroFunction<dim>(), boundary_values);
+    //VectorTools::interpolate_boundary_values(primal_dof_handler, 9, Functions::ZeroFunction<dim>(), boundary_values);
+    for (const auto &boundary_value : boundary_values)
+      Rg_primal(boundary_value.first) = boundary_value.second;
 
   } else {
     cout << "Refinement strategy undefined" << endl;

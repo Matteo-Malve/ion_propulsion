@@ -525,7 +525,7 @@ public:
 		const auto x = p[0];
 		const auto y = p[1];
 
-		return sin(pi/(L-l)*(std::abs(x)-l))*sin(pi/(L-l)*(std::abs(y)-l));
+		return sin(pi/L*x)*sin(pi/L*y);
 	};
 	virtual void value_list(const std::vector< Point<dim>> &point_list, std::vector<double> &values, const unsigned int component = 0 ) const override {
 		(void)component;
@@ -539,13 +539,13 @@ public:
 		(void)component;
 		const auto x = p[0];
 		const auto y = p[1];
-		double signX = x>0 ? +1. : (x==0 ? 0. : -1.);
-    double signY = y>0 ? +1. : (y==0 ? 0. : -1.);
+		
 
 		Tensor<1, dim> grad;
 
-		grad[0] = pi * cos(pi / (L-l) * (std::abs(x)-l)) * sin(pi / (L-l) * (std::abs(y)-l)) / (L-l) * signX;
-		grad[1] = pi * sin(pi / (L-l) * (std::abs(x)-l)) * cos(pi / (L-l) * (std::abs(y)-l)) / (L-l) * signY;
+		grad[0] = pi * cos(pi/L*x) * sin(pi/L*y) / L;
+		grad[1] = pi * sin(pi/L*x) * cos(pi/L*y) / L;
+
 		return grad;
 };
 };
@@ -558,12 +558,8 @@ public:
 		(void)component;
 		const auto x = p[0];
 		const auto y = p[1];
-		double signX = x>0 ? +1. : (x==0 ? 0. : -1.);
-    double signY = y>0 ? +1. : (y==0 ? 0. : -1.);
 
-		double laplacian = - pi / ((L-l)*(L-l)) *
-											( pi * sin(pi / (L-l) * (std::abs(x)-l)) * sin(pi / (L-l) * (std::abs(y)-l)) * signX*signX +
-												pi * sin(pi / (L-l) * (std::abs(x)-l)) * sin(pi / (L-l) * (std::abs(y)-l)) * signY*signY);
+		double laplacian = - pi*pi / (L*L) * sin(pi/L*x) * sin(pi/L*y);
 		return - eps_0 * eps_r * laplacian;
 	}
 

@@ -90,7 +90,7 @@ void Problem<dim>::run() {
         convergence_table.evaluate_convergence_rates("H1", ConvergenceTable::reduction_rate_log2);
         convergence_table.evaluate_convergence_rates("ex. point err", ConvergenceTable::reduction_rate_log2);
 
-        convergence_table.set_scientific("ex. point err", false);
+        convergence_table.set_scientific("ex. point err", true);
         convergence_table.set_scientific("L2", true);
         convergence_table.set_scientific("H1", true);
         cout<<endl;
@@ -125,6 +125,8 @@ void Problem<dim>::create_mesh() {
   std::map<types::global_dof_index, double> boundary_values;
   VectorTools::interpolate_boundary_values(primal_dof_handler, 1, exact_solution_function, boundary_values);
   VectorTools::interpolate_boundary_values(primal_dof_handler, 9, exact_solution_function, boundary_values);
+  //VectorTools::interpolate_boundary_values(primal_dof_handler, 1, Functions::ZeroFunction<dim>(), boundary_values);
+  //VectorTools::interpolate_boundary_values(primal_dof_handler, 9, Functions::ZeroFunction<dim>(), boundary_values);
   for (const auto &boundary_value : boundary_values)
     Rg_primal(boundary_value.first) = boundary_value.second;
   
@@ -139,6 +141,15 @@ void Problem<dim>::create_mesh() {
   primal_dof_handler.distribute_dofs(primal_fe);
   Rg_primal.reinit(primal_dof_handler.n_dofs());
   solution_transfer.interpolate(old_Rg_values, Rg_primal);
+
+  // Handle boundary conditions again 
+  {std::map<types::global_dof_index, double> boundary_values;
+  VectorTools::interpolate_boundary_values(primal_dof_handler, 1, exact_solution_function, boundary_values);
+  VectorTools::interpolate_boundary_values(primal_dof_handler, 9, exact_solution_function, boundary_values);
+  //VectorTools::interpolate_boundary_values(primal_dof_handler, 1, Functions::ZeroFunction<dim>(), boundary_values);
+  //VectorTools::interpolate_boundary_values(primal_dof_handler, 9, Functions::ZeroFunction<dim>(), boundary_values);
+  for (const auto &boundary_value : boundary_values)
+    Rg_primal(boundary_value.first) = boundary_value.second;}
 
   // ------------------------------------------------------------
   // Concentric refinements
@@ -170,10 +181,12 @@ void Problem<dim>::create_mesh() {
     Rg_primal.reinit(primal_dof_handler.n_dofs());
     primal_solution_transfer.interpolate(old_Rg_dof_values, Rg_primal);
 
-    // Handle boundary conditions again (for hanging nodes)
+    // Handle boundary conditions again 
     std::map<types::global_dof_index, double> boundary_values;
     VectorTools::interpolate_boundary_values(primal_dof_handler, 1, exact_solution_function, boundary_values);
     VectorTools::interpolate_boundary_values(primal_dof_handler, 9, exact_solution_function, boundary_values);
+    //VectorTools::interpolate_boundary_values(primal_dof_handler, 1, Functions::ZeroFunction<dim>(), boundary_values);
+    //VectorTools::interpolate_boundary_values(primal_dof_handler, 9, Functions::ZeroFunction<dim>(), boundary_values);
     for (const auto &boundary_value : boundary_values)
       Rg_primal(boundary_value.first) = boundary_value.second;
 	}
@@ -286,6 +299,8 @@ void Problem<dim>::assemble_primal_system() {
   std::map<types::global_dof_index, double> boundary_values;
   VectorTools::interpolate_boundary_values(primal_dof_handler,1, Functions::ZeroFunction<dim>(), boundary_values);
   VectorTools::interpolate_boundary_values(primal_dof_handler,9, Functions::ZeroFunction<dim>(), boundary_values);
+  //VectorTools::interpolate_boundary_values(primal_dof_handler,1, exact_solution_function, boundary_values);
+  //VectorTools::interpolate_boundary_values(primal_dof_handler,9, exact_solution_function, boundary_values);
 
   // Condense constraints
   primal_constraints.condense(primal_system_matrix);
@@ -496,6 +511,8 @@ void Problem<dim>::assemble_dual_system() {
   std::map<types::global_dof_index, double> emitter_and_collector_boundary_values;
   VectorTools::interpolate_boundary_values(dual_dof_handler,1, Functions::ZeroFunction<dim>(), emitter_and_collector_boundary_values);
   VectorTools::interpolate_boundary_values(dual_dof_handler,9, Functions::ZeroFunction<dim>(), emitter_and_collector_boundary_values);
+  //VectorTools::interpolate_boundary_values(dual_dof_handler,1, exact_solution_function, emitter_and_collector_boundary_values);
+  //VectorTools::interpolate_boundary_values(dual_dof_handler,9, exact_solution_function, emitter_and_collector_boundary_values);
   
   // Condense constraints
   dual_constraints.condense(dual_system_matrix);
