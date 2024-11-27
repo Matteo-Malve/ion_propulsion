@@ -46,8 +46,8 @@ const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 0;
 
 int NUM_REFINEMENT_CYCLES = 20;
 
-const std::string REFINEMENT_STRATEGY = "GlobRef";
-//const std::string REFINEMENT_STRATEGY = "GO";
+//const std::string REFINEMENT_STRATEGY = "GlobRef";
+const std::string REFINEMENT_STRATEGY = "GO";
 
 const std::string GOAL_FUNCTIONAL = "PointValue";
 //const std::string GOAL_FUNCTIONAL = "PointYDerivative";
@@ -65,7 +65,7 @@ const bool ENABLE_FLUX_EVALUATION = false;
 //const dealii::Point<2> EVALUATION_POINT(0.0, 0.001); 
 //const dealii::Point<2> EVALUATION_POINT(0.00025, 0.0004125); 
 //const dealii::Point<2> EVALUATION_POINT(0.75, 0.75);  // step-14
-const dealii::Point<2> EVALUATION_POINT(0.00399326, 0.00399326);  // step-14 ratio 1:100
+const dealii::Point<2> EVALUATION_POINT(0.004, 0.004);  // step-14 ratio 1:100
 
 
 const double EVALUATION_RADIUS = 0.0002;

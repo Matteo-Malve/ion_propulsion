@@ -55,7 +55,7 @@ double PointValueEvaluation<dim>::operator()(const DoFHandler<dim> &dof_handler,
   {
     for (unsigned int v = 0; v < GeometryInfo<dim>::vertices_per_cell; ++v)
     {
-      if (cell->vertex(v).distance(evaluation_point) < 1e-12) // Match vertex point
+      if (cell->vertex(v).distance(evaluation_point) < 1.e-6) // Match vertex point
       {
         // Get the global DoF index for the vertex
         unsigned int vertex_dof_index = cell->vertex_dof_index(v, 0);
@@ -226,19 +226,26 @@ double FluxEvaluation<dim>::operator()(const DoFHandler<dim> &dof_handler,
                                       const Vector<double>  &solution) const
 {
   double flux = 0;
-  const QGauss<dim-1> face_quadrature(dof_handler.get_fe().degree + 1);  
+  // FEFaceValues just for getting the normal versor
+  const QGauss<dim-1> face_quadrature(dof_handler.get_fe().degree + 2);  
   FEFaceValues<dim> fe_face_values(dof_handler.get_fe(), 
                                    face_quadrature,
                                    update_gradients | update_normal_vectors | update_JxW_values);
-  const unsigned int n_face_q_points = face_quadrature.size();
-  std::vector<Tensor<1, dim>> solution_gradients(n_face_q_points);
+  // FEValues to compute the flux with all shape functions 
+  const QGauss<dim> quadrature(dof_handler.get_fe().degree + 2);  
+  FEFaceValues<dim> fe_values(dof_handler.get_fe(), 
+                              quadrature,
+                              update_gradients | update_normal_vectors | update_JxW_values);                              
+  const unsigned int n_q_points = quadrature.size();
+  std::vector<Tensor<1, dim>> solution_gradients(n_q_points);
 
   for (const auto &cell : dof_handler.active_cell_iterators())
     for (const auto &face : cell->face_iterators()) 
       if (face->at_boundary() && face->boundary_id() == 1) {
+        fe_values.reinit(cell);
         fe_face_values.reinit(cell, face);
-        fe_face_values.get_function_gradients(solution, solution_gradients);
-        for (unsigned int q_point = 0; q_point < n_face_q_points; ++q_point) {
+        fe_values.get_function_gradients(solution, solution_gradients);
+        for (unsigned int q_point = 0; q_point < n_q_points; ++q_point) {
           const Tensor<1, dim> &n = fe_face_values.normal_vector(q_point);
           flux += ((-solution_gradients[q_point]) * (-n)) * fe_face_values.JxW(q_point);
         }

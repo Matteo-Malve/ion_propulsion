@@ -213,7 +213,6 @@ void Problem<dim>::test_convergence(){
   double computed_value = postprocessor(primal_dof_handler,uh);
   cout<<"      Point Value:   "<< computed_value << endl;
   convergence_table.add_value("Point value", computed_value);
- 
 
 }
 

@@ -413,6 +413,7 @@ void Problem<dim>::estimate_error(){
   // ------------------------------------------------------------      
   // TABLE
   // ------------------------------------------------------------      
+  
 
   GO_table.add_value("cycle", cycle);
   GO_table.add_value("DoF", primal_dof_handler.n_dofs());
@@ -426,12 +427,17 @@ void Problem<dim>::estimate_error(){
 
   GO_table.add_value("Point value", computed_value);
 
+  //const double exact_value = 0.0334473;
+  const double exact_value = 1.767446e-05;
+  const double exact_error = std::fabs(exact_value-computed_value);
+
+  GO_table.add_value("exact error", exact_error);
+
   // ------------------------------------------------------------      
   // TEXT OUTPUT
   // ------------------------------------------------------------      
 
-  const double exact_value = 0.0334473;
-  const double exact_error = std::fabs(exact_value-computed_value);
+  
 
   // Prepare CSV file for writing
   std::ofstream csv_file;
@@ -441,32 +447,26 @@ void Problem<dim>::estimate_error(){
     csv_file.open(file_name);
 
     // Write the header
-    csv_file << "num_cells,DoFs,estimated_error,exact_error\n";
+    csv_file << "num_cells,DoFs,computed_value,estimated_error,exact_error\n";
+
+    // Close the file
+    csv_file.close();
+
+  } 
+    // Open the file in append mode to add new lines
+    csv_file.open(file_name, std::ios::app);
 
     // Write the first line of data
     csv_file << num_cells[0] << ","
              << primal_dof_handler.n_dofs() << ","
+             << computed_value << ","
              << global_error_as_sum_of_cell_errors_face_jumps << ","
              << exact_error
              << "\n";
 
     // Close the file
     csv_file.close();
-
-  } else{
-    // Open the file in append mode to add new lines
-    csv_file.open(file_name, std::ios::app);
-
-    // Write the current cycle's data
-    csv_file << num_cells[cycle] << ","
-             << primal_dof_handler.n_dofs() << ","
-             << global_error_as_sum_of_cell_errors_face_jumps << ","
-             << exact_error
-             << "\n";
-
-    // Close the file
-    csv_file.close();
-  }     
+     
 
 }
 

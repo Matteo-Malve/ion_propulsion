@@ -50,15 +50,17 @@ void Problem<dim>::run() {
         output_dual_results();
         refine_mesh();
       }
+      GO_table.set_scientific("l. jumps", true);
+      GO_table.set_scientific("Point value", true);
+      GO_table.set_scientific("exact error", true);
 
       GO_table.set_precision("l. jumps", 9);
-      GO_table.set_precision("Point value", 7);
+      GO_table.set_precision("Point value", 9);
+      GO_table.set_precision("exact error", 9);
       cout<<endl;
       GO_table.write_text(std::cout);
       
       if(ENABLE_CONVERGENCE_ANALYSIS){
-        convergence_table.set_scientific("H1", true);
-        convergence_table.set_scientific("L2", true);
         cout<<endl;
         convergence_table.write_text(std::cout);
         cout<<endl;
