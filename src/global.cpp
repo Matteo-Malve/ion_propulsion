@@ -30,23 +30,24 @@ double AF = Ve;
 //    MESH
 // ######################################################################
 
-const bool READ_FROM_MESH_FILE = false;
+const bool READ_FROM_MESH_FILE = true;
 //std::string PATH_TO_MESH = "../mesh/input_mesh.msh";
 //std::string PATH_TO_MESH = "../mesh/TestSquare.msh";
-std::string PATH_TO_MESH = "../mesh/FullTestSquare.msh";
+//std::string PATH_TO_MESH = "../mesh/FullTestSquare.msh";
 //std::string PATH_TO_MESH = "../mesh/cerchi_concentrici.msh";
+std::string PATH_TO_MESH = "../mesh/TinyStep14.msh";
 
 const unsigned int NUM_PRELIMINARY_REF = 0; 
-const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 1; 
+const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 0; 
 
 // ######################################################################
 //    RUN 
 // ######################################################################
 
-int NUM_REFINEMENT_CYCLES = 9;
+int NUM_REFINEMENT_CYCLES = 20;
 
-//const std::string REFINEMENT_STRATEGY = "GlobRef";
-const std::string REFINEMENT_STRATEGY = "GO";
+const std::string REFINEMENT_STRATEGY = "GlobRef";
+//const std::string REFINEMENT_STRATEGY = "GO";
 
 const std::string GOAL_FUNCTIONAL = "PointValue";
 //const std::string GOAL_FUNCTIONAL = "PointYDerivative";
@@ -57,13 +58,14 @@ const std::string GOAL_FUNCTIONAL = "PointValue";
 //    CONVERGENCE TESTS
 // ######################################################################
 
-const bool ENABLE_CONVERGENCE_ANALYSIS = false;
+const bool ENABLE_CONVERGENCE_ANALYSIS = true;
 const bool ENABLE_FLUX_EVALUATION = false;
 
 //const dealii::Point<2> EVALUATION_POINT(0.00025, 0.0005); 
 //const dealii::Point<2> EVALUATION_POINT(0.0, 0.001); 
 //const dealii::Point<2> EVALUATION_POINT(0.00025, 0.0004125); 
-const dealii::Point<2> EVALUATION_POINT(0.75, 0.75);  // step-14
+//const dealii::Point<2> EVALUATION_POINT(0.75, 0.75);  // step-14
+const dealii::Point<2> EVALUATION_POINT(0.00399326, 0.00399326);  // step-14 ratio 1:100
 
 
 const double EVALUATION_RADIUS = 0.0002;

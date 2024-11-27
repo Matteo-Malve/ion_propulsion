@@ -5,7 +5,6 @@
 using namespace dealii;
 using std::cout;
 using std::endl;
-namespace plt = matplotlibcpp;
 
 template <int dim>
 Problem<dim>::Problem() : triangulation(Triangulation<dim>::smoothing_on_refinement),
@@ -59,7 +58,7 @@ void Problem<dim>::run() {
       
       if(ENABLE_CONVERGENCE_ANALYSIS){
         convergence_table.set_scientific("H1", true);
-        convergence_table.set_scientific("point-dy", true);
+        convergence_table.set_scientific("L2", true);
         cout<<endl;
         convergence_table.write_text(std::cout);
         cout<<endl;
@@ -86,13 +85,9 @@ void Problem<dim>::run() {
       ++cycle;
 
       if(ENABLE_CONVERGENCE_ANALYSIS){
-        convergence_table.evaluate_convergence_rates("L2", ConvergenceTable::reduction_rate_log2);
-        convergence_table.evaluate_convergence_rates("H1", ConvergenceTable::reduction_rate_log2);
-        convergence_table.evaluate_convergence_rates("point", ConvergenceTable::reduction_rate_log2);
-        convergence_table.evaluate_convergence_rates("point-dy", ConvergenceTable::reduction_rate_log2);
-    
-        convergence_table.set_scientific("H1", true);
-        convergence_table.set_scientific("point-dy", true);
+       
+        convergence_table.set_scientific("Point value", true);
+        convergence_table.set_precision("Point value", 12);
         cout<<endl;
         convergence_table.write_text(std::cout);
         cout<<endl;
@@ -142,12 +137,31 @@ void Problem<dim>::create_mesh() {
     }
     cout<<"Executed preliminary coarsening and refinement"<<endl;
   }else{
-    const std::vector<Point<2>> vertices = {
+    /*const std::vector<Point<2>> vertices = {
       {-1.0, -1.0}, {-0.5, -1.0}, {+0.0, -1.0}, {+0.5, -1.0}, {+1.0, -1.0},
       {-1.0, -0.5}, {-0.5, -0.5}, {+0.0, -0.5}, {+0.5, -0.5}, {+1.0, -0.5},
       {-1.0, +0.0}, {-0.5, +0.0}, {+0.5, +0.0}, {+1.0, +0.0},
       {-1.0, +0.5}, {-0.5, +0.5}, {+0.0, +0.5}, {+0.5, +0.5}, {+1.0, +0.5},
       {-1.0, +1.0}, {-0.5, +1.0}, {+0.0, +1.0}, {+0.5, +1.0}, {+1.0, +1.0}};
+    const std::vector<std::array<int, GeometryInfo<dim>::vertices_per_cell>>
+      cell_vertices = {{{0, 1, 5, 6}},
+                       {{1, 2, 6, 7}},
+                       {{2, 3, 7, 8}},
+                       {{3, 4, 8, 9}},
+                       {{5, 6, 10, 11}},
+                       {{8, 9, 12, 13}},
+                       {{10, 11, 14, 15}},
+                       {{12, 13, 17, 18}},
+                       {{14, 15, 19, 20}},
+                       {{15, 16, 20, 21}},
+                       {{16, 17, 21, 22}},
+                       {{17, 18, 22, 23}}};*/
+    const std::vector<Point<2>> vertices = {
+      {-1.e-2, -1.e-2}, {-1.e-4, -1.e-2}, {+0.0, -1.e-2}, {+1.e-4, -1.e-2}, {+1.e-2, -1.e-2},
+      {-1.e-2, -1.e-4}, {-1.e-4, -1.e-4}, {+0.0, -1.e-4}, {+1.e-4, -1.e-4}, {+1.e-2, -1.e-4},
+      {-1.e-2, +0.0}, {-1.e-4, +0.0}, {+1.e-4, +0.0}, {+1.e-2, +0.0},
+      {-1.e-2, +1.e-4}, {-1.e-4, +1.e-4}, {+0.0, +1.e-4}, {+1.e-4, +1.e-4}, {+1.e-2, +1.e-4},
+      {-1.e-2, +1.e-2}, {-1.e-4, +1.e-2}, {+0.0, +1.e-2}, {+1.e-4, +1.e-2}, {+1.e-2, +1.e-2}};
     const std::vector<std::array<int, GeometryInfo<dim>::vertices_per_cell>>
       cell_vertices = {{{0, 1, 5, 6}},
                        {{1, 2, 6, 7}},
@@ -172,7 +186,7 @@ void Problem<dim>::create_mesh() {
   
     triangulation.create_triangulation(vertices, cells, SubCellData());
     triangulation.refine_global(1);
-
+    std::cout<<"N. cells: "<<triangulation.n_active_cells()<<std::endl;
     std::ofstream out("mesh.msh");
     GridOut grid_out;
     grid_out.write_msh(triangulation, out);

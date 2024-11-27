@@ -5,7 +5,6 @@
 using namespace dealii;
 using std::cout;
 using std::endl;
-namespace plt = matplotlibcpp;
 
 // -----------------------------------------
 // GOAL ORIENTED REFINEMENT
@@ -410,26 +409,6 @@ void Problem<dim>::estimate_error(){
   
   for (double &error_indicator : error_indicators_face_jumps) 
     error_indicator = std::fabs(error_indicator);
-
-  // ------------------------------------------------------------      
-  // PLOT
-  // ------------------------------------------------------------      
-
-  plt::figure_size(800, 600);
-  plt::clf(); // Clear previous plot
-
-  plt::named_semilogy("local_estimate", cycles, goal_oriented_local_errors, "b-o");
-  plt::named_semilogy("local_estimate_face_jumps", cycles, goal_oriented_local_errors_face_jumps, "b--o");
-  plt::named_semilogy("global_estimate", cycles, goal_oriented_global_errors, "r-o");
-
-  plt::xlabel("Cycle");
-  plt::ylabel("Error");
-  plt::title("Goal-oriented error");
-  plt::legend();
-  plt::grid(true);
-
-  // Save the plot
-  plt::save(TEST_NAME+"-goal_oriented_convergence.png");
 
   // ------------------------------------------------------------      
   // TABLE

@@ -38,7 +38,6 @@
 #include <deal.II/numerics/data_out_faces.h>
 
 #include <fstream>
-#include "matplotlibcpp.h"
 
 
 #include "dual_functional.h"

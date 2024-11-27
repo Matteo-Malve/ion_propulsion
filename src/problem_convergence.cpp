@@ -5,7 +5,6 @@
 using namespace dealii;
 using std::cout;
 using std::endl;
-namespace plt = matplotlibcpp;
 
 template <int dim>
 double Problem<dim>::compute_averaged_error() const {
@@ -201,175 +200,8 @@ double Problem<dim>::compute_H1_error() {
 
 template <int dim>
 void Problem<dim>::test_convergence(){
-  Point<dim> sensor_1(0.0002625, 0.0005);
-  Point<dim> sensor_2(-0.00025, 0.0005);
-  Point<dim> sensor_3(0.0031, 0.0035);
-  Point<dim> sensor_4(-0.0004, -0.0013);
 
-  cout<<"   Convergence test:"<<endl;
-
-  // ------------------------------------------------------------      
-  // Sensors
-  // ------------------------------------------------------------      
-
-  /*double uh_at_sensor_1 = VectorTools::point_value(primal_dof_handler, uh, sensor_1);
-  double uex_at_sensor_1 = exact_solution_function.value(sensor_1);
-  double abs_err_1 = std::fabs(uh_at_sensor_1-uex_at_sensor_1);
-  std::cout << "      Sensor 1:" << endl
-            << "         uh      =  " << uh_at_sensor_1 << endl
-            << "         u_ex    =  " << uex_at_sensor_1 << endl
-            << "         abs_err =  " << abs_err_1 <<endl;
   
-  double uh_at_sensor_2 = VectorTools::point_value(primal_dof_handler, uh, sensor_2);
-  double uex_at_sensor_2 = exact_solution_function.value(sensor_2);
-  double abs_err_2 = std::fabs(uh_at_sensor_2-uex_at_sensor_2);
-  std::cout << "      Sensor 2:" << endl
-            << "         uh      =  " << uh_at_sensor_2 << endl
-            << "         u_ex    =  " << uex_at_sensor_2 << endl
-            << "         abs_err =  " << abs_err_2 <<endl;
-  
-  double uh_at_sensor_3 = VectorTools::point_value(primal_dof_handler, uh, sensor_3);
-  double uex_at_sensor_3 = exact_solution_function.value(sensor_3);
-  double abs_err_3 = std::fabs(uh_at_sensor_3-uex_at_sensor_3);
-  std::cout << "      Sensor 3:" << endl
-            << "         uh      =  " << uh_at_sensor_3 << endl
-            << "         u_ex    =  " << uex_at_sensor_3 << endl
-            << "         abs_err =  " << abs_err_3 <<endl;
-  
-  double uh_at_sensor_4 = VectorTools::point_value(primal_dof_handler, uh, sensor_4);
-  double uex_at_sensor_4 = exact_solution_function.value(sensor_4);
-  double abs_err_4 = std::fabs(uh_at_sensor_4-uex_at_sensor_4);
-  std::cout << "      Sensor 4:" << endl
-            << "         uh      =  " << uh_at_sensor_4 << endl
-            << "         u_ex    =  " << uex_at_sensor_4 << endl
-            << "         abs_err =  " << abs_err_4 <<endl;
-  
-  errors_sensor_1.push_back(abs_err_1);
-  errors_sensor_2.push_back(abs_err_2);
-  errors_sensor_3.push_back(abs_err_3);
-  errors_sensor_4.push_back(abs_err_4);*/
-
-  // ------------------------------------------------------------      
-  // Average on all mesh points
-  // ------------------------------------------------------------      
-
-  /*double average_error = compute_averaged_error();
-  cout<<"      Average error:           "<< average_error << endl;
-  average_errors.push_back(average_error);*/
-
-  // ------------------------------------------------------------      
-  // L2 error
-  // ------------------------------------------------------------      
-
-  double L2_error = compute_L2_error();
-  cout<<"      L2 error:                "<< L2_error << endl;
-  L2_errors.push_back(L2_error);
-
-  // ------------------------------------------------------------      
-  // H1 error
-  // ------------------------------------------------------------      
-
-  double H1_error = compute_H1_error();
-  cout<<"      H1 error:                "<< H1_error << endl;
-  H1_errors.push_back(H1_error);
-
-	// ------------------------------------------------------------      
-  // localized L2 error
-  // ------------------------------------------------------------      
-
-  double loc_L2_error = compute_localized_L2_error(EVALUATION_POINT, EVALUATION_RADIUS);
-  cout<<"      Localized L2 error:      "<< loc_L2_error << endl;
-  localized_L2_errors.push_back(loc_L2_error);
-
-  // ------------------------------------------------------------      
-  // localized H1 error
-  // ------------------------------------------------------------      
-
-  double loc_H1_error = compute_localized_H1_error(EVALUATION_POINT, EVALUATION_RADIUS);
-	cout<<"      Localized H1 error:      "<< loc_H1_error << endl;
-  localized_H1_errors.push_back(loc_H1_error);
-
-  // ------------------------------------------------------------      
-  // Localized average in a ball
-  // ------------------------------------------------------------      
-
-  double loc_average_error = localized_average_error(EVALUATION_POINT, EVALUATION_RADIUS);
-  cout<<"      Localized average error: "<< loc_average_error << endl;
-  localized_average_errors.push_back(loc_average_error);
-
-  // ------------------------------------------------------------      
-  // Evaluation in target point
-  // ------------------------------------------------------------     
-  double error_target_point = 0.;
-  {
-  double exact_value = exact_solution_function.value(EVALUATION_POINT);
-  Evaluation::PointValueEvaluation<dim> postprocessor(EVALUATION_POINT);
-  double computed_value = postprocessor(primal_dof_handler,uh);
-  error_target_point = std::fabs(exact_value-computed_value);
-  cout<<"      Error at target point:   "<< error_target_point << endl;
-  errors_target_point.push_back(error_target_point);
-  }
-	// ------------------------------------------------------------      
-  // Evaluation of d(phi)/d(y) at target point
-  // ------------------------------------------------------------      
-  double error_dy_target_point = 0.;
-  {
-  double exact_value = exact_solution_function.gradient(EVALUATION_POINT)[1];
-  Evaluation::PointYDerivativeEvaluation<dim> postprocessor(EVALUATION_POINT);
-  double computed_value = postprocessor(primal_dof_handler,uh);
-  error_dy_target_point = std::fabs(exact_value-computed_value);
-  cout<<"      d(phi)/d(y) exact:      "<< exact_value << endl;
-  cout<<"      d(phi)/d(y) computed:   "<< computed_value << endl;
-  cout<<"      Error of d(phi)/d(y) at target point:   "<< error_dy_target_point << endl;
-  //errors_target_point.push_back(error_dy_target_point);
-  }
-
-	// ------------------------------------------------------------      
-  // Emitter Flux evaluation
-  // ------------------------------------------------------------ 
-	double flux_error = 0;
-	/*if(ENABLE_FLUX_EVALUATION){
-		double exact_flux = exact_solution_function.emitter_flux();
-		cout<<"      Flux exact:             "<< exact_flux <<endl;
-		Evaluation::FluxEvaluation<dim> postprocessor;
-		double computed_flux = postprocessor(primal_dof_handler, uh);
-		cout<<"      Flux computed:          "<< computed_flux <<endl;
-		flux_error = std::fabs(exact_flux-computed_flux);
-		cout<<"      Flux error:             "<< flux_error <<endl;
-	}*/
-  
-  
-
-  // ------------------------------------------------------------      
-  // PLOT
-  // ------------------------------------------------------------      
-
-
-  // Plot data
-  plt::figure_size(800, 600);
-  plt::clf();
-
-  //plt::named_loglog("Sensor 1", num_cells, errors_sensor_1, "r-o");
-  //plt::named_loglog("Sensor 2", num_cells, errors_sensor_2, "g-o");
-  //plt::named_loglog("Sensor 3", num_cells, errors_sensor_3, "b-o");
-  //plt::named_loglog("Sensor 4", num_cells, errors_sensor_4, "k-o");
-  //plt::named_loglog("average", num_cells, average_errors, "y:o");
-  plt::named_loglog("localized average", num_cells, localized_average_errors, "g:o");
-  plt::named_loglog("error at target point", num_cells, errors_target_point, "r-o");
-  plt::named_loglog("L2 error", num_cells, L2_errors, "g-o");
-  plt::named_loglog("H1 error", num_cells, H1_errors, "k-o");
-	plt::named_loglog("loc L2 error", num_cells, localized_L2_errors, "g:o");
-  plt::named_loglog("loc H1 error", num_cells, localized_H1_errors, "k:o");
-
-  //plt::xlabel("Cycle");
-  plt::xlabel("Number of Cells");
-  plt::ylabel("Error");
-  plt::title("Convergence error");
-  plt::legend();
-  plt::grid(true);
-
-  // Save the plot
-  plt::save(TEST_NAME+"-convergence_test.png");
 
   // ------------------------------------------------------------      
   // TABLE
@@ -377,15 +209,11 @@ void Problem<dim>::test_convergence(){
   
   convergence_table.add_value("cycle", cycle);
   convergence_table.add_value("cells", triangulation.n_active_cells());
-
-  convergence_table.add_value("L2", L2_error);
-  convergence_table.add_value("H1", H1_error);
-  convergence_table.add_value("point", error_target_point);
-  convergence_table.add_value("point-dy", error_dy_target_point);
-	convergence_table.add_value("loc L2", loc_L2_error);
-  convergence_table.add_value("loc H1", loc_H1_error);
-	if(ENABLE_FLUX_EVALUATION)
-		convergence_table.add_value("flux", flux_error);
+  Evaluation::PointValueEvaluation<dim> postprocessor(EVALUATION_POINT);
+  double computed_value = postprocessor(primal_dof_handler,uh);
+  cout<<"      Point Value:   "<< computed_value << endl;
+  convergence_table.add_value("Point value", computed_value);
+ 
 
 }
 
