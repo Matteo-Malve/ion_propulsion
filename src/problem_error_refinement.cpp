@@ -87,12 +87,12 @@ void Problem<dim>::local_estimate(){
     sum = 0;
     
     for (unsigned int p = 0; p < n_q_points; ++p) {
-        sum +=  eps_r * eps_0 *                        
+        sum -=  eps_r * eps_0 *                        
                 ((cell_Rg_plus_uh0hat_gradients[p] * cell_dual_weights_gradients[p]  )   // Scalar product btw Tensors
                   * fe_values.JxW(p));
         sum += (cell_rhs_values[p] * cell_dual_weights[p] * fe_values.JxW(p));
     }
-    error_indicators(cell->active_cell_index()) -= sum;  
+    error_indicators(cell->active_cell_index()) += sum;  
 
   }
 }
@@ -328,7 +328,7 @@ double Problem<dim>::global_estimate(){
     // Compute A_loc
     for (const unsigned int q_index : fe_values.quadrature_point_indices())
       for (const unsigned int i : fe_values.dof_indices()){
-        cell_F(i) += eps_r * eps_0*
+        cell_F(i) -= eps_r * eps_0*
                         (fe_values.shape_grad(i, q_index) *     // grad phi_i(x_q)
                         rg_gradients[q_index] *                 // grad_Rg(x_q)
                         fe_values.JxW(q_index));                // dx
@@ -362,9 +362,9 @@ double Problem<dim>::global_estimate(){
   for(unsigned int i=0;i<dual_weights.size();i++)
     lx += dual_weights(i) * F(i);
 
-  // Return             η = |r(z)|  = | - z' F - u' A z |
-  // or, precisely,     η = |r(zk-∏zk)|  = | - (zk-∏zk)' F - uh0' A (zk-∏zk) |
-  double global_error = std::abs(-lx -dx);
+  // Return             η = |r(z)|  = | z' F - u' A z |
+  // or, precisely,     η = |r(zk-∏zk)|  = | (zk-∏zk)' F - uh0' A (zk-∏zk) |
+  double global_error = std::abs(lx -dx);
   return global_error;
 }
 

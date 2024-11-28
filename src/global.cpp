@@ -37,8 +37,8 @@ int NUM_REFINEMENT_CYCLES = 10;
 const bool ENABLE_CONVERGENCE_ANALYSIS = true;
 
 
-const std::string REFINEMENT_STRATEGY = "GlobRef";
-//const std::string REFINEMENT_STRATEGY = "GO";
+//const std::string REFINEMENT_STRATEGY = "GlobRef";
+const std::string REFINEMENT_STRATEGY = "GO";
 
 const std::string GOAL_FUNCTIONAL = "PointValue";
 //const std::string GOAL_FUNCTIONAL = "PointYDerivative";
