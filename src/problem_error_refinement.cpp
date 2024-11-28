@@ -2,6 +2,7 @@
 #include <deal.II/grid/grid_in.h>
 #include <deal.II/grid/grid_out.h>
 
+
 using namespace dealii;
 using std::cout;
 using std::endl;
@@ -421,14 +422,38 @@ void Problem<dim>::estimate_error(){
   GO_table.add_value("l. jumps", estimated_error);
 
 }
+template <int dim>
+void output_cell_flags_to_vtk(const Triangulation<dim> &triangulation, const std::string &filename="cell_flags.vtk")
+{
+  Vector<float> cell_flags(triangulation.n_active_cells());
+
+  unsigned int cell_index = 0;
+  for (const auto &cell : triangulation.active_cell_iterators())
+  {
+    if (cell->refine_flag_set())
+      cell_flags[cell_index] = 1.0; // Refinement flag
+    else if (cell->coarsen_flag_set())
+      cell_flags[cell_index] = -1.0; // Coarsening flag
+    else
+      cell_flags[cell_index] = 0.0; // No flag
+    ++cell_index;
+  }
+
+  DataOut<dim> data_out;
+  data_out.attach_triangulation(triangulation);
+  data_out.add_data_vector(cell_flags, "CellFlags",DataOut<dim>::type_cell_data);
+  data_out.build_patches();
+  std::ofstream output(filename);
+  data_out.write_vtk(output);
+
+  std::cout << "   Cell flags written to " << filename << std::endl;
+}
 
 template <int dim>
 void Problem<dim>::refine_mesh() {
   if(REFINEMENT_STRATEGY == "GO"){
     GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators_face_jumps, 0.8, 0.02);
-
     
-    // Prevent coarsening below base level
     /*for (auto &cell : triangulation.active_cell_iterators()) {
       auto data_vector = cell_data_storage.get_data(cell);
       if (cell->level() <= data_vector[0]->refinement_level)
@@ -436,24 +461,20 @@ void Problem<dim>::refine_mesh() {
     }*/
 
     triangulation.prepare_coarsening_and_refinement();
-
-    // Prepare the solution transfer object
     SolutionTransfer<dim> primal_solution_transfer(primal_dof_handler);
-    // take a copy of the solution vector
-    Vector<double> old_Rg_dof_values(Rg_primal);
-    // Prepare for refinement (older versions of deal.II)
+
+    Vector<double> old_Rg_dof_values = Rg_primal;
     primal_solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_dof_values);
 
+    output_cell_flags_to_vtk(triangulation, "cell_flags-"+std::to_string(cycle)+".vtk");
   
     // Perform the refinement
     triangulation.execute_coarsening_and_refinement();
-    // Reinitialize the DoFHandler for the refined mesh
     primal_dof_handler.distribute_dofs(primal_fe);
-    
-    
-    // Reinitialize Rg_primal to match the new DoF layout after refinement
     Rg_primal.reinit(primal_dof_handler.n_dofs());
-    // Transfer the old values to the new DoFs, accounting for hanging nodes
+    
+    output_cell_flags_to_vtk(triangulation, "new_mesh.vtk");
+    // Problem occurs here
     primal_solution_transfer.interpolate(old_Rg_dof_values, Rg_primal);
 
     // Handle boundary conditions again (for hanging nodes)
