@@ -427,8 +427,7 @@ void Problem<dim>::estimate_error(){
 
   GO_table.add_value("Point value", computed_value);
 
-  //const double exact_value = 0.0334473;
-  const double exact_value = 1.767446e-05;
+  const double exact_value = EXACT_VALUE;
   const double exact_error = std::fabs(exact_value-computed_value);
 
   GO_table.add_value("exact error", exact_error);

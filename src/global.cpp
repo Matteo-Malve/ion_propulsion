@@ -26,6 +26,7 @@ double AD = 3. * Ve / (dR2*dR2);
 double AE = -3. * Ve / dR2;
 double AF = Ve;
 
+
 // ######################################################################
 //    MESH
 // ######################################################################
@@ -35,7 +36,9 @@ const bool READ_FROM_MESH_FILE = true;
 //std::string PATH_TO_MESH = "../mesh/TestSquare.msh";
 //std::string PATH_TO_MESH = "../mesh/FullTestSquare.msh";
 //std::string PATH_TO_MESH = "../mesh/cerchi_concentrici.msh";
-std::string PATH_TO_MESH = "../mesh/TinyStep14.msh";
+//std::string PATH_TO_MESH = "../mesh/TinyStep14.msh";
+std::string PATH_TO_MESH = "../mesh/TinyStep14_1_99.msh";
+
 
 const unsigned int NUM_PRELIMINARY_REF = 0; 
 const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 0; 
@@ -65,7 +68,12 @@ const bool ENABLE_FLUX_EVALUATION = false;
 //const dealii::Point<2> EVALUATION_POINT(0.0, 0.001); 
 //const dealii::Point<2> EVALUATION_POINT(0.00025, 0.0004125); 
 //const dealii::Point<2> EVALUATION_POINT(0.75, 0.75);  // step-14
-const dealii::Point<2> EVALUATION_POINT(0.004, 0.004);  // step-14 ratio 1:100
+//const dealii::Point<2> EVALUATION_POINT(0.004, 0.004);  // step-14 ratio 1:100
+const dealii::Point<2> EVALUATION_POINT(0.0039, 0.0039);  // step-14 ratio 1:99
+
+//const double EXACT_VALUE = 0.0334473;
+//const double EXACT_VALUE = 1.767446e-05;    // step-14 ratio 1:100
+const double EXACT_VALUE = 1.742630e-05; // step-14 ratio 1:99
 
 
 const double EVALUATION_RADIUS = 0.0002;
@@ -74,5 +82,5 @@ const double EVALUATION_RADIUS = 0.0002;
 //    OUTPUTS
 // ######################################################################
 
-const std::string TEST_NAME = REFINEMENT_STRATEGY + "_" + "replicate-step14"; 
+const std::string TEST_NAME = REFINEMENT_STRATEGY + "_" + "replicate-step14_1:99"; 
 const unsigned int DUAL_OUTPUT_PATCHES = 1;

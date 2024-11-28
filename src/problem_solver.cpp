@@ -89,7 +89,7 @@ void Problem<dim>::run() {
       if(ENABLE_CONVERGENCE_ANALYSIS){
        
         convergence_table.set_scientific("Point value", true);
-        convergence_table.set_precision("Point value", 12);
+        convergence_table.set_precision("Point value", 16);
         cout<<endl;
         convergence_table.write_text(std::cout);
         cout<<endl;
@@ -139,7 +139,7 @@ void Problem<dim>::create_mesh() {
     }
     cout<<"Executed preliminary coarsening and refinement"<<endl;
   }else{
-    /*const std::vector<Point<2>> vertices = {
+    const std::vector<Point<2>> vertices = {
       {-1.0, -1.0}, {-0.5, -1.0}, {+0.0, -1.0}, {+0.5, -1.0}, {+1.0, -1.0},
       {-1.0, -0.5}, {-0.5, -0.5}, {+0.0, -0.5}, {+0.5, -0.5}, {+1.0, -0.5},
       {-1.0, +0.0}, {-0.5, +0.0}, {+0.5, +0.0}, {+1.0, +0.0},
@@ -157,26 +157,8 @@ void Problem<dim>::create_mesh() {
                        {{14, 15, 19, 20}},
                        {{15, 16, 20, 21}},
                        {{16, 17, 21, 22}},
-                       {{17, 18, 22, 23}}};*/
-    const std::vector<Point<2>> vertices = {
-      {-1.e-2, -1.e-2}, {-1.e-4, -1.e-2}, {+0.0, -1.e-2}, {+1.e-4, -1.e-2}, {+1.e-2, -1.e-2},
-      {-1.e-2, -1.e-4}, {-1.e-4, -1.e-4}, {+0.0, -1.e-4}, {+1.e-4, -1.e-4}, {+1.e-2, -1.e-4},
-      {-1.e-2, +0.0}, {-1.e-4, +0.0}, {+1.e-4, +0.0}, {+1.e-2, +0.0},
-      {-1.e-2, +1.e-4}, {-1.e-4, +1.e-4}, {+0.0, +1.e-4}, {+1.e-4, +1.e-4}, {+1.e-2, +1.e-4},
-      {-1.e-2, +1.e-2}, {-1.e-4, +1.e-2}, {+0.0, +1.e-2}, {+1.e-4, +1.e-2}, {+1.e-2, +1.e-2}};
-    const std::vector<std::array<int, GeometryInfo<dim>::vertices_per_cell>>
-      cell_vertices = {{{0, 1, 5, 6}},
-                       {{1, 2, 6, 7}},
-                       {{2, 3, 7, 8}},
-                       {{3, 4, 8, 9}},
-                       {{5, 6, 10, 11}},
-                       {{8, 9, 12, 13}},
-                       {{10, 11, 14, 15}},
-                       {{12, 13, 17, 18}},
-                       {{14, 15, 19, 20}},
-                       {{15, 16, 20, 21}},
-                       {{16, 17, 21, 22}},
                        {{17, 18, 22, 23}}};
+    
     const unsigned int n_cells = cell_vertices.size();
     std::vector<CellData<dim>> cells(n_cells, CellData<dim>());
     for (unsigned int i = 0; i < n_cells; ++i)
