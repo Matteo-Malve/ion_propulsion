@@ -453,7 +453,7 @@ template <int dim>
 void Problem<dim>::refine_mesh() {
   if(REFINEMENT_STRATEGY == "GO"){
 
-    GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators_face_jumps, 0.8, 0);
+    GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators_face_jumps, 0.8, 0.2);
     triangulation.prepare_coarsening_and_refinement();
     
     SolutionTransfer<dim> primal_solution_transfer(primal_dof_handler);
