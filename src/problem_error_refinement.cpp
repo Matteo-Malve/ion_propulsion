@@ -87,12 +87,12 @@ void Problem<dim>::local_estimate(){
     sum = 0;
     
     for (unsigned int p = 0; p < n_q_points; ++p) {
-        sum +=  eps_r * eps_0 *                        
+        sum -=  eps_r * eps_0 *                        
                 ((cell_Rg_plus_uh0hat_gradients[p] * cell_dual_weights_gradients[p]  )   // Scalar product btw Tensors
                   * fe_values.JxW(p));
         sum += (cell_rhs_values[p] * cell_dual_weights[p] * fe_values.JxW(p));
     }
-    error_indicators(cell->active_cell_index()) -= sum;  
+    error_indicators(cell->active_cell_index()) += sum;  
 
   }
 }
@@ -158,7 +158,7 @@ void Problem<dim>::local_estimate_face_jumps(){
     double sum = 0;
     
     for (unsigned int p = 0; p < n_q_points; ++p)
-      sum += ((cell_rhs_values[p] + cell_laplacians[p]) *
+      sum += ((cell_rhs_values[p] + eps_0*eps_r*cell_laplacians[p]) *
              cell_dual_weights[p] * fe_values.JxW(p));
 
     error_indicators_face_jumps(cell->active_cell_index()) += sum;
@@ -207,7 +207,7 @@ void Problem<dim>::local_estimate_face_jumps(){
 
         double face_integral = 0;
         for (unsigned int q = 0; q < face_n_q_points; ++q)
-          face_integral += (jump_residual[q] * face_dual_weights[q] 
+          face_integral += eps_0*eps_r* (jump_residual[q] * face_dual_weights[q] 
                             * fe_face_values_current_cell.JxW(q));
 
         Assert(face_integrals.find(cell->face(face_no)) != face_integrals.end(),ExcInternalError());
@@ -246,7 +246,7 @@ void Problem<dim>::local_estimate_face_jumps(){
 
           double face_integral = 0;
           for (unsigned int p = 0; p < face_n_q_points; ++p)
-            face_integral += (jump_residual[p] * face_dual_weights[p] *
+            face_integral += eps_0*eps_r*(jump_residual[p] * face_dual_weights[p] *
                               fe_face_values_neighbor.JxW(p));
           
           face_integrals[neighbor_child->face(neighbor_neighbor)] = face_integral;           
@@ -328,7 +328,7 @@ double Problem<dim>::global_estimate(){
     // Compute A_loc
     for (const unsigned int q_index : fe_values.quadrature_point_indices())
       for (const unsigned int i : fe_values.dof_indices()){
-        cell_F(i) += eps_r * eps_0*
+        cell_F(i) -= eps_r * eps_0*
                         (fe_values.shape_grad(i, q_index) *     // grad phi_i(x_q)
                         rg_gradients[q_index] *                 // grad_Rg(x_q)
                         fe_values.JxW(q_index));                // dx
@@ -362,9 +362,9 @@ double Problem<dim>::global_estimate(){
   for(unsigned int i=0;i<dual_weights.size();i++)
     lx += dual_weights(i) * F(i);
 
-  // Return             η = |r(z)|  = | - z' F - u' A z |
-  // or, precisely,     η = |r(zk-∏zk)|  = | - (zk-∏zk)' F - uh0' A (zk-∏zk) |
-  double global_error = std::abs(-lx -dx);
+  // Return             η = |r(z)|  = | z' F - u' A z |
+  // or, precisely,     η = |r(zk-∏zk)|  = | (zk-∏zk)' F - uh0' A (zk-∏zk) |
+  double global_error = std::abs(lx -dx);
   return global_error;
 }
 
@@ -470,21 +470,41 @@ void Problem<dim>::estimate_error(){
 }
 
 template <int dim>
+void output_cell_flags_to_vtk(const Triangulation<dim> &triangulation, const std::string &filename="cell_flags.vtk")
+{
+  Vector<float> cell_flags(triangulation.n_active_cells());
+
+  unsigned int cell_index = 0;
+  for (const auto &cell : triangulation.active_cell_iterators())
+  {
+    if (cell->refine_flag_set())
+      cell_flags[cell_index] = 1.0; // Refinement flag
+    else if (cell->coarsen_flag_set())
+      cell_flags[cell_index] = -1.0; // Coarsening flag
+    else
+      cell_flags[cell_index] = 0.0; // No flag
+    ++cell_index;
+  }
+
+  DataOut<dim> data_out;
+  data_out.attach_triangulation(triangulation);
+  data_out.add_data_vector(cell_flags, "CellFlags",DataOut<dim>::type_cell_data);
+  data_out.build_patches();
+  std::ofstream output(filename);
+  data_out.write_vtk(output);
+
+  std::cout << "   Cell flags written to " << filename << std::endl;
+}
+
+template <int dim>
 void Problem<dim>::refine_mesh() {
   if(REFINEMENT_STRATEGY == "GO"){
     //GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators, 0.6, 0.2);
-    GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators_face_jumps, 0.80, 0.02);   // step-14
+    GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators, 0.80, 0.02);   // step-14
     //GridRefinement::refine_and_coarsen_fixed_number(triangulation,error_indicators_face_jumps, 0.2, 0.4);   // step-14
     //GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators_face_jumps, 0.6, 0);
     //GridRefinement::refine_and_coarsen_fixed_number(triangulation,error_indicators_face_jumps, 0.05, 0);
-    
-    // Prevent coarsening below base level
-    for (auto &cell : triangulation.active_cell_iterators()) {
-      auto data_vector = cell_data_storage.get_data(cell);
-      //if (cell->level() <= data_vector[0]->refinement_level)
-        //cell->clear_coarsen_flag();       
-    }
-
+   
     triangulation.prepare_coarsening_and_refinement();
 
     // Prepare the solution transfer object
@@ -494,7 +514,8 @@ void Problem<dim>::refine_mesh() {
     // Prepare for refinement (older versions of deal.II)
     primal_solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_dof_values);
 
-  
+    output_cell_flags_to_vtk(triangulation, "cell_flags-"+std::to_string(cycle)+".vtk");
+
     // Perform the refinement
     triangulation.execute_coarsening_and_refinement();
     // Reinitialize the DoFHandler for the refined mesh
@@ -503,7 +524,7 @@ void Problem<dim>::refine_mesh() {
     
     // Reinitialize Rg_primal to match the new DoF layout after refinement
     Rg_primal.reinit(primal_dof_handler.n_dofs());
-    // Transfer the old values to the new DoFs, accounting for hanging nodes
+    // Transfer the old values to the new DoFs, accounting for hanging nodes    
     primal_solution_transfer.interpolate(old_Rg_dof_values, Rg_primal);
 
     // Handle boundary conditions again (for hanging nodes)

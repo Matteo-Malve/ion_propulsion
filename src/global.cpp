@@ -26,61 +26,60 @@ double AD = 3. * Ve / (dR2*dR2);
 double AE = -3. * Ve / dR2;
 double AF = Ve;
 
+const unsigned int NUM_PRELIMINARY_REF = 0; 
+const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 1; 
+int NUM_REFINEMENT_CYCLES = 20;
+const bool ENABLE_CONVERGENCE_ANALYSIS = true;
+const bool ENABLE_FLUX_EVALUATION = false;
+const double EVALUATION_RADIUS = 0.0002;
+
 
 // ######################################################################
-//    MESH
+//    ORIGINAL STEP-14
+// ######################################################################
+/*
+const bool READ_FROM_MESH_FILE = false;
+std::string PATH_TO_MESH = "original_step14";
+//const std::string REFINEMENT_STRATEGY = "GlobRef";
+const std::string REFINEMENT_STRATEGY = "GO";
+const std::string GOAL_FUNCTIONAL = "PointValue";
+//const std::string GOAL_FUNCTIONAL = "BoundaryFluxEvaluation";
+const dealii::Point<2> EVALUATION_POINT(0.75, 0.75);  // step-14
+const double EXACT_VALUE = 0.0334473;
+*/
+// ######################################################################
+//    STEP-14    1:100
+// ######################################################################
+/*
+const bool READ_FROM_MESH_FILE = true;
+std::string PATH_TO_MESH = "../mesh/TinyStep14.msh";
+//const std::string REFINEMENT_STRATEGY = "GlobRef";
+const std::string REFINEMENT_STRATEGY = "GO";
+const std::string GOAL_FUNCTIONAL = "PointValue";
+//const std::string GOAL_FUNCTIONAL = "BoundaryFluxEvaluation";
+const dealii::Point<2> EVALUATION_POINT(0.004, 0.004);  // step-14 ratio 1:100
+const double EXACT_VALUE = 1.767446e-05;    // step-14 ratio 1:100
+*/
+// ######################################################################
+//    STEP-14    1:99
 // ######################################################################
 
 const bool READ_FROM_MESH_FILE = true;
-//std::string PATH_TO_MESH = "../mesh/input_mesh.msh";
-//std::string PATH_TO_MESH = "../mesh/TestSquare.msh";
-//std::string PATH_TO_MESH = "../mesh/FullTestSquare.msh";
-//std::string PATH_TO_MESH = "../mesh/cerchi_concentrici.msh";
-//std::string PATH_TO_MESH = "../mesh/TinyStep14.msh";
-std::string PATH_TO_MESH = "../mesh/TinyStep14_1_99.msh";
-
-
-const unsigned int NUM_PRELIMINARY_REF = 0; 
-const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 0; 
-
-// ######################################################################
-//    RUN 
-// ######################################################################
-
-int NUM_REFINEMENT_CYCLES = 20;
-
+//std::string PATH_TO_MESH = "../mesh/TinyStep14_1_99.msh";
+std::string PATH_TO_MESH = "../mesh/TinyStep14_1_99_coarsened.msh";
 //const std::string REFINEMENT_STRATEGY = "GlobRef";
 const std::string REFINEMENT_STRATEGY = "GO";
-
 const std::string GOAL_FUNCTIONAL = "PointValue";
-//const std::string GOAL_FUNCTIONAL = "PointYDerivative";
-//const std::string GOAL_FUNCTIONAL = "AreaEvaluation";
 //const std::string GOAL_FUNCTIONAL = "BoundaryFluxEvaluation";
-
-// ######################################################################
-//    CONVERGENCE TESTS
-// ######################################################################
-
-const bool ENABLE_CONVERGENCE_ANALYSIS = true;
-const bool ENABLE_FLUX_EVALUATION = false;
-
-//const dealii::Point<2> EVALUATION_POINT(0.00025, 0.0005); 
-//const dealii::Point<2> EVALUATION_POINT(0.0, 0.001); 
-//const dealii::Point<2> EVALUATION_POINT(0.00025, 0.0004125); 
-//const dealii::Point<2> EVALUATION_POINT(0.75, 0.75);  // step-14
-//const dealii::Point<2> EVALUATION_POINT(0.004, 0.004);  // step-14 ratio 1:100
 const dealii::Point<2> EVALUATION_POINT(0.0039, 0.0039);  // step-14 ratio 1:99
-
-//const double EXACT_VALUE = 0.0334473;
-//const double EXACT_VALUE = 1.767446e-05;    // step-14 ratio 1:100
 const double EXACT_VALUE = 1.742630e-05; // step-14 ratio 1:99
 
 
-const double EVALUATION_RADIUS = 0.0002;
+
 
 // ######################################################################
 //    OUTPUTS
 // ######################################################################
 
-const std::string TEST_NAME = REFINEMENT_STRATEGY + "_" + "replicate-step14_1:99"; 
+const std::string TEST_NAME = REFINEMENT_STRATEGY + "_" + ""; 
 const unsigned int DUAL_OUTPUT_PATCHES = 1;
