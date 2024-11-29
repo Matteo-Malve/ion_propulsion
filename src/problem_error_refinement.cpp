@@ -159,7 +159,7 @@ void Problem<dim>::local_estimate_face_jumps(){
     double sum = 0;
     
     for (unsigned int p = 0; p < n_q_points; ++p)
-      sum += ((cell_rhs_values[p] + cell_laplacians[p]) *
+      sum += ((cell_rhs_values[p] + eps_0*eps_r*cell_laplacians[p]) *       //   ( f + eps*∆(Rg+uh0hat) ) * zh
              cell_dual_weights[p] * fe_values.JxW(p));
 
     error_indicators_face_jumps(cell->active_cell_index()) += sum;
@@ -208,7 +208,7 @@ void Problem<dim>::local_estimate_face_jumps(){
 
         double face_integral = 0;
         for (unsigned int q = 0; q < face_n_q_points; ++q)
-          face_integral += (jump_residual[q] * face_dual_weights[q] 
+          face_integral += eps_0*eps_r* (jump_residual[q] * face_dual_weights[q] 
                             * fe_face_values_current_cell.JxW(q));
 
         Assert(face_integrals.find(cell->face(face_no)) != face_integrals.end(),ExcInternalError());
@@ -247,7 +247,7 @@ void Problem<dim>::local_estimate_face_jumps(){
 
           double face_integral = 0;
           for (unsigned int p = 0; p < face_n_q_points; ++p)
-            face_integral += (jump_residual[p] * face_dual_weights[p] *
+            face_integral += eps_0*eps_r* (jump_residual[p] * face_dual_weights[p] *
                               fe_face_values_neighbor.JxW(p));
           
           face_integrals[neighbor_child->face(neighbor_neighbor)] = face_integral;           
@@ -452,15 +452,10 @@ void output_cell_flags_to_vtk(const Triangulation<dim> &triangulation, const std
 template <int dim>
 void Problem<dim>::refine_mesh() {
   if(REFINEMENT_STRATEGY == "GO"){
-    GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators_face_jumps, 0.8, 0.02);
-    
-    /*for (auto &cell : triangulation.active_cell_iterators()) {
-      auto data_vector = cell_data_storage.get_data(cell);
-      if (cell->level() <= data_vector[0]->refinement_level)
-        cell->clear_coarsen_flag();       
-    }*/
 
+    GridRefinement::refine_and_coarsen_fixed_fraction(triangulation,error_indicators_face_jumps, 0.8, 0);
     triangulation.prepare_coarsening_and_refinement();
+    
     SolutionTransfer<dim> primal_solution_transfer(primal_dof_handler);
 
     Vector<double> old_Rg_dof_values = Rg_primal;

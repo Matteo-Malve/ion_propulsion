@@ -559,9 +559,10 @@ void Problem<dim>::output_dual_results() {
   data_out.add_data_vector(dual_rhs, "rhs");
   data_out.add_data_vector(uh0_on_dual_space, "uh0_on_dual_space");
   data_out.add_data_vector(Rg_plus_uh0hat, "Rg_plus_uh0hat");
+  data_out.add_data_vector(error_indicators, "error_indicators");
   data_out.add_data_vector(error_indicators_face_jumps, "error_indicators_face_jumps");
   
-  data_out.build_patches(5); // mapping
+  data_out.build_patches(); // mapping
 
   std::string filename;
   std::string meshName = extract_mesh_name();
