@@ -50,11 +50,13 @@ void Problem<dim>::run() {
         output_dual_results();
         refine_mesh();
       }
+      GO_table.set_scientific("local", true);
       GO_table.set_scientific("l. jumps", true);
       GO_table.set_scientific("Point value", true);
       GO_table.set_scientific("exact error", true);
       GO_table.set_scientific("Flux", true);
 
+      GO_table.set_precision("local", 9);
       GO_table.set_precision("l. jumps", 9);
       GO_table.set_precision("Point value", 9);
       GO_table.set_precision("exact error", 9);

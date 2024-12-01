@@ -418,7 +418,7 @@ void Problem<dim>::estimate_error(){
   GO_table.add_value("cycle", cycle);
   GO_table.add_value("DoF", primal_dof_handler.n_dofs());
   //GO_table.add_value("global", global_error);
-  //GO_table.add_value("local", global_error_as_sum_of_cell_errors);
+  GO_table.add_value("local", global_error_as_sum_of_cell_errors);
   GO_table.add_value("l. jumps", global_error_as_sum_of_cell_errors_face_jumps);
 
   Evaluation::PointValueEvaluation<dim> postprocessor(EVALUATION_POINT);

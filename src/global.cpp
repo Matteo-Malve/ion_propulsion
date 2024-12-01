@@ -68,10 +68,10 @@ const bool READ_FROM_MESH_FILE = true;
 std::string PATH_TO_MESH = "../mesh/TinyStep14_1_99.msh";
 //std::string PATH_TO_MESH = "../mesh/TinyStep14_1_99_coarsened.msh";
 //std::string PATH_TO_MESH = "../mesh/TinyStep14_1_99_ULTRAcoarsened.msh";
-const std::string REFINEMENT_STRATEGY = "GlobRef";
-//const std::string REFINEMENT_STRATEGY = "GO";
-const std::string GOAL_FUNCTIONAL = "PointValue";
-//const std::string GOAL_FUNCTIONAL = "BoundaryFluxEvaluation";
+//const std::string REFINEMENT_STRATEGY = "GlobRef";
+const std::string REFINEMENT_STRATEGY = "GO";
+//const std::string GOAL_FUNCTIONAL = "PointValue";
+const std::string GOAL_FUNCTIONAL = "BoundaryFluxEvaluation";
 const dealii::Point<2> EVALUATION_POINT(0.0039, 0.0039);  // step-14 ratio 1:99
 //const double EXACT_VALUE = 1.742630e-05; // step-14 ratio 1:99
 const double EXACT_VALUE = 1.7427262137982847e-05; // Nico, starting from ref 1
