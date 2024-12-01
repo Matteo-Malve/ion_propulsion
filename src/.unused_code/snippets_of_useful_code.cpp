@@ -56,3 +56,46 @@ compilers:
     modules: []
     environment: {}
     extra_rpaths: []
+
+
+template <int dim>
+double FluxEvaluation<dim>::operator()(const DoFHandler<dim> &dof_handler, 
+                                      const Vector<double>  &solution) const
+{
+  double flux = 0;
+
+  const QGauss<dim-1> face_quadrature(dof_handler.get_fe().degree + 1);  
+  FEFaceValues<dim> fe_face_values(dof_handler.get_fe(), 
+                                   face_quadrature,
+                                   update_gradients | update_normal_vectors | update_JxW_values);
+  const unsigned int n_face_q_points = face_quadrature.size();
+
+  const QGauss<dim> cell_quadrature(dof_handler.get_fe().degree + 1);  
+  FEValues<dim> fe_cell_values(dof_handler.get_fe(), 
+                               cell_quadrature,
+                               update_gradients | update_normal_vectors | update_JxW_values);
+  const unsigned int n_cell_q_points = cell_quadrature.size();
+
+  std::vector<Tensor<1, dim>> solution_gradients(n_cell_q_points);
+
+  for (const auto &cell : dof_handler.active_cell_iterators())
+    for (const auto &face : cell->face_iterators()) 
+      if (face->at_boundary() && face->boundary_id() == 1) {
+
+        fe_face_values.reinit(cell, face);
+
+        auto normals = fe_face_values.get_normal_vectors();
+        Tensor<1, dim> average_normal;
+        for (unsigned int q_point = 0; q_point < n_face_q_points; ++q_point)
+          average_normal += normals[q_point];
+        average_normal /= n_face_q_points;
+
+        fe_cell_values.reinit(cell);
+        fe_cell_values.get_function_gradients(solution, solution_gradients);
+
+        for (unsigned int q_point = 0; q_point < n_cell_q_points; ++q_point) {
+          flux += ((-solution_gradients[q_point]) * (-average_normal)) * fe_face_values.JxW(q_point);
+        }
+      }
+  return flux;  
+}

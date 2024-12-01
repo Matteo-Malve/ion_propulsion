@@ -572,4 +572,65 @@ public:
 	}
 };
 
+// -----------------------------------------
+// 9 - radiale semplice (test flusso su cerchio)
+// -----------------------------------------
+
+template <int dim>
+class ExactSolution9 : public Function<dim>{
+public:
+	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
+		(void)component;
+		const auto x = p[0];
+		const auto y = p[1];
+		const double r = std::sqrt(x*x + y*y);
+
+		return Ve * (r-L) / (l-L);
+	};
+	virtual void value_list(const std::vector< Point<dim>> &point_list, std::vector<double> &values, const unsigned int component = 0 ) const override {
+		(void)component;
+		AssertDimension (point_list.size(), values.size()); // Size check
+		for (unsigned int p=0; p<point_list.size(); ++p){
+			values[p] = this->value(point_list[p]);
+		}
+	};
+
+	virtual Tensor<1, dim> gradient(const Point<dim> &p, const unsigned int component = 0) const override {
+		(void)component;
+		const auto x = p[0];
+		const auto y = p[1];
+		const double r = std::sqrt(x*x + y*y);
+
+		Tensor<1, dim> grad;
+
+		grad[0] = Ve / ((l-L)*r) * x;
+		grad[1] = Ve / ((l-L)*r) * y;
+
+		return grad;
+};
+};
+
+
+template <int dim>
+class RightHandSide9 : public Function<dim>{
+public:
+	virtual double value(const Point<dim>  &p, const unsigned int component = 0) const override{
+		(void)component;
+		const auto x = p[0];
+		const auto y = p[1];
+		const double r = std::sqrt(x*x + y*y);
+
+		double laplacian = Ve / ((l-L)*r);
+		return - eps_0 * eps_r * laplacian;
+	}
+
+	virtual void value_list(const std::vector< Point<dim>> &point_list, std::vector<double> &values, const unsigned int component = 0 ) const override {
+		(void)component;
+		AssertDimension (point_list.size(), values.size()); // Size check
+		for (unsigned int p=0; p<point_list.size(); ++p){
+			values[p] = this->value(point_list[p]);
+		}
+	}
+};
+
 #endif

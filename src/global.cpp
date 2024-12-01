@@ -25,9 +25,9 @@ double AF = Ve;
 //std::string PATH_TO_MESH = "../mesh/input_mesh.msh";
 //std::string PATH_TO_MESH = "../mesh/TestSquare.msh";
 //std::string PATH_TO_MESH = "../mesh/FullTestSquare.msh";
-std::string PATH_TO_MESH = "../mesh/FullTestSquareCoarsened.msh";
+//std::string PATH_TO_MESH = "../mesh/FullTestSquareCoarsened.msh";
 
-//std::string PATH_TO_MESH = "../mesh/cerchi_concentrici.msh";
+std::string PATH_TO_MESH = "../mesh/cerchi_concentrici.msh";
 
 const unsigned int NUM_PRELIMINARY_REF = 0; 
 const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 2; 
@@ -37,8 +37,8 @@ int NUM_REFINEMENT_CYCLES = 10;
 const bool ENABLE_CONVERGENCE_ANALYSIS = true;
 
 
-//const std::string REFINEMENT_STRATEGY = "GlobRef";
-const std::string REFINEMENT_STRATEGY = "GO";
+const std::string REFINEMENT_STRATEGY = "GlobRef";
+//const std::string REFINEMENT_STRATEGY = "GO";
 
 const std::string GOAL_FUNCTIONAL = "PointValue";
 //const std::string GOAL_FUNCTIONAL = "PointYDerivative";
@@ -53,4 +53,4 @@ const dealii::Point<2> EVALUATION_POINT(0.001, 0.001);
 
 const double EVALUATION_RADIUS = 0.0002;
 
-const std::string TEST_NAME = REFINEMENT_STRATEGY + "_" + "func8"; 
+const std::string TEST_NAME = REFINEMENT_STRATEGY + "_" + "testflux"; 

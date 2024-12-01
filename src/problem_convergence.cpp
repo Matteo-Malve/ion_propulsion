@@ -285,6 +285,9 @@ void Problem<dim>::test_convergence(){
   // Emitter Flux evaluation
   // ------------------------------------------------------------ 
 	double flux_error = 0;
+    Evaluation::FluxEvaluation<dim> postprocessor;
+    double computed_flux = postprocessor(primal_dof_handler, uh);
+	cout<<"      Flux computed:          "<< computed_flux <<endl;
 	/*if(GOAL_FUNCTIONAL == "BoundaryFluxEvaluation"){
 		double exact_flux = exact_solution_function.emitter_flux();
 		cout<<"      Flux exact:             "<< exact_flux <<endl;
