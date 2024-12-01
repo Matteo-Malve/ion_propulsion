@@ -242,7 +242,7 @@ void BoundaryFluxEvaluation<dim>::assemble_rhs(const DoFHandler<dim> &dof_handle
         for (unsigned int q_point = 0; q_point < n_face_q_points; ++q_point) {
           const Tensor<1, dim> &n = fe_face_values.normal_vector(q_point);
           for (unsigned int i = 0; i < dofs_per_cell; ++i) {
-            cell_rhs[i] += (fe_cell_values.shape_grad(i, q_point) * (-n)) * fe_cell_values.JxW(q_point);
+            cell_rhs[i] += (fe_face_values.shape_grad(i, q_point) * (-n)) * fe_face_values.JxW(q_point);
           }
         }
       }

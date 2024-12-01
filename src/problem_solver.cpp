@@ -55,12 +55,14 @@ void Problem<dim>::run() {
       GO_table.set_scientific("Point value", true);
       GO_table.set_scientific("exact error", true);
       GO_table.set_scientific("Flux", true);
+      GO_table.set_scientific("flux error", true);
 
       GO_table.set_precision("local", 9);
       GO_table.set_precision("l. jumps", 9);
       GO_table.set_precision("Point value", 9);
       GO_table.set_precision("exact error", 9);
       GO_table.set_precision("Flux", 9);
+      GO_table.set_precision("flux error", 9);
       cout<<endl;
       GO_table.write_text(std::cout);
       
