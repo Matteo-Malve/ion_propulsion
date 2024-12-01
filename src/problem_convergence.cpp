@@ -209,10 +209,14 @@ void Problem<dim>::test_convergence(){
   
   convergence_table.add_value("cycle", cycle);
   convergence_table.add_value("cells", triangulation.n_active_cells());
-  Evaluation::PointValueEvaluation<dim> postprocessor(EVALUATION_POINT);
+  {Evaluation::PointValueEvaluation<dim> postprocessor(EVALUATION_POINT);
   double computed_value = postprocessor(primal_dof_handler,uh);
   cout<<"      Point Value:   "<< computed_value << endl;
-  convergence_table.add_value("Point value", computed_value);
+  convergence_table.add_value("Point value", computed_value);}
+  {Evaluation::FluxEvaluation<dim> postprocessor;
+  double computed_value = postprocessor(primal_dof_handler,uh);
+  cout<<"      Flux Value:    "<< computed_value << endl;
+  convergence_table.add_value("Flux", computed_value);}
 
 }
 

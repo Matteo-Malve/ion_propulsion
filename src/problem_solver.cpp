@@ -53,10 +53,12 @@ void Problem<dim>::run() {
       GO_table.set_scientific("l. jumps", true);
       GO_table.set_scientific("Point value", true);
       GO_table.set_scientific("exact error", true);
+      GO_table.set_scientific("Flux", true);
 
       GO_table.set_precision("l. jumps", 9);
       GO_table.set_precision("Point value", 9);
       GO_table.set_precision("exact error", 9);
+      GO_table.set_precision("Flux", 9);
       cout<<endl;
       GO_table.write_text(std::cout);
       
@@ -90,6 +92,8 @@ void Problem<dim>::run() {
        
         convergence_table.set_scientific("Point value", true);
         convergence_table.set_precision("Point value", 16);
+        convergence_table.set_scientific("Flux", true);
+        convergence_table.set_precision("Flux", 9);
         cout<<endl;
         convergence_table.write_text(std::cout);
         cout<<endl;

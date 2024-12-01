@@ -432,6 +432,12 @@ void Problem<dim>::estimate_error(){
 
   GO_table.add_value("exact error", exact_error);
 
+  {Evaluation::FluxEvaluation<dim> postprocessor;
+  double computed_value = postprocessor(primal_dof_handler,uh);
+  cout<<"      Flux Value:    "<< computed_value << endl;
+  GO_table.add_value("Flux", computed_value);}
+
+
   // ------------------------------------------------------------      
   // TEXT OUTPUT
   // ------------------------------------------------------------      
