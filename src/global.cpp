@@ -27,7 +27,7 @@ double AE = -3. * Ve / dR2;
 double AF = Ve;
 
 const unsigned int NUM_PRELIMINARY_REF = 0; 
-const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 2; 
+const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 0; 
 int NUM_REFINEMENT_CYCLES = 20;
 const bool ENABLE_CONVERGENCE_ANALYSIS = true;
 const bool ENABLE_FLUX_EVALUATION = false;
@@ -65,17 +65,17 @@ const double EXACT_VALUE = 1.767446e-05;    // step-14 ratio 1:100
 // ######################################################################
 
 const bool READ_FROM_MESH_FILE = true;
-//std::string PATH_TO_MESH = "../mesh/TinyStep14_1_99.msh";
+std::string PATH_TO_MESH = "../mesh/TinyStep14_1_99.msh";
 //std::string PATH_TO_MESH = "../mesh/TinyStep14_1_99_coarsened.msh";
-std::string PATH_TO_MESH = "../mesh/TinyStep14_1_99_ULTRAcoarsened.msh";
+//std::string PATH_TO_MESH = "../mesh/TinyStep14_1_99_ULTRAcoarsened.msh";
 //const std::string REFINEMENT_STRATEGY = "GlobRef";
 const std::string REFINEMENT_STRATEGY = "GO";
 //const std::string GOAL_FUNCTIONAL = "PointValue";
 const std::string GOAL_FUNCTIONAL = "BoundaryFluxEvaluation";
 const dealii::Point<2> EVALUATION_POINT(0.0039, 0.0039);  // step-14 ratio 1:99
 //const double EXACT_VALUE = 1.742630e-05; // step-14 ratio 1:99
-const double EXACT_VALUE = 1.7427262137982847e-05; // Nico, starting from ref 1
-const double EXACT_FLUX = -3.8675844355261949e-05; // Nico, starting from ref 1
+const double EXACT_VALUE = 1.7427262137982847e-05; // Precision: 2.713870e-10 //Nico, starting from ref 1
+const double EXACT_FLUX = -3.9252746598790566e-05; // Precision: 5.769022e-07
 
 
 
@@ -84,5 +84,5 @@ const double EXACT_FLUX = -3.8675844355261949e-05; // Nico, starting from ref 1
 //    OUTPUTS
 // ######################################################################
 
-const std::string TEST_NAME = REFINEMENT_STRATEGY + "_" + "coarsened_mesh"; 
+const std::string TEST_NAME = REFINEMENT_STRATEGY + "_" + "flux_not_coarsened"; 
 const unsigned int DUAL_OUTPUT_PATCHES = 1;

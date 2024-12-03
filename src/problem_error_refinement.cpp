@@ -421,29 +421,30 @@ void Problem<dim>::estimate_error(){
   GO_table.add_value("local", global_error_as_sum_of_cell_errors);
   GO_table.add_value("l. jumps", global_error_as_sum_of_cell_errors_face_jumps);
 
- { Evaluation::PointValueEvaluation<dim> postprocessor(EVALUATION_POINT);
-  double computed_value = postprocessor(primal_dof_handler,uh);
-  cout<<"      Point Value:   "<< computed_value << endl;
-  GO_table.add_value("Point value", computed_value);
+  // Point value
+  Evaluation::PointValueEvaluation<dim> postprocessor1(EVALUATION_POINT);
+  double computed_point_value = postprocessor1(primal_dof_handler,uh);
+  cout<<"      Point Value:   "<< computed_point_value << endl;
+  GO_table.add_value("Point value", computed_point_value);
 
   const double exact_value = EXACT_VALUE;
-  const double exact_error = std::fabs(exact_value-computed_value);
-  GO_table.add_value("exact error", exact_error);}
+  const double exact_point_error = std::fabs(exact_value-computed_point_value);
+  GO_table.add_value("exact error", exact_point_error);
 
-  {Evaluation::FluxEvaluation<dim> postprocessor;
-  double computed_value = postprocessor(primal_dof_handler,uh);
-  cout<<"      Flux Value:    "<< computed_value << endl;
-  GO_table.add_value("Flux", computed_value);
+  // FLux
+  Evaluation::FluxEvaluation<dim> postprocessor2;
+  double computed_flux_value = postprocessor2(primal_dof_handler,uh);
+  cout<<"      Flux Value:    "<< computed_flux_value << endl;
+  GO_table.add_value("Flux", computed_flux_value);
 
   const double flux_exact = EXACT_FLUX;
-  const double flux_error = std::fabs(flux_exact-computed_value);
-  GO_table.add_value("flux error", flux_error);}
+  const double exact_flux_error = std::fabs(flux_exact-computed_flux_value);
+  GO_table.add_value("flux error", exact_flux_error);
+
   // ------------------------------------------------------------      
-  // TEXT OUTPUT
+  // CSV OUTPUT
   // ------------------------------------------------------------      
 
-  
-/*
   // Prepare CSV file for writing
   std::ofstream csv_file;
   std::string file_name = TEST_NAME + "-convergence_data.csv";
@@ -452,7 +453,7 @@ void Problem<dim>::estimate_error(){
     csv_file.open(file_name);
 
     // Write the header
-    csv_file << "num_cells,DoFs,computed_value,estimated_error,exact_error\n";
+    csv_file << "num_cells,DoFs,computed_value,estimated_error,exact_error,computed_flux_value,exact_flux_error\n";
 
     // Close the file
     csv_file.close();
@@ -464,14 +465,16 @@ void Problem<dim>::estimate_error(){
     // Write the first line of data
     csv_file << num_cells[0] << ","
              << primal_dof_handler.n_dofs() << ","
-             << computed_value << ","
-             << global_error_as_sum_of_cell_errors_face_jumps << ","
-             << exact_error
+             << computed_point_value << ","
+             << global_error_as_sum_of_cell_errors << ","    // !!!
+             << exact_point_error << ","
+             << computed_flux_value << ","
+             << exact_flux_error
              << "\n";
 
     // Close the file
     csv_file.close();
-     */
+    
 
 }
 
