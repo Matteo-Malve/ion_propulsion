@@ -1,7 +1,9 @@
 #include "Data.h"
+#include <deal.II/grid/grid_in.h>
 
 namespace IonPropulsion{
   using namespace dealii;
+  using std::endl;
   namespace Data{
 
     // ------------------------------------------------------
@@ -130,10 +132,62 @@ namespace IonPropulsion{
       // is a grid point, we refine once globally:
       coarse_grid.refine_global(1);
     }
-  // Template instantiation
-  template struct SetUpBase<2>;
-  template struct SetUp<IonPropulsion::Data::Exercise_2_3<2>, 2>;
-  template struct CurvedRidges<2>;
-  template struct Exercise_2_3<2>;
+
+    // ------------------------------------------------------
+    // Rectangle_1_99
+    // ------------------------------------------------------
+
+    template <>
+    void Rectangle_1_99<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    {
+      const unsigned int dim = 2;
+
+      const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 0;
+      const unsigned int NUM_PRELIMINARY_REF = 0;
+      const double l = 0.0004;
+
+      const std::string path_to_mesh = "/Users/matteom/shared-folder/ion_propulsion/mesh/TinyStep14.msh";
+      cout << endl << "Reading file: " << path_to_mesh << endl;
+      std::ifstream input_file(path_to_mesh);
+      GridIn<2>       grid_in;
+      grid_in.attach_triangulation(coarse_grid);
+      grid_in.read_msh(input_file);
+
+      coarse_grid.refine_global(NUM_PRELIMINARY_GLOBAL_REF);
+
+      for (unsigned int i = 0; i < NUM_PRELIMINARY_REF; ++i) {
+        Vector<float> criteria(coarse_grid.n_active_cells());
+        //cout  << "Active cells " << triangulation.n_active_cells() << endl;
+        unsigned int ctr = 0;
+
+        // Threshold
+        const double max_thickness = 2. * l;
+        const double min_thickness = 1.05 * l;
+        const double D = min_thickness + (max_thickness-min_thickness)/(NUM_PRELIMINARY_REF-1)*(NUM_PRELIMINARY_REF-1-i);
+
+        for (auto &cell : coarse_grid.active_cell_iterators()) {
+          const Point<dim> c = cell->center();
+          if(std::abs(c[1])<D && std::abs(c[0])<D)
+            criteria[ctr++] = 1;
+          else
+            criteria[ctr++] = 0;
+        }
+        GridRefinement::refine(coarse_grid, criteria, 0.5);
+        coarse_grid.execute_coarsening_and_refinement();
+      }
+      cout<<"Executed preliminary coarsening and refinement"<<endl;
+
+    }
+
+    // Template instantiation
+    template struct SetUpBase<2>;
+    template struct CurvedRidges<2>;
+
+    template struct Exercise_2_3<2>;
+    template struct SetUp<IonPropulsion::Data::Exercise_2_3<2>, 2>;
+
+    template struct Rectangle_1_99<2>;
+    template struct SetUp<IonPropulsion::Data::Rectangle_1_99<2>, 2>;
+
   } // namespace Data
 } // namespace IonPropulsion

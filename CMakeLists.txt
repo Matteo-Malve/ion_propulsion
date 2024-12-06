@@ -39,6 +39,7 @@ deal_ii_setup_target(${PROJECT_NAME})
 
 # Custom target to run the program
 add_custom_target(run
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --parallel
         COMMAND ${PROJECT_NAME}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/../results
 )

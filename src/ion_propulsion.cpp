@@ -19,10 +19,11 @@ int main()
       descriptor.primal_fe_degree = 1;
       descriptor.dual_fe_degree   = 2;
 
-      descriptor.data =
-        std::make_unique<Data::SetUp<Data::Exercise_2_3<dim>, dim>>();
+      //descriptor.data = std::make_unique<Data::SetUp<Data::Exercise_2_3<dim>, dim>>();
+      descriptor.data = std::make_unique<Data::SetUp<Data::Rectangle_1_99<dim>, dim>>();
 
-      const Point<dim> evaluation_point(0.75, 0.75);
+      //const Point<dim> evaluation_point(0.75, 0.75);
+      const Point<dim> evaluation_point(0.0039, 0.0039);
       descriptor.dual_functional =
         std::make_unique<DualFunctional::PointValueEvaluation<dim>>(
           evaluation_point);

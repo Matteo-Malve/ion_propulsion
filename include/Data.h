@@ -52,7 +52,7 @@ namespace IonPropulsion{
 
 
     // ------------------------------------------------------
-    // CurvedRidges
+    // Trait: CurvedRidges
     // ------------------------------------------------------
 
     template <int dim>
@@ -77,11 +77,39 @@ namespace IonPropulsion{
     };
 
     // ------------------------------------------------------
-    // Exercise_2_3
+    // Trait: Exercise_2_3
     // ------------------------------------------------------
 
     template <int dim>
     struct Exercise_2_3
+    {
+      // We need a class to denote the boundary values of the problem. In this
+      // case, this is simple: it's the zero function, so don't even declare a
+      // class, just an alias:
+      using BoundaryValues = Functions::ZeroFunction<dim>;
+
+      // Second, a class that denotes the right hand side. Since they are
+      // constant, just subclass the corresponding class of the library and be
+      // done:
+      class RightHandSide : public Functions::ConstantFunction<dim>
+      {
+      public:
+        RightHandSide()
+          : Functions::ConstantFunction<dim>(1.)
+        {}
+      };
+
+      // Finally a function to generate the coarse grid. This is somewhat more
+      // complicated here, see immediately below.
+      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+    };
+
+    // ------------------------------------------------------
+    // Trait: Rectangle 1:99
+    // ------------------------------------------------------
+
+    template <int dim>
+    struct Rectangle_1_99
     {
       // We need a class to denote the boundary values of the problem. In this
       // case, this is simple: it's the zero function, so don't even declare a
