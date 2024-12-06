@@ -20,6 +20,9 @@ set(SOURCE_FILES
     src/Framework.cpp
     src/Data.cpp
     src/ion_propulsion.cpp
+    src/DualFunctional.cpp
+    src/LaplaceSolver.cpp
+    src/Refinement.cpp
 )
 set(CMAKE_OSX_SYSROOT "/Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk")
 

@@ -4,7 +4,7 @@
 #include "Evaluation.h"
 #include "Data.h"
 #include "DualFunctional.h"
-#include "LaplaceSolver.h"
+#include "Refinement.h"
 
 namespace IonPropulsion{
 	using namespace dealii;
