@@ -86,8 +86,15 @@ namespace IonPropulsion{
       // We need a class to denote the boundary values of the problem. In this
       // case, this is simple: it's the zero function, so don't even declare a
       // class, just an alias:
-      using BoundaryValues = Functions::ZeroFunction<dim>;
+      //using BoundaryValues = Functions::ZeroFunction<dim>;
+      class BoundaryValues : public Functions::ConstantFunction<dim>
+      {
+      public:
+        BoundaryValues()
+          : Functions::ConstantFunction<dim>(2.)
+        {}
 
+      };
       // Second, a class that denotes the right hand side. Since they are
       // constant, just subclass the corresponding class of the library and be
       // done:

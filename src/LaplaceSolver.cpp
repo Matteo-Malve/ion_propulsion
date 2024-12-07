@@ -57,7 +57,12 @@ namespace IonPropulsion{
 
       LinearSystem linear_system(dof_handler);
       assemble_linear_system(linear_system);
-      linear_system.solve(solution);
+      linear_system.solve(homogeneous_solution /*solution*/);
+
+      // Retrieve lifting
+      solution = homogeneous_solution;
+      solution += Rg_vector; //TODO: Is another constraints::distribute() necessary?
+                             //      Would be problematic as constraints are inside LinearSystem
     }
 
 
@@ -101,20 +106,19 @@ namespace IonPropulsion{
                       copier,
                       AssemblyScratchData(*fe, *quadrature),
                       AssemblyCopyData());
+
       linear_system.hanging_node_constraints.condense(linear_system.matrix);
 
       std::map<types::global_dof_index, double> boundary_value_map;
       VectorTools::interpolate_boundary_values(dof_handler,
                                                0,
-                                               *boundary_values,
+                                               Functions::ZeroFunction<dim>(),  /*Now assigned by Rg in construction*/
                                                boundary_value_map);
-
       rhs_task.join();
       linear_system.hanging_node_constraints.condense(linear_system.rhs);
-
       MatrixTools::apply_boundary_values(boundary_value_map,
                                          linear_system.matrix,
-                                         solution,
+                                         homogeneous_solution /*solution*/,
                                          linear_system.rhs);
     }
 
@@ -154,10 +158,10 @@ namespace IonPropulsion{
       for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
         for (unsigned int i = 0; i < dofs_per_cell; ++i)
           for (unsigned int j = 0; j < dofs_per_cell; ++j)
-            copy_data.cell_matrix(i, j) +=
-              (scratch_data.fe_values.shape_grad(i, q_point) *
-               scratch_data.fe_values.shape_grad(j, q_point) *
-               scratch_data.fe_values.JxW(q_point));
+            copy_data.cell_matrix(i, j) +=         // TODO: eps_r * eps_0
+              (scratch_data.fe_values.shape_grad(i, q_point) *          // grad phi_i(x_q)
+               scratch_data.fe_values.shape_grad(j, q_point) *        // grad phi_j(x_q)
+               scratch_data.fe_values.JxW(q_point));                    // dx
 
       cell->get_dof_indices(copy_data.local_dof_indices);
     }
@@ -207,7 +211,7 @@ namespace IonPropulsion{
 
 
       template <int dim>
-      void Solver<dim>::LinearSystem::solve(Vector<double> &solution) const
+      void Solver<dim>::LinearSystem::solve(Vector<double> &solution) const   // Note: We will pass homogeneous_solution
       {
         SolverControl            solver_control(5000, 1e-12);
         SolverCG<Vector<double>> cg(solver_control);
@@ -218,6 +222,8 @@ namespace IonPropulsion{
         cg.solve(matrix, solution, rhs, preconditioner);
 
         hanging_node_constraints.distribute(solution);
+
+      cout<<"Solved system: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<std::endl;
       }
 
     // ------------------------------------------------------
@@ -242,10 +248,11 @@ namespace IonPropulsion{
 
     template <int dim>
     void PrimalSolver<dim>::construct_Rg_vector() {
-      std::map<types::global_dof_index, double> bv;
-      VectorTools::interpolate_boundary_values(this->dof_handler, 1, *(this->boundary_values), bv);
-      VectorTools::interpolate_boundary_values(this->dof_handler, 9, *(this->boundary_values), bv);
-      for (const auto &boundary_value : bv)
+      std::map<types::global_dof_index, double> boundary_value_map;
+      VectorTools::interpolate_boundary_values(this->dof_handler, 0, *(this->boundary_values), boundary_value_map);
+      VectorTools::interpolate_boundary_values(this->dof_handler, 1, *(this->boundary_values), boundary_value_map);
+      VectorTools::interpolate_boundary_values(this->dof_handler, 9, *(this->boundary_values), boundary_value_map);
+      for (const auto &boundary_value : boundary_value_map)
         this->Rg_vector(boundary_value.first) = boundary_value.second;
     }
 
@@ -273,31 +280,34 @@ namespace IonPropulsion{
     {
       FEValues<dim> fe_values(*this->fe,
                               *this->quadrature,
-                              update_values | update_quadrature_points |
+                              update_values | update_gradients | update_quadrature_points |
                                 update_JxW_values);
-
       const unsigned int dofs_per_cell = this->fe->n_dofs_per_cell();
       const unsigned int n_q_points    = this->quadrature->size();
 
       Vector<double>                       cell_rhs(dofs_per_cell);
       std::vector<double>                  rhs_values(n_q_points);
       std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
+      std::vector<Tensor<1, dim>>          rg_gradients(n_q_points);
 
       for (const auto &cell : this->dof_handler.active_cell_iterators())
         {
           cell_rhs = 0;
 
           fe_values.reinit(cell);
-
+          fe_values.get_function_gradients(this->Rg_vector, rg_gradients);
           rhs_function->value_list(fe_values.get_quadrature_points(),
                                    rhs_values);
-
           for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
-            for (unsigned int i = 0; i < dofs_per_cell; ++i)
+            for (unsigned int i = 0; i < dofs_per_cell; ++i) {
               cell_rhs(i) += (fe_values.shape_value(i, q_point) * // phi_i(x_q)
                               rhs_values[q_point] *               // f((x_q)
                               fe_values.JxW(q_point));            // dx
-
+              cell_rhs(i) -=            // TODO: eps_r * eps_0 *
+                        (fe_values.shape_grad(i, q_point) *   // grad phi_i(x_q)
+                          rg_gradients[q_point] *             // grad_Rg(x_q)
+                          fe_values.JxW(q_point));            // dx
+            }
           cell->get_dof_indices(local_dof_indices);
           for (unsigned int i = 0; i < dofs_per_cell; ++i)
             rhs(local_dof_indices[i]) += cell_rhs(i);
