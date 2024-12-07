@@ -53,11 +53,7 @@ namespace IonPropulsion{
       solution.reinit(dof_handler.n_dofs());
       Rg_vector.reinit(dof_handler.n_dofs());
 
-      std::map<types::global_dof_index, double> bv;
-      VectorTools::interpolate_boundary_values(dof_handler, 1, *boundary_values, bv);
-      VectorTools::interpolate_boundary_values(dof_handler, 9, *boundary_values, bv);
-      for (const auto &boundary_value : bv)
-        Rg_vector(boundary_value.first) = boundary_value.second;
+      construct_Rg_vector();
 
       LinearSystem linear_system(dof_handler);
       assemble_linear_system(linear_system);
@@ -243,6 +239,15 @@ namespace IonPropulsion{
                     boundary_values)
       , rhs_function(&rhs_function)
     {}
+
+    template <int dim>
+    void PrimalSolver<dim>::construct_Rg_vector() {
+      std::map<types::global_dof_index, double> bv;
+      VectorTools::interpolate_boundary_values(this->dof_handler, 1, *(this->boundary_values), bv);
+      VectorTools::interpolate_boundary_values(this->dof_handler, 9, *(this->boundary_values), bv);
+      for (const auto &boundary_value : bv)
+        this->Rg_vector(boundary_value.first) = boundary_value.second;
+    }
 
 
 

@@ -67,6 +67,7 @@ namespace IonPropulsion{
       const SmartPointer<const Function<dim>>       boundary_values;
 
       virtual void assemble_rhs(Vector<double> &rhs) const = 0;
+      virtual void construct_Rg_vector() = 0;
 
     private:
       struct LinearSystem
@@ -130,6 +131,9 @@ namespace IonPropulsion{
     protected:
       const SmartPointer<const Function<dim>> rhs_function;
       virtual void assemble_rhs(Vector<double> &rhs) const override;
+
+    private:
+      virtual void construct_Rg_vector() override;
     };
 
     // ------------------------------------------------------
@@ -152,6 +156,9 @@ namespace IonPropulsion{
       virtual void assemble_rhs(Vector<double> &rhs) const override;
 
       static const Functions::ZeroFunction<dim> boundary_values;
+
+    private:
+      virtual void construct_Rg_vector() override {};
     };
 
     template <int dim>
