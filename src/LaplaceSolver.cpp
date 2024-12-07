@@ -49,7 +49,15 @@ namespace IonPropulsion{
     void Solver<dim>::solve_problem()
     {
       dof_handler.distribute_dofs(*fe);
+      homogeneous_solution.reinit(dof_handler.n_dofs());
       solution.reinit(dof_handler.n_dofs());
+      Rg_vector.reinit(dof_handler.n_dofs());
+
+      std::map<types::global_dof_index, double> bv;
+      VectorTools::interpolate_boundary_values(dof_handler, 1, *boundary_values, bv);
+      VectorTools::interpolate_boundary_values(dof_handler, 9, *boundary_values, bv);
+      for (const auto &boundary_value : bv)
+        Rg_vector(boundary_value.first) = boundary_value.second;
 
       LinearSystem linear_system(dof_handler);
       assemble_linear_system(linear_system);

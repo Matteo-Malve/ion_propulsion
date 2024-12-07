@@ -61,7 +61,9 @@ namespace IonPropulsion{
       const SmartPointer<const Quadrature<dim>>     quadrature;
       const SmartPointer<const Quadrature<dim - 1>> face_quadrature;
       DoFHandler<dim>                               dof_handler;
+      Vector<double>                                homogeneous_solution;
       Vector<double>                                solution;
+      Vector<double>                                Rg_vector;
       const SmartPointer<const Function<dim>>       boundary_values;
 
       virtual void assemble_rhs(Vector<double> &rhs) const = 0;
