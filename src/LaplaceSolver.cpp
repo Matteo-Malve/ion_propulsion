@@ -256,7 +256,9 @@ namespace IonPropulsion{
     {
       DataOut<dim> data_out;
       data_out.attach_dof_handler(this->dof_handler);
-      data_out.add_data_vector(this->solution, "solution");
+      data_out.add_data_vector(this->homogeneous_solution, "uh0");
+      data_out.add_data_vector(this->solution, "uh");
+      data_out.add_data_vector(this->Rg_vector, "Rg");
       data_out.build_patches();
 
       std::ofstream out("solution-" + std::to_string(this->refinement_cycle) +
