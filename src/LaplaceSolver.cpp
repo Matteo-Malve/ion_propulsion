@@ -63,8 +63,8 @@ namespace IonPropulsion{
 
       // Retrieve lifting
       solution = homogeneous_solution;
-      solution += Rg_vector; //TODO: Is another constraints::distribute() necessary?
-                             //      Would be problematic as constraints are inside LinearSystem
+      retrieve_Rg();
+      std::cout << "CHECKPOINT solve" << std::endl;
     }
 
 

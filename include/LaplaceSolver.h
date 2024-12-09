@@ -68,6 +68,7 @@ namespace IonPropulsion{
 
       virtual void assemble_rhs(Vector<double> &rhs) const = 0;
       virtual void construct_Rg_vector() = 0;
+      virtual void retrieve_Rg() = 0;
 
     private:
       struct LinearSystem
@@ -133,6 +134,10 @@ namespace IonPropulsion{
       virtual void assemble_rhs(Vector<double> &rhs) const override;
       virtual void construct_Rg_vector() override;
     private:
+      void retrieve_Rg() override {
+        this->solution += this->Rg_vector; //TODO: Is another constraints::distribute() necessary?
+        //      Would be problematic as constraints are inside LinearSystem
+      };
 
     };
 
@@ -153,12 +158,13 @@ namespace IonPropulsion{
     protected:
       const SmartPointer<const DualFunctional::DualFunctionalBase<dim>>
                    dual_functional;
-      virtual void assemble_rhs(Vector<double> &rhs) const override;
+      void assemble_rhs(Vector<double> &rhs) const override;
 
       static const Functions::ZeroFunction<dim> boundary_values;
 
     private:
-      virtual void construct_Rg_vector() override {};
+      void construct_Rg_vector() override {};
+      void retrieve_Rg() override {};
     };
 
     template <int dim>

@@ -13,10 +13,10 @@ int main()
       Framework<dim>::ProblemDescription descriptor;
 
       // First set the refinement criterion we wish to use:
-      //descriptor.refinement_criterion =
-        //Framework<dim>::ProblemDescription::dual_weighted_error_estimator;
       descriptor.refinement_criterion =
-        Framework<dim>::ProblemDescription::global_refinement;
+        Framework<dim>::ProblemDescription::dual_weighted_error_estimator;
+      //descriptor.refinement_criterion =
+        //Framework<dim>::ProblemDescription::global_refinement;
 
       descriptor.primal_fe_degree = 1;
       descriptor.dual_fe_degree   = 2;

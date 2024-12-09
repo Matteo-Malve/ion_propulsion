@@ -315,7 +315,7 @@ namespace IonPropulsion{
     void WeightedResidual<dim>::refine_grid()
     {
       // ERROR ESTIMATION
-
+      cout<<"Checlpoint 0"<<std::endl;
       Vector<float> error_indicators(this->triangulation->n_active_cells());
       estimate_error(error_indicators);
 
@@ -327,22 +327,25 @@ namespace IonPropulsion{
       GridRefinement::refine_and_coarsen_fixed_fraction(*this->triangulation,
                                                         error_indicators,
                                                         0.8,
-                                                        0.02);
+                                                        0.1);
       this->triangulation->prepare_coarsening_and_refinement();
       SolutionTransfer<dim> solution_transfer(PrimalSolver<dim>::dof_handler);
 
       Vector<double> old_Rg_values = PrimalSolver<dim>::Rg_vector;
       solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_values);
-      cout<<"Checlpoint 1"<<std::endl;
+
       output_cell_flags_to_vtk(*this->triangulation, "cell_flags-"+std::to_string(this->refinement_cycle)+".vtk");
-      cout<<"Checlpoint 2"<<std::endl;
+
       this->triangulation->execute_coarsening_and_refinement();
-      cout<<"Checlpoint 3"<<std::endl;
+
       PrimalSolver<dim>::dof_handler.distribute_dofs(*PrimalSolver<dim>::fe);
       PrimalSolver<dim>::Rg_vector.reinit(PrimalSolver<dim>::dof_handler.n_dofs());
+
       solution_transfer.interpolate(old_Rg_values, PrimalSolver<dim>::Rg_vector);
-      cout<<"Checlpoint 4"<<std::endl;
+
       PrimalSolver<dim>::construct_Rg_vector();
+
+      DualSolver<dim>::Rg_vector.reinit(DualSolver<dim>::dof_handler.n_dofs());
     }
 
     template <int dim>
