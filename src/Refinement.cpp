@@ -224,6 +224,31 @@ namespace IonPropulsion{
     {}
 
     template <int dim>
+    void output_cell_flags_to_vtk(const Triangulation<dim> &triangulation, const std::string &filename="cell_flags.vtk") {
+      Vector<float> cell_flags(triangulation.n_active_cells());
+
+      unsigned int cell_index = 0;
+      for (const auto &cell : triangulation.active_cell_iterators())
+      {
+        if (cell->refine_flag_set())
+          cell_flags[cell_index] = 1.0; // Refinement flag
+        else if (cell->coarsen_flag_set())
+          cell_flags[cell_index] = -1.0; // Coarsening flag
+        else
+          cell_flags[cell_index] = 0.0; // No flag
+        ++cell_index;
+      }
+      DataOut<dim> data_out;
+      data_out.attach_triangulation(triangulation);
+      data_out.add_data_vector(cell_flags, "CellFlags",DataOut<dim>::type_cell_data);
+      data_out.build_patches();
+      std::ofstream output(filename);
+      data_out.write_vtk(output);
+
+      std::cout << "   Cell flags written to " << filename << std::endl;
+    }
+
+    template <int dim>
     WeightedResidual<dim>::WeightedResidual(
       Triangulation<dim> &                           coarse_grid,
       const FiniteElement<dim> &                     primal_fe,
@@ -289,17 +314,35 @@ namespace IonPropulsion{
     template <int dim>
     void WeightedResidual<dim>::refine_grid()
     {
+      // ERROR ESTIMATION
+
       Vector<float> error_indicators(this->triangulation->n_active_cells());
       estimate_error(error_indicators);
 
       for (float &error_indicator : error_indicators)
         error_indicator = std::fabs(error_indicator);
 
+      // GRID REFINEMENT
+
       GridRefinement::refine_and_coarsen_fixed_fraction(*this->triangulation,
                                                         error_indicators,
                                                         0.8,
                                                         0.02);
+      this->triangulation->prepare_coarsening_and_refinement();
+      SolutionTransfer<dim> solution_transfer(PrimalSolver<dim>::dof_handler);
+
+      Vector<double> old_Rg_values = PrimalSolver<dim>::Rg_vector;
+      solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_values);
+      cout<<"Checlpoint 1"<<std::endl;
+      output_cell_flags_to_vtk(*this->triangulation, "cell_flags-"+std::to_string(this->refinement_cycle)+".vtk");
+      cout<<"Checlpoint 2"<<std::endl;
       this->triangulation->execute_coarsening_and_refinement();
+      cout<<"Checlpoint 3"<<std::endl;
+      PrimalSolver<dim>::dof_handler.distribute_dofs(*PrimalSolver<dim>::fe);
+      PrimalSolver<dim>::Rg_vector.reinit(PrimalSolver<dim>::dof_handler.n_dofs());
+      solution_transfer.interpolate(old_Rg_values, PrimalSolver<dim>::Rg_vector);
+      cout<<"Checlpoint 4"<<std::endl;
+      PrimalSolver<dim>::construct_Rg_vector();
     }
 
     template <int dim>
