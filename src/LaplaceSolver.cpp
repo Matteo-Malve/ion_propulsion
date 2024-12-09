@@ -51,9 +51,11 @@ namespace IonPropulsion{
       dof_handler.distribute_dofs(*fe);
       homogeneous_solution.reinit(dof_handler.n_dofs());
       solution.reinit(dof_handler.n_dofs());
-      Rg_vector.reinit(dof_handler.n_dofs());
 
-      construct_Rg_vector();
+      if (this->refinement_cycle == 0) {
+        Rg_vector.reinit(dof_handler.n_dofs());
+        construct_Rg_vector();
+      }
 
       LinearSystem linear_system(dof_handler);
       assemble_linear_system(linear_system);

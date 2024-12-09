@@ -131,9 +131,9 @@ namespace IonPropulsion{
     protected:
       const SmartPointer<const Function<dim>> rhs_function;
       virtual void assemble_rhs(Vector<double> &rhs) const override;
-
-    private:
       virtual void construct_Rg_vector() override;
+    private:
+
     };
 
     // ------------------------------------------------------
