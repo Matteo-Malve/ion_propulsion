@@ -1,5 +1,8 @@
 #include "Refinement.h"
 
+#include "Constants.h"
+void useGlobalConstants();
+
 namespace IonPropulsion{
   using namespace dealii;
   namespace LaplaceSolver{
