@@ -250,12 +250,24 @@ namespace IonPropulsion{
 
     template <int dim>
     void PrimalSolver<dim>::construct_Rg_vector() {
+      AffineConstraints<double> hanging_node_constraints;
+      hanging_node_constraints.clear();
+      void (*mhnc_p)(const DoFHandler<dim> &, AffineConstraints<double> &) =
+          &DoFTools::make_hanging_node_constraints;
+      // Start a side task then continue on the main thread
+      Threads::Task<void> side_task =
+        Threads::new_task(mhnc_p, this->dof_handler, hanging_node_constraints);
+
       std::map<types::global_dof_index, double> boundary_value_map;
       VectorTools::interpolate_boundary_values(this->dof_handler, 0, *(this->boundary_values), boundary_value_map);
       VectorTools::interpolate_boundary_values(this->dof_handler, 1, *(this->boundary_values), boundary_value_map);
       VectorTools::interpolate_boundary_values(this->dof_handler, 9, *(this->boundary_values), boundary_value_map);
       for (const auto &boundary_value : boundary_value_map)
         this->Rg_vector(boundary_value.first) = boundary_value.second;
+
+      side_task.join();
+      hanging_node_constraints.close();
+      hanging_node_constraints.distribute(this->Rg_vector);
     }
 
 
