@@ -11,6 +11,7 @@
 
 extern double eps_0;
 extern double eps_r;
+extern double EXACT_POINT_VALUE;
 
 
 class ConstantsParser {
