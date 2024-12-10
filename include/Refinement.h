@@ -138,7 +138,7 @@ namespace IonPropulsion{
           const Quadrature<dim> &    primal_quadrature,
           const Quadrature<dim - 1> &primal_face_quadrature,
           const Function<dim> &      rhs_function,
-          const Vector<double> &     primal_solution,
+          const Vector<double> &     Rg_plus_uh0hat,
           const Vector<double> &     dual_weights);
 
         WeightedResidualScratchData(
@@ -146,7 +146,7 @@ namespace IonPropulsion{
 
         CellData       cell_data;
         FaceData       face_data;
-        Vector<double> primal_solution;
+        Vector<double> Rg_plus_uh0hat;
         Vector<double> dual_weights;
       };
 

@@ -126,6 +126,10 @@ namespace IonPropulsion{
       this->triangulation->execute_coarsening_and_refinement();
     }
 
+    // ------------------------------------------------------
+    // WeightedResidual
+    // ------------------------------------------------------
+
     template <int dim>
     WeightedResidual<dim>::CellData::CellData(
       const FiniteElement<dim> &fe,
@@ -205,11 +209,11 @@ namespace IonPropulsion{
         const Quadrature<dim> &    primal_quadrature,
         const Quadrature<dim - 1> &primal_face_quadrature,
         const Function<dim> &      rhs_function,
-        const Vector<double> &     primal_solution,
+        const Vector<double> &     Rg_plus_uh0hat,
         const Vector<double> &     dual_weights)
       : cell_data(primal_fe, primal_quadrature, rhs_function)
       , face_data(primal_fe, primal_face_quadrature)
-      , primal_solution(primal_solution)
+      , Rg_plus_uh0hat(Rg_plus_uh0hat)
       , dual_weights(dual_weights)
     {}
 
@@ -219,7 +223,7 @@ namespace IonPropulsion{
         const WeightedResidualScratchData &scratch_data)
       : cell_data(scratch_data.cell_data)
       , face_data(scratch_data.face_data)
-      , primal_solution(scratch_data.primal_solution)
+      , Rg_plus_uh0hat(scratch_data.Rg_plus_uh0hat)
       , dual_weights(scratch_data.dual_weights)
     {}
 
@@ -245,7 +249,7 @@ namespace IonPropulsion{
       std::ofstream output(filename);
       data_out.write_vtk(output);
 
-      std::cout << "   Cell flags written to " << filename << std::endl;
+      //std::cout << "   Cell flags written to " << filename << std::endl;
     }
 
     template <int dim>
@@ -388,18 +392,26 @@ namespace IonPropulsion{
       DoFTools::make_hanging_node_constraints(DualSolver<dim>::dof_handler,
                                               dual_hanging_node_constraints);
       dual_hanging_node_constraints.close();
-      Vector<double> primal_solution(DualSolver<dim>::dof_handler.n_dofs());
+
+      Vector<double> uh0_on_dual_space(DualSolver<dim>::dof_handler.n_dofs());
       FETools::interpolate(PrimalSolver<dim>::dof_handler,
-                           PrimalSolver<dim>::solution,
+                           PrimalSolver<dim>::homogeneous_solution,
                            DualSolver<dim>::dof_handler,
                            dual_hanging_node_constraints,
-                           primal_solution);
+                           uh0_on_dual_space);
 
+      Vector<double> Rg_dual(DualSolver<dim>::dof_handler.n_dofs());
+      FETools::interpolate(PrimalSolver<dim>::dof_handler,
+                           PrimalSolver<dim>::Rg_vector,
+                           DualSolver<dim>::dof_handler,
+                           dual_hanging_node_constraints,
+                           Rg_dual);
 
       AffineConstraints<double> primal_hanging_node_constraints;
       DoFTools::make_hanging_node_constraints(PrimalSolver<dim>::dof_handler,
                                               primal_hanging_node_constraints);
       primal_hanging_node_constraints.close();
+
       Vector<double> dual_weights(DualSolver<dim>::dof_handler.n_dofs());
       FETools::interpolation_difference(DualSolver<dim>::dof_handler,
                                         dual_hanging_node_constraints,
@@ -407,6 +419,10 @@ namespace IonPropulsion{
                                         PrimalSolver<dim>::dof_handler,
                                         primal_hanging_node_constraints,
                                         dual_weights);
+
+      Vector<double> Rg_plus_uh0hat = uh0_on_dual_space;
+      Rg_plus_uh0hat += Rg_dual;
+      dual_hanging_node_constraints.distribute(Rg_plus_uh0hat);
 
       FaceIntegrals face_integrals;
       for (const auto &cell :
@@ -437,7 +453,7 @@ namespace IonPropulsion{
                                     *DualSolver<dim>::quadrature,
                                     *DualSolver<dim>::face_quadrature,
                                     *this->rhs_function,
-                                    primal_solution,
+                                    Rg_plus_uh0hat,
                                     dual_weights),
         WeightedResidualCopyData());
 
@@ -470,7 +486,7 @@ namespace IonPropulsion{
     {
       (void)copy_data;
       integrate_over_cell(cell,
-                          scratch_data.primal_solution,
+                          scratch_data.Rg_plus_uh0hat,
                           scratch_data.dual_weights,
                           scratch_data.cell_data,
                           error_indicators);
@@ -491,14 +507,14 @@ namespace IonPropulsion{
           if (cell->face(face_no)->has_children() == false)
             integrate_over_regular_face(cell,
                                         face_no,
-                                        scratch_data.primal_solution,
+                                        scratch_data.Rg_plus_uh0hat,
                                         scratch_data.dual_weights,
                                         scratch_data.face_data,
                                         face_integrals);
           else
             integrate_over_irregular_face(cell,
                                           face_no,
-                                          scratch_data.primal_solution,
+                                          scratch_data.Rg_plus_uh0hat,
                                           scratch_data.dual_weights,
                                           scratch_data.face_data,
                                           face_integrals);
@@ -508,7 +524,7 @@ namespace IonPropulsion{
     template <int dim>
     void WeightedResidual<dim>::integrate_over_cell(
       const active_cell_iterator &cell,
-      const Vector<double> &      primal_solution,
+      const Vector<double> &      Rg_plus_uh0hat,
       const Vector<double> &      dual_weights,
       CellData &                  cell_data,
       Vector<float> &             error_indicators) const
@@ -520,7 +536,7 @@ namespace IonPropulsion{
       cell_data.fe_values.reinit(cell);
       cell_data.right_hand_side->value_list(
         cell_data.fe_values.get_quadrature_points(), cell_data.rhs_values);
-      cell_data.fe_values.get_function_laplacians(primal_solution,
+      cell_data.fe_values.get_function_laplacians(Rg_plus_uh0hat,
                                                   cell_data.cell_laplacians);
 
       // ...then get the dual weights...
@@ -531,8 +547,8 @@ namespace IonPropulsion{
       // with the present cell:
       double sum = 0;
       for (unsigned int p = 0; p < cell_data.fe_values.n_quadrature_points; ++p)
-        sum += ((cell_data.rhs_values[p] + cell_data.cell_laplacians[p]) *
-                cell_data.dual_weights[p] * cell_data.fe_values.JxW(p));
+        sum += ((cell_data.rhs_values[p] + cell_data.cell_laplacians[p]) *      // TODO: ( f + eps*∆(Rg+uh0hat) ) * zh
+                cell_data.dual_weights[p] * cell_data.fe_values.JxW(p));        // TODO: Add EPS
       error_indicators(cell->active_cell_index()) += sum;
     }
 
@@ -548,7 +564,7 @@ namespace IonPropulsion{
     void WeightedResidual<dim>::integrate_over_regular_face(
       const active_cell_iterator &cell,
       const unsigned int          face_no,
-      const Vector<double> &      primal_solution,
+      const Vector<double> &      Rg_plus_uh0hat,
       const Vector<double> &      dual_weights,
       FaceData &                  face_data,
       FaceIntegrals &             face_integrals) const
@@ -563,7 +579,7 @@ namespace IonPropulsion{
       // using that object.
       face_data.fe_face_values_cell.reinit(cell, face_no);
       face_data.fe_face_values_cell.get_function_gradients(
-        primal_solution, face_data.cell_grads);
+        Rg_plus_uh0hat, face_data.cell_grads);
 
       // The second step is then to extract the gradients of the finite
       // element solution at the quadrature points on the other side of the
@@ -588,7 +604,7 @@ namespace IonPropulsion{
       const active_cell_iterator neighbor = cell->neighbor(face_no);
       face_data.fe_face_values_neighbor.reinit(neighbor, neighbor_neighbor);
       face_data.fe_face_values_neighbor.get_function_gradients(
-        primal_solution, face_data.neighbor_grads);
+        Rg_plus_uh0hat, face_data.neighbor_grads);
 
       // Now that we have the gradients on this and the neighboring cell,
       // compute the jump residual by multiplying the jump in the gradient
@@ -607,7 +623,7 @@ namespace IonPropulsion{
       double face_integral = 0;
       for (unsigned int p = 0; p < n_q_points; ++p)
         face_integral +=
-          (face_data.jump_residual[p] * face_data.dual_weights[p] *
+          (face_data.jump_residual[p] * face_data.dual_weights[p] *     // TODO: EPS
            face_data.fe_face_values_cell.JxW(p));
 
 
@@ -622,7 +638,7 @@ namespace IonPropulsion{
     void WeightedResidual<dim>::integrate_over_irregular_face(
       const active_cell_iterator &cell,
       const unsigned int          face_no,
-      const Vector<double> &      primal_solution,
+      const Vector<double> &      Rg_plus_uh0hat,
       const Vector<double> &      dual_weights,
       FaceData &                  face_data,
       FaceIntegrals &             face_integrals) const
@@ -656,12 +672,12 @@ namespace IonPropulsion{
           // first at this side of the interface,
           face_data.fe_subface_values_cell.reinit(cell, face_no, subface_no);
           face_data.fe_subface_values_cell.get_function_gradients(
-            primal_solution, face_data.cell_grads);
+            Rg_plus_uh0hat, face_data.cell_grads);
           // then at the other side,
           face_data.fe_face_values_neighbor.reinit(neighbor_child,
                                                    neighbor_neighbor);
           face_data.fe_face_values_neighbor.get_function_gradients(
-            primal_solution, face_data.neighbor_grads);
+            Rg_plus_uh0hat, face_data.neighbor_grads);
 
           for (unsigned int p = 0; p < n_q_points; ++p)
             face_data.jump_residual[p] =
@@ -677,7 +693,7 @@ namespace IonPropulsion{
           double face_integral = 0;
           for (unsigned int p = 0; p < n_q_points; ++p)
             face_integral +=
-              (face_data.jump_residual[p] * face_data.dual_weights[p] *
+              (face_data.jump_residual[p] * face_data.dual_weights[p] *           // TODO: EPS
                face_data.fe_face_values_neighbor.JxW(p));
           face_integrals[neighbor_child->face(neighbor_neighbor)] =
             face_integral;

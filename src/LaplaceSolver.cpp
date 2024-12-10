@@ -64,7 +64,6 @@ namespace IonPropulsion{
       // Retrieve lifting
       solution = homogeneous_solution;
       retrieve_Rg();
-      std::cout << "CHECKPOINT solve" << std::endl;
     }
 
 
@@ -225,7 +224,7 @@ namespace IonPropulsion{
 
         hanging_node_constraints.distribute(solution);
 
-      cout<<"Solved system: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<std::endl;
+      //cout<<"Solved system: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<std::endl;
       }
 
     // ------------------------------------------------------

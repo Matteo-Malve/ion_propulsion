@@ -91,7 +91,7 @@ namespace IonPropulsion{
       {
       public:
         BoundaryValues()
-          : Functions::ConstantFunction<dim>(2.)
+          : Functions::ConstantFunction<dim>(0.)
         {}
 
       };
