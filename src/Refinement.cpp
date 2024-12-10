@@ -315,7 +315,6 @@ namespace IonPropulsion{
     void WeightedResidual<dim>::refine_grid()
     {
       // ERROR ESTIMATION
-      cout<<"Checlpoint 0"<<std::endl;
       Vector<float> error_indicators(this->triangulation->n_active_cells());
       estimate_error(error_indicators);
 
@@ -327,7 +326,7 @@ namespace IonPropulsion{
       GridRefinement::refine_and_coarsen_fixed_fraction(*this->triangulation,
                                                         error_indicators,
                                                         0.8,
-                                                        0.1);
+                                                        0.02);
       this->triangulation->prepare_coarsening_and_refinement();
       SolutionTransfer<dim> solution_transfer(PrimalSolver<dim>::dof_handler);
 
@@ -368,8 +367,10 @@ namespace IonPropulsion{
       // Add the data vectors for which we want output. Add them both, the
       // <code>DataOut</code> functions can handle as many data vectors as you
       // wish to write to output:
-      data_out.add_data_vector(PrimalSolver<dim>::solution, "primal_solution");
-      data_out.add_data_vector(dual_solution, "dual_solution");
+      data_out.add_data_vector(PrimalSolver<dim>::homogeneous_solution, "uh0");
+      data_out.add_data_vector(PrimalSolver<dim>::Rg_vector, "Rg");
+      data_out.add_data_vector(PrimalSolver<dim>::solution, "uh");
+      data_out.add_data_vector(dual_solution, "zh");
 
       data_out.build_patches();
 
