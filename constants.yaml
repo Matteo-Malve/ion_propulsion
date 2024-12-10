@@ -1,6 +1,8 @@
 # Physical constants
-eps_0: 8.854           # Electric permittivity of free space [F/m]
-eps_r: 1.0006          # Relative permittivity
+#eps_0: 8.854           # Electric permittivity of free space [F/m]
+#eps_r: 1.0006          # Relative permittivity
+eps_0: 1.0
+eps_r: 1.0
 Ve: 20000.0            # Electric potential [V]
 E_ON: 3310000.0        # Corona inception threshold [V/m]
 

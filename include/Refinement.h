@@ -1,6 +1,5 @@
 #ifndef REFINEMENT_H
 #define REFINEMENT_H
-#include "includes.h"
 #include "LaplaceSolver.h"
 
 namespace IonPropulsion{

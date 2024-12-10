@@ -1,5 +1,5 @@
 #include "LaplaceSolver.h"
-
+#include "Constants.h"
 
 namespace IonPropulsion{
   using namespace dealii;
@@ -160,7 +160,7 @@ namespace IonPropulsion{
       for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
         for (unsigned int i = 0; i < dofs_per_cell; ++i)
           for (unsigned int j = 0; j < dofs_per_cell; ++j)
-            copy_data.cell_matrix(i, j) +=         // TODO: eps_r * eps_0
+            copy_data.cell_matrix(i, j) += eps_r * eps_0 *
               (scratch_data.fe_values.shape_grad(i, q_point) *          // grad phi_i(x_q)
                scratch_data.fe_values.shape_grad(j, q_point) *        // grad phi_j(x_q)
                scratch_data.fe_values.JxW(q_point));                    // dx
@@ -312,12 +312,13 @@ namespace IonPropulsion{
           fe_values.get_function_gradients(this->Rg_vector, rg_gradients);
           rhs_function->value_list(fe_values.get_quadrature_points(),
                                    rhs_values);
+
           for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
             for (unsigned int i = 0; i < dofs_per_cell; ++i) {
               cell_rhs(i) += (fe_values.shape_value(i, q_point) * // phi_i(x_q)
                               rhs_values[q_point] *               // f((x_q)
                               fe_values.JxW(q_point));            // dx
-              cell_rhs(i) -=            // TODO: eps_r * eps_0 *
+              cell_rhs(i) -=   eps_r * eps_0 *
                         (fe_values.shape_grad(i, q_point) *   // grad phi_i(x_q)
                           rg_gradients[q_point] *             // grad_Rg(x_q)
                           fe_values.JxW(q_point));            // dx

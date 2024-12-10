@@ -9,7 +9,10 @@
 #include <fstream>
 #include <regex>
 
-// Classe per il parsing delle costanti
+extern double eps_0;
+extern double eps_r;
+
+
 class ConstantsParser {
 public:
     explicit ConstantsParser(const std::string &filePath) {
