@@ -1,7 +1,9 @@
 # Ion Propulsion:
 ### Simulation of the electrical field with Goal Oriented adaptive refinement
 
-*A project by Claudia Mallimaci e Matteo Malvestiti*
+*A Master Thesis by Matteo Malvestiti*
+
+The code is currently Work In Progress.
 
 ---
 
