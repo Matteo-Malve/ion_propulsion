@@ -18,7 +18,7 @@ namespace IonPropulsion{
 
       void set_refinement_cycle(const unsigned int refinement_cycle);
 
-      virtual void operator()(const DoFHandler<dim> &dof_handler,
+      virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
                               const Vector<double> & solution) const = 0;
 
     protected:
@@ -35,7 +35,7 @@ namespace IonPropulsion{
     public:
       PointValueEvaluation(const Point<dim> &evaluation_point);
 
-      virtual void operator()(const DoFHandler<dim> &dof_handler,
+      virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
                               const Vector<double> & solution) const override;
 
       DeclException1(
@@ -58,7 +58,7 @@ namespace IonPropulsion{
     public:
       PointXDerivativeEvaluation(const Point<dim> &evaluation_point);
 
-      virtual void operator()(const DoFHandler<dim> &dof_handler,
+      virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
                               const Vector<double> & solution) const override;
 
       DeclException1(
@@ -81,7 +81,7 @@ namespace IonPropulsion{
     public:
       GridOutput(const std::string &output_name_base);
 
-      virtual void operator()(const DoFHandler<dim> &dof_handler,
+      virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
                               const Vector<double> & solution) const override;
 
     private:

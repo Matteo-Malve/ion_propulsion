@@ -12,6 +12,7 @@
 extern double eps_0;
 extern double eps_r;
 extern double EXACT_POINT_VALUE;
+extern std::string GOAL_FUNCTIONAL;
 
 
 class ConstantsParser {
@@ -28,8 +29,17 @@ public:
         throw std::runtime_error("Constant not found: " + name);
     }
 
+    std::string getStringConstant(const std::string &name) const {
+        auto it = stringConstants.find(name);
+        if (it != stringConstants.end()) {
+            return it->second;
+        }
+        throw std::runtime_error("String constant not found: " + name);
+    }
+
 private:
     std::unordered_map<std::string, double> constants;
+    std::unordered_map<std::string, std::string> stringConstants;
 
     void parseFile(const std::string &filePath) {
         std::ifstream file(filePath);
@@ -41,20 +51,28 @@ private:
         std::regex constPattern(R"((\w+):\s*([^#]+))"); // YAML-style parsing
         std::smatch matches;
 
+        mu::Parser parser;
+
+        // First pass: parse constants and add them to the parser
         while (std::getline(file, line)) {
             if (std::regex_search(line, matches, constPattern)) {
                 std::string name = matches[1];
                 std::string valueExpr = matches[2];
-                mu::Parser parser;
+
+                // Check if it's a numeric constant
                 try {
                     parser.SetExpr(valueExpr);
-                    constants[name] = parser.Eval();
+                    double value = parser.Eval();
+                    constants[name] = value;
+                    parser.DefineVar(name, &constants[name]); // Add as variable for later
                 } catch (mu::Parser::exception_type &e) {
-                    std::cerr << "Error parsing expression for " << name << ": " << e.GetMsg() << std::endl;
+                    // If parsing fails, treat it as a string constant
+                    stringConstants[name] = valueExpr;
                 }
             }
         }
     }
+
 };
 
 // Classe singleton per accedere globalmente alle costanti
@@ -65,8 +83,14 @@ public:
         return instance;
     }
 
+    // Get numeric constant
     double get(const std::string &name) {
         return parser.getConstant(name);
+    }
+
+    // Get string constant
+    std::string getString(const std::string &name) {
+        return parser.getStringConstant(name);
     }
 
 private:

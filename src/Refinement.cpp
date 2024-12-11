@@ -43,6 +43,19 @@ namespace IonPropulsion{
       this->construct_Rg_vector();
     }
 
+    template <int dim>
+    void  RefinementGlobal<dim>::print_convergence_table() const
+    {
+      this->convergence_table->omit_column_from_convergence_rate_evaluation("cycle");
+      this->convergence_table->omit_column_from_convergence_rate_evaluation("cells");
+      this->convergence_table->omit_column_from_convergence_rate_evaluation("DoFs");
+      this->convergence_table->evaluate_all_convergence_rates(ConvergenceTable::reduction_rate_log2);
+
+      cout<<std::endl;
+      this->convergence_table->write_text(std::cout);
+      cout<<std::endl;
+    }
+
     // ------------------------------------------------------
     // RefinementKelly
     // ------------------------------------------------------
@@ -471,11 +484,16 @@ namespace IonPropulsion{
             }
           ++present_cell;
         }
-      std::cout << "   Estimated error="
-                << std::accumulate(error_indicators.begin(),
+      double estimated_error = std::accumulate(error_indicators.begin(),
                                    error_indicators.end(),
-                                   0.)
+                                   0.);
+
+      std::cout << "   Estimated error="
+                << estimated_error
                 << std::endl;
+
+      PrimalSolver<dim>::convergence_table->add_value("est err",estimated_error);
+      PrimalSolver<dim>::convergence_table->set_scientific("est err",true);
     }
 
     template <int dim>
@@ -716,6 +734,25 @@ namespace IonPropulsion{
       // Finally store the value with the parent face.
       face_integrals[face] = sum;
     }
+
+    template <int dim>
+    void WeightedResidual<dim>::update_convergence_table() {
+      PrimalSolver<dim>::convergence_table->add_value("cycle", this->refinement_cycle);
+      PrimalSolver<dim>::convergence_table->add_value("cells", this->triangulation->n_active_cells());
+      PrimalSolver<dim>::convergence_table->add_value("DoFs", PrimalSolver<dim>::dof_handler.n_dofs());
+    }
+
+    template <int dim>
+    void WeightedResidual<dim>::print_convergence_table() const
+    {
+      // No convergence rates. Makes no sense
+
+      cout<<std::endl;
+      PrimalSolver<dim>::convergence_table->write_text(std::cout);
+      cout<<std::endl;
+    }
+
+
     // Template instantiation
     template class RefinementGlobal<2>;
     template class RefinementKelly<2>;

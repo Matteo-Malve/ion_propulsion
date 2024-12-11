@@ -10,22 +10,22 @@ E_ON: 3310000.0        # Corona inception threshold [V/m]
 nn: 2                  # Multiplicative factor
 l: 0.0004              # Length [m]
 L: 0.004               # Total length [m]
-R: "sqrt(2)*l"         # Radius calculated as a function of l
+R: sqrt(2)*l         # Radius calculated as a function of l
 X: 0.0                 # X coordinate [m]
 g: 0.2                 # Geometric distance [m]
 mesh_height: 0.1       # Mesh height [m]
 
 # Derived constants
-Ri: "l"                # Inner radius (equal to l)
-Rc: "5*Ri"             # Outer radius (5 times Ri)
-dR2: "Rc*Rc - Ri*Ri"   # Difference of squared radii
-AC: "-Ve / (dR2*dR2*dR2)"  # AC coefficient
-AD: "3 * Ve / (dR2*dR2)"   # AD coefficient
-AE: "-3 * Ve / dR2"        # AE coefficient
-AF: "Ve"                   # AF coefficient
+Ri: l
+Rc: 5*Ri
+dR2: Rc*Rc - Ri*Ri
+AC: -Ve / (dR2*dR2*dR2)
+AD: 3 * Ve / (dR2*dR2)
+AE: -3 * Ve / dR2
+AF: Ve
 
 # Mesh file path
-PATH_TO_MESH: "../mesh/cerchi_concentrici.msh"  # Path to the mesh file
+PATH_TO_MESH: ../mesh/cerchi_concentrici.msh  # Path to the mesh file
 
 # Refinement parameters
 NUM_PRELIMINARY_REF: 0              # Number of preliminary refinements
@@ -33,13 +33,13 @@ NUM_PRELIMINARY_GLOBAL_REF: 2       # Number of preliminary global refinements
 NUM_REFINEMENT_CYCLES: 10           # Number of refinement cycles
 
 # Convergence analysis
-ENABLE_CONVERGENCE_ANALYSIS: true   # Enable/disable convergence analysis
+ENABLE_CONVERGENCE_ANALYSIS: 1   # Enable/disable convergence analysis
 
 # Refinement strategy
-REFINEMENT_STRATEGY: "GlobRef"      # Refinement strategy (GlobRef or other)
+REFINEMENT_STRATEGY: GlobRef      # Refinement strategy (GlobRef or other)
 
 # Goal functional
-GOAL_FUNCTIONAL: "PointValue"       # Type of goal functional
+GOAL_FUNCTIONAL: PointValue       # Type of goal functional
 
 # Evaluation parameters
 EVALUATION_RADIUS: 0.0002           # Evaluation radius [m]

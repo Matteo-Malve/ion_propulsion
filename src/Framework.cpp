@@ -91,6 +91,7 @@ namespace IonPropulsion{
         std::cout << "Refinement cycle: " << step << std::endl;
 
         solver->set_refinement_cycle(step);
+        solver->update_convergence_table();
         solver->solve_problem();
         solver->output_solution();
 
@@ -104,10 +105,13 @@ namespace IonPropulsion{
           }
 
 
+
         if (solver->n_dofs() < descriptor.max_degrees_of_freedom)
           solver->refine_grid();
         else
           break;
+
+        solver->print_convergence_table();
       }
 
     // Clean up the screen after the loop has run:

@@ -11,6 +11,7 @@ namespace IonPropulsion{
     template <int dim>
     Base<dim>::Base(Triangulation<dim> &coarse_grid)
       : triangulation(&coarse_grid)
+      , convergence_table(std::make_shared<ConvergenceTable>())
       , refinement_cycle(numbers::invalid_unsigned_int)
     {}
 
@@ -65,6 +66,18 @@ namespace IonPropulsion{
       // Retrieve lifting
       solution = homogeneous_solution;
       retrieve_Rg();
+
+
+
+
+
+    }
+
+    template <int dim>
+    void Solver<dim>::update_convergence_table() {
+      this->convergence_table->add_value("cycle", this->refinement_cycle);
+      this->convergence_table->add_value("cells", this->triangulation->n_active_cells());
+      this->convergence_table->add_value("DoFs", this->dof_handler.n_dofs());
     }
 
 
@@ -72,7 +85,13 @@ namespace IonPropulsion{
     void Solver<dim>::postprocess(
       const Evaluation::EvaluationBase<dim> &postprocessor) const
     {
-      postprocessor(dof_handler, solution);
+      std::pair<std::string, double> possible_pair = postprocessor(dof_handler, solution);
+      if (possible_pair.first != "null") {
+        Base<dim>::convergence_table->add_value(possible_pair.first, possible_pair.second);
+        Base<dim>::convergence_table->set_scientific(possible_pair.first, true);
+      }
+
+
     }
 
 
@@ -285,6 +304,12 @@ namespace IonPropulsion{
       std::ofstream out("solution-" + std::to_string(this->refinement_cycle) +
                         ".vtu");
       data_out.write(out, DataOutBase::vtu);
+
+      // Also update Convergence Table
+      // Convergence table update
+      this->convergence_table->add_value("cycle", this->refinement_cycle);
+      this->convergence_table->add_value("cells", this->triangulation->n_active_cells());
+      this->convergence_table->add_value("DoFs", this->dof_handler.n_dofs());
     }
 
 

@@ -1,5 +1,7 @@
 #include "Evaluation.h"
 
+#include <Constants.h>
+
 namespace IonPropulsion{
 	using namespace dealii;
 	namespace Evaluation{
@@ -23,7 +25,7 @@ namespace IonPropulsion{
 		// ------------------------------------------------------
 
 		template <int dim>
-		void
+		std::pair<std::string, double>
 		PointValueEvaluation<dim>::operator()(const DoFHandler<dim> &dof_handler,
 																					const Vector<double> & solution) const
 		{
@@ -46,6 +48,10 @@ namespace IonPropulsion{
 									ExcEvaluationPointNotFound(evaluation_point));
 
 			std::cout << "   Point value=" << point_value << std::endl;
+
+			// Update table with exact error
+			double exact_error = std::fabs(point_value-EXACT_POINT_VALUE);
+			return std::make_pair("ex POINT err",exact_error);
 		}
 
 		// ------------------------------------------------------
@@ -62,7 +68,8 @@ namespace IonPropulsion{
     // The more interesting things happen inside the function doing the actual
     // evaluation:
     template <int dim>
-    void PointXDerivativeEvaluation<dim>::operator()(
+		std::pair<std::string, double>
+		PointXDerivativeEvaluation<dim>::operator()(
       const DoFHandler<dim> &dof_handler,
       const Vector<double> & solution) const
     {
@@ -146,6 +153,7 @@ namespace IonPropulsion{
       // the status:
       point_derivative /= evaluation_point_hits;
       std::cout << "   Point x-derivative=" << point_derivative << std::endl;
+			return std::make_pair("null",-1.0e-20);
     }
 
 		// ------------------------------------------------------
@@ -159,12 +167,14 @@ namespace IonPropulsion{
 
 
 		template <int dim>
-		void GridOutput<dim>::operator()(const DoFHandler<dim> &dof_handler,
+		std::pair<std::string, double>
+		GridOutput<dim>::operator()(const DoFHandler<dim> &dof_handler,
 																		 const Vector<double> & /*solution*/) const
 		{
 			std::ofstream out(output_name_base + "-" +
 												std::to_string(this->refinement_cycle) + ".svg");
 			GridOut().write_svg(dof_handler.get_triangulation(), out);
+			return std::make_pair("null",-1.0e-20);
 		}
 
 
