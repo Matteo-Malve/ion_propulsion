@@ -6,6 +6,11 @@
 The code is currently Work In Progress.
 
 ---
+This is a further development of the homonymous project for the Master course "Numerical Analysis of PDEs", NAPDE in short.
+
+That code can be found in branch "NAPDE_project"
+
+---
 
 ### Instructions to build the Makefiles and run the code
 
