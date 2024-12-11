@@ -78,6 +78,11 @@ namespace IonPropulsion{
       this->convergence_table->add_value("cycle", this->refinement_cycle);
       this->convergence_table->add_value("cells", this->triangulation->n_active_cells());
       this->convergence_table->add_value("DoFs", this->dof_handler.n_dofs());
+
+      CSVLogger& logger = CSVLogger::getInstance();
+      logger.addColumn("cycle", std::to_string(this->refinement_cycle));
+      logger.addColumn("cells", std::to_string(this->triangulation->n_active_cells()));
+      logger.addColumn("DoFs", std::to_string(this->dof_handler.n_dofs()));
     }
 
 
@@ -89,6 +94,7 @@ namespace IonPropulsion{
       if (possible_pair.first != "null") {
         Base<dim>::convergence_table->add_value(possible_pair.first, possible_pair.second);
         Base<dim>::convergence_table->set_scientific(possible_pair.first, true);
+        CSVLogger::getInstance().addColumn(possible_pair.first, to_string_with_precision(possible_pair.second,15));
       }
 
 
@@ -305,11 +311,6 @@ namespace IonPropulsion{
                         ".vtu");
       data_out.write(out, DataOutBase::vtu);
 
-      // Also update Convergence Table
-      // Convergence table update
-      this->convergence_table->add_value("cycle", this->refinement_cycle);
-      this->convergence_table->add_value("cells", this->triangulation->n_active_cells());
-      this->convergence_table->add_value("DoFs", this->dof_handler.n_dofs());
     }
 
 

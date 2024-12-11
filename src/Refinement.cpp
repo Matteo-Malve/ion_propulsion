@@ -1,7 +1,6 @@
 #include "Refinement.h"
 #include "Constants.h"
 
-
 namespace IonPropulsion{
   using namespace dealii;
   namespace LaplaceSolver{
@@ -54,6 +53,13 @@ namespace IonPropulsion{
       cout<<std::endl;
       this->convergence_table->write_text(std::cout);
       cout<<std::endl;
+
+      std::ofstream tex_file("convergence_table.tex");
+      if (!tex_file.is_open()) {
+        throw std::runtime_error("Failed to open convergence_table.tex for writing");
+      }
+      this->convergence_table->write_tex(tex_file);
+      tex_file.close();
     }
 
     // ------------------------------------------------------
@@ -494,6 +500,8 @@ namespace IonPropulsion{
 
       PrimalSolver<dim>::convergence_table->add_value("est err",estimated_error);
       PrimalSolver<dim>::convergence_table->set_scientific("est err",true);
+
+      CSVLogger::getInstance().addColumn("est err", to_string_with_precision(estimated_error,15));
     }
 
     template <int dim>
@@ -740,6 +748,11 @@ namespace IonPropulsion{
       PrimalSolver<dim>::convergence_table->add_value("cycle", this->refinement_cycle);
       PrimalSolver<dim>::convergence_table->add_value("cells", this->triangulation->n_active_cells());
       PrimalSolver<dim>::convergence_table->add_value("DoFs", PrimalSolver<dim>::dof_handler.n_dofs());
+
+      CSVLogger& logger = CSVLogger::getInstance();
+      logger.addColumn("cycle", std::to_string(this->refinement_cycle));
+      logger.addColumn("cells", std::to_string(this->triangulation->n_active_cells()));
+      logger.addColumn("DoFs", std::to_string(PrimalSolver<dim>::dof_handler.n_dofs()));
     }
 
     template <int dim>

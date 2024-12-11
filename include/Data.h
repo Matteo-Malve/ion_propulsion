@@ -2,6 +2,7 @@
 #define DATA_H
 
 #include "includes.h"
+#include "CSVLogger.h"
 
 namespace IonPropulsion{
 	using namespace dealii;

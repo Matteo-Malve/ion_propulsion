@@ -2,6 +2,8 @@
 #define EVALUATION_H
 
 #include "includes.h"
+#include "CSVLogger.h"
+
 
 namespace IonPropulsion{
   using namespace dealii;

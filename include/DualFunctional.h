@@ -2,6 +2,7 @@
 #define DUALFUNCTIONAL_H
 
 #include "includes.h"
+#include "CSVLogger.h"
 
 namespace IonPropulsion{
 

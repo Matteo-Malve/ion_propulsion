@@ -88,35 +88,37 @@ namespace IonPropulsion{
 
     for (unsigned int step = 0; true; ++step)
       {
-        std::cout << "Refinement cycle: " << step << std::endl;
+      std::cout << "Refinement cycle: " << step << std::endl;
 
-        solver->set_refinement_cycle(step);
-        solver->update_convergence_table();
-        solver->solve_problem();
-        solver->output_solution();
+      solver->set_refinement_cycle(step);
+      solver->solve_problem();
+      solver->update_convergence_table();
+      solver->output_solution();
 
-        std::cout << "   Number of degrees of freedom=" << solver->n_dofs()
-                  << std::endl;
+      std::cout << "   Number of degrees of freedom=" << solver->n_dofs()
+                << std::endl;
 
-        for (const auto &evaluator : descriptor.evaluator_list)
-          {
-            evaluator->set_refinement_cycle(step);
-            solver->postprocess(*evaluator);
-          }
+      for (const auto &evaluator : descriptor.evaluator_list)
+        {
+          evaluator->set_refinement_cycle(step);
+          solver->postprocess(*evaluator);
+        }
 
 
+      unsigned int DoFs_before_refinement = solver->n_dofs();
+      solver->refine_grid();
 
-        if (solver->n_dofs() < descriptor.max_degrees_of_freedom)
-          solver->refine_grid();
-        else
-          break;
+      solver->print_convergence_table();
+      CSVLogger::getInstance().flushRow();
 
-        solver->print_convergence_table();
-      }
+      if (DoFs_before_refinement > descriptor.max_degrees_of_freedom)
+        break;
 
-    // Clean up the screen after the loop has run:
-    std::cout << std::endl;
-  }
+    }
+
+  // Clean up the screen after the loop has run:
+  std::cout << std::endl;
+}
 
   // Template instantiation
   template struct Framework<2>;
