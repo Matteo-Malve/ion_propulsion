@@ -12,6 +12,7 @@
 extern double eps_0;
 extern double eps_r;
 extern double EXACT_POINT_VALUE;
+extern double EXACT_FLUX;
 extern std::string GOAL_FUNCTIONAL;
 
 

@@ -51,6 +51,23 @@ namespace IonPropulsion{
     };
 
     // ------------------------------------------------------
+    // FluxEvaluation
+    // ------------------------------------------------------
+
+    template <int dim>
+    class FluxEvaluation : public EvaluationBase<dim>
+    {
+    public:
+      FluxEvaluation();
+
+      virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
+                              const Vector<double> & solution) const override;
+
+    private:
+
+    };
+
+    // ------------------------------------------------------
     // PointXDerivativeEvaluation
     // ------------------------------------------------------
 

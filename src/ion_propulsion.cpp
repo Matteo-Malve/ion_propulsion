@@ -24,15 +24,16 @@ int main()
 
       //const Point<dim> evaluation_point(0.75, 0.75);
       const Point<dim> evaluation_point(0.0039, 0.0039);
-      descriptor.dual_functional =
-        std::make_unique<DualFunctional::PointValueEvaluation<dim>>(
-          evaluation_point);
+      descriptor.dual_functional = std::make_unique<DualFunctional::PointValueEvaluation<dim>>(evaluation_point);
+      //descriptor.dual_functional = std::make_unique<DualFunctional::FluxEvaluation<dim>>(1);
 
       Evaluation::PointValueEvaluation<dim> postprocessor1(evaluation_point);
       Evaluation::GridOutput<dim>           postprocessor2("grid");
+      Evaluation::FluxEvaluation<dim>       postprocessor3;
 
       descriptor.evaluator_list.push_back(&postprocessor1);
       descriptor.evaluator_list.push_back(&postprocessor2);
+      descriptor.evaluator_list.push_back(&postprocessor3);
 
       // Set the maximal number of degrees of freedom after which we want the
       // program to stop refining the mesh further:

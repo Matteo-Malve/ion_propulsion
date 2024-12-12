@@ -14,15 +14,15 @@ namespace IonPropulsion{
 			refinement_cycle = step;
 		}
 
+		// ------------------------------------------------------
+		// PointValueEvaluation
+		// ------------------------------------------------------
+
 		template <int dim>
 		PointValueEvaluation<dim>::PointValueEvaluation(
 			const Point<dim> &evaluation_point)
 			: evaluation_point(evaluation_point)
 		{}
-
-		// ------------------------------------------------------
-		// PointValueEvaluation
-		// ------------------------------------------------------
 
 		template <int dim>
 		std::pair<std::string, double>
@@ -53,6 +53,46 @@ namespace IonPropulsion{
 			// Update table with exact error
 			double exact_error = std::fabs(point_value-EXACT_POINT_VALUE);
 			return std::make_pair("ex POINT err",exact_error);
+		}
+
+		// ------------------------------------------------------
+		// FluxEvaluation
+		// ------------------------------------------------------
+
+		template <int dim>
+		FluxEvaluation<dim>::FluxEvaluation()
+		{}
+
+		template <int dim>
+		std::pair<std::string, double>
+		FluxEvaluation<dim>::operator()(const DoFHandler<dim> &dof_handler,
+																		const Vector<double>  &solution) const
+		{
+			double flux = 0;
+			const QGauss<dim-1> face_quadrature(dof_handler.get_fe().degree + 1);
+			FEFaceValues<dim> fe_face_values(dof_handler.get_fe(),
+																			 face_quadrature,
+																			 update_gradients | update_normal_vectors | update_JxW_values);
+			const unsigned int n_face_q_points = face_quadrature.size();
+			std::vector<Tensor<1, dim>> solution_gradients(n_face_q_points);
+
+			for (const auto &cell : dof_handler.active_cell_iterators())
+				for (const auto &face : cell->face_iterators())
+					if (face->at_boundary() && face->boundary_id() == 1) {
+						fe_face_values.reinit(cell, face);
+						fe_face_values.get_function_gradients(solution, solution_gradients);
+						for (unsigned int q_point = 0; q_point < n_face_q_points; ++q_point) {
+							const Tensor<1, dim> &n = fe_face_values.normal_vector(q_point);
+							flux += ((-solution_gradients[q_point]) * (-n)) * fe_face_values.JxW(q_point);
+						}
+					}
+
+			std::cout << std::scientific << std::setprecision(12)
+								<< "   Flux=" << flux << std::endl;
+
+			// Update table with exact error
+			double exact_error = std::fabs(flux-EXACT_FLUX);
+			return std::make_pair("ex FLUX err",exact_error);
 		}
 
 		// ------------------------------------------------------
@@ -183,6 +223,7 @@ namespace IonPropulsion{
 		template class GridOutput<2>;
 		template class PointXDerivativeEvaluation<2>;
 		template class PointValueEvaluation<2>;
+		template class FluxEvaluation<2>;
 		template class EvaluationBase<2>;
 
 	} // namespace Evaluation
