@@ -141,6 +141,14 @@ namespace IonPropulsion{
                                                0,
                                                Functions::ZeroFunction<dim>(),  /*Now assigned by Rg in construction*/
                                                boundary_value_map);
+      VectorTools::interpolate_boundary_values(dof_handler,
+                                               1,
+                                               Functions::ZeroFunction<dim>(),  /*Now assigned by Rg in construction*/
+                                               boundary_value_map);
+      VectorTools::interpolate_boundary_values(dof_handler,
+                                               9,
+                                               Functions::ZeroFunction<dim>(),  /*Now assigned by Rg in construction*/
+                                               boundary_value_map);
       rhs_task.join();
       linear_system.hanging_node_constraints.condense(linear_system.rhs);
       MatrixTools::apply_boundary_values(boundary_value_map,
@@ -240,7 +248,7 @@ namespace IonPropulsion{
       template <int dim>
       void Solver<dim>::LinearSystem::solve(Vector<double> &solution) const   // Note: We will pass homogeneous_solution
       {
-        SolverControl            solver_control(5000, 1e-12);
+        SolverControl            solver_control(10000, 1e-12);
         SolverCG<Vector<double>> cg(solver_control);
 
         PreconditionSSOR<SparseMatrix<double>> preconditioner;

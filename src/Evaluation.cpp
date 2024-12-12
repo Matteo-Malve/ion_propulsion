@@ -47,7 +47,8 @@ namespace IonPropulsion{
 			AssertThrow(evaluation_point_found,
 									ExcEvaluationPointNotFound(evaluation_point));
 
-			std::cout << "   Point value=" << point_value << std::endl;
+			std::cout << std::scientific << std::setprecision(12)
+								<< "   Point value=" << point_value << std::endl;
 
 			// Update table with exact error
 			double exact_error = std::fabs(point_value-EXACT_POINT_VALUE);

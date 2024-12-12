@@ -45,4 +45,5 @@ GOAL_FUNCTIONAL: PointValue       # Type of goal functional
 EVALUATION_RADIUS: 0.0002           # Evaluation radius [m]
 
 # EXACT VALUES
-EXACT_POINT_VALUE: 0.0334473    # step14 classic
+# EXACT_POINT_VALUE: 0.0334473    # step14 classic
+EXACT_POINT_VALUE: 1.742630e-05    # step14 classic

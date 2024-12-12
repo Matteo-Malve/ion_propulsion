@@ -19,6 +19,8 @@ namespace IonPropulsion{
 
       virtual const Function<dim> &get_right_hand_side() const = 0;
 
+      virtual const Function<dim> &get_exact_solution() const = 0;
+
       virtual void
       create_coarse_grid(Triangulation<dim> &coarse_grid) const = 0;
     };
@@ -33,6 +35,7 @@ namespace IonPropulsion{
 
       virtual const Function<dim> &get_right_hand_side() const override;
 
+      virtual const Function<dim> &get_exact_solution() const override;
 
       virtual void
       create_coarse_grid(Triangulation<dim> &coarse_grid) const override;
@@ -40,6 +43,7 @@ namespace IonPropulsion{
     private:
       static const typename Traits::BoundaryValues boundary_values;
       static const typename Traits::RightHandSide  right_hand_side;
+      static const typename Traits::ExactSolution  exact_solution;
     };
 
     // ------------------------------------------------------
@@ -50,6 +54,8 @@ namespace IonPropulsion{
     const typename Traits::BoundaryValues SetUp<Traits, dim>::boundary_values;
     template <class Traits, int dim>
     const typename Traits::RightHandSide SetUp<Traits, dim>::right_hand_side;
+    template <class Traits, int dim>
+    const typename Traits::ExactSolution SetUp<Traits, dim>::exact_solution;
 
 
     // ------------------------------------------------------
@@ -72,6 +78,13 @@ namespace IonPropulsion{
       public:
         virtual double value(const Point<dim> & p,
                              const unsigned int component) const override;
+      };
+
+      class ExactSolution : public Functions::ConstantFunction<dim> {
+      public:
+        ExactSolution()
+          : Functions::ConstantFunction<dim>(-1.e-19)  // Not available
+        {}
       };
 
       static void create_coarse_grid(Triangulation<dim> &coarse_grid);
@@ -107,6 +120,14 @@ namespace IonPropulsion{
         {}
       };
 
+      class ExactSolution : public Functions::ConstantFunction<dim>
+      {
+      public:
+        ExactSolution()
+          : Functions::ConstantFunction<dim>(-1.e-19)  // Not available
+        {}
+      };
+
       // Finally a function to generate the coarse grid. This is somewhat more
       // complicated here, see immediately below.
       static void create_coarse_grid(Triangulation<dim> &coarse_grid);
@@ -132,6 +153,13 @@ namespace IonPropulsion{
       public:
         RightHandSide()
           : Functions::ConstantFunction<dim>(1.)
+        {}
+      };
+
+      class ExactSolution : public Functions::ConstantFunction<dim> {
+      public:
+        ExactSolution()
+          : Functions::ConstantFunction<dim>(-1.e-19)   // Not available
         {}
       };
 

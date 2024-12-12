@@ -15,7 +15,7 @@
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/grid_out.h>
 #include <deal.II/grid/grid_refinement.h>
-#include <deal.II/dofs/dof_handler.h>
+#include <deal.II/dofs/dof_hanAddeddler.h>
 #include <deal.II/dofs/dof_tools.h>
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/fe/fe_values.h>
@@ -32,3 +32,4 @@
 #include <list>
 #include <memory>
 #include <numeric>
+#include <iomanip>

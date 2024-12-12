@@ -22,6 +22,12 @@ namespace IonPropulsion{
       return right_hand_side;
     }
 
+    template <class Traits, int dim>
+    const Function<dim> &SetUp<Traits, dim>::get_exact_solution() const
+    {
+      return exact_solution;
+    }
+
 
     template <class Traits, int dim>
     void SetUp<Traits, dim>::create_coarse_grid(
@@ -146,7 +152,7 @@ namespace IonPropulsion{
       const unsigned int NUM_PRELIMINARY_REF = 0;
       const double l = 0.0004;
 
-      const std::string path_to_mesh = "/Users/matteom/shared-folder/ion_propulsion/mesh/TinyStep14.msh";
+      const std::string path_to_mesh = "../mesh/TinyStep14_1_99.msh";
       cout << endl << "Reading file: " << path_to_mesh << endl;
       std::ifstream input_file(path_to_mesh);
       GridIn<2>       grid_in;
