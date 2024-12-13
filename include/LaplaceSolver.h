@@ -63,6 +63,7 @@ namespace IonPropulsion{
 
       void update_convergence_table() override;
 
+
     protected:
       const SmartPointer<const FiniteElement<dim>>  fe;
       const SmartPointer<const Quadrature<dim>>     quadrature;
@@ -73,11 +74,6 @@ namespace IonPropulsion{
       Vector<double>                                Rg_vector;
       const SmartPointer<const Function<dim>>       boundary_values;
 
-      virtual void assemble_rhs(Vector<double> &rhs) const = 0;
-      virtual void construct_Rg_vector() = 0;
-      virtual void retrieve_Rg() = 0;
-
-    private:
       struct LinearSystem
       {
         LinearSystem(const DoFHandler<dim> &dof_handler);
@@ -90,7 +86,16 @@ namespace IonPropulsion{
         Vector<double>            rhs;
       };
 
+      std::unique_ptr<LinearSystem>                 linear_system_ptr;
 
+      virtual void assemble_rhs(Vector<double> &rhs) const = 0;
+      virtual void construct_Rg_vector() = 0;
+      virtual void retrieve_Rg() = 0;
+
+    public:
+      const LinearSystem* get_linear_system() const { return linear_system_ptr.get(); }
+
+    private:
       struct AssemblyScratchData
       {
         AssemblyScratchData(const FiniteElement<dim> &fe,

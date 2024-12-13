@@ -26,9 +26,12 @@ namespace IonPropulsion{
 
 		template <int dim>
 		std::pair<std::string, double>
-		PointValueEvaluation<dim>::operator()(const DoFHandler<dim> &dof_handler,
-																					const Vector<double> & solution) const
+		PointValueEvaluation<dim>::operator()(
+			const DoFHandler<dim> &dof_handler,
+			const Vector<double> & solution,
+			const ExtraData* extra_data /*= nullptr*/) const
 		{
+			(void)extra_data;
 			double point_value = 1e20;
 
 			bool evaluation_point_found = false;
@@ -65,9 +68,12 @@ namespace IonPropulsion{
 
 		template <int dim>
 		std::pair<std::string, double>
-		FluxEvaluation<dim>::operator()(const DoFHandler<dim> &dof_handler,
-																		const Vector<double>  &solution) const
+		FluxEvaluation<dim>::operator()(
+			const DoFHandler<dim> &dof_handler,
+			const Vector<double>  &solution,
+			const ExtraData* extra_data /*= nullptr*/) const
 		{
+			(void)extra_data;
 			double flux = 0;
 			const QGauss<dim-1> face_quadrature(dof_handler.get_fe().degree + 1);
 			FEFaceValues<dim> fe_face_values(dof_handler.get_fe(),
@@ -112,8 +118,10 @@ namespace IonPropulsion{
 		std::pair<std::string, double>
 		PointXDerivativeEvaluation<dim>::operator()(
       const DoFHandler<dim> &dof_handler,
-      const Vector<double> & solution) const
+      const Vector<double> & solution,
+			const ExtraData* extra_data /*= nullptr*/) const
     {
+			(void)extra_data;
       // This time initialize the return value with something useful, since we
       // will have to add up a number of contributions and take the mean value
       // afterwards...
@@ -209,9 +217,12 @@ namespace IonPropulsion{
 
 		template <int dim>
 		std::pair<std::string, double>
-		GridOutput<dim>::operator()(const DoFHandler<dim> &dof_handler,
-																		 const Vector<double> & /*solution*/) const
+		GridOutput<dim>::operator()(
+			const DoFHandler<dim> &dof_handler,
+			const Vector<double> & /*solution*/,
+			const ExtraData* extra_data /*= nullptr*/) const
 		{
+			(void)extra_data;
 			std::ofstream out(output_name_base + "-" +
 												std::to_string(this->refinement_cycle) + ".svg");
 			GridOut().write_svg(dof_handler.get_triangulation(), out);

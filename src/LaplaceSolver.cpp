@@ -59,9 +59,9 @@ namespace IonPropulsion{
         construct_Rg_vector();
       }
 
-      LinearSystem linear_system(dof_handler);
-      assemble_linear_system(linear_system);
-      linear_system.solve(homogeneous_solution /*solution*/);
+      linear_system_ptr = std::make_unique<LinearSystem>(dof_handler);
+      assemble_linear_system(*linear_system_ptr);
+      linear_system_ptr->solve(homogeneous_solution /*solution*/);
 
       // Retrieve lifting
       solution = homogeneous_solution;
@@ -90,7 +90,14 @@ namespace IonPropulsion{
     void Solver<dim>::postprocess(
       const Evaluation::EvaluationBase<dim> &postprocessor) const
     {
-      std::pair<std::string, double> possible_pair = postprocessor(dof_handler, solution);
+      Evaluation::ExtraData extra_data;
+      if (linear_system_ptr) {
+        extra_data.matrix = &linear_system_ptr->matrix;
+        extra_data.rhs = &linear_system_ptr->rhs;
+      }
+
+      std::pair<std::string, double> possible_pair = postprocessor(dof_handler, solution, &extra_data);
+
       if (possible_pair.first != "null") {
         Base<dim>::convergence_table->add_value(possible_pair.first, possible_pair.second);
         Base<dim>::convergence_table->set_scientific(possible_pair.first, true);
