@@ -67,10 +67,96 @@ namespace IonPropulsion{
       solution = homogeneous_solution;
       retrieve_Rg();
 
+      // Compute flux
+      compute_flux();
+
+    }
+
+    template <int dim>
+    void Solver<dim>::compute_flux() {
+
+      std::unique_ptr<const Function<dim>> rhs_function = std::make_unique<Functions::ConstantFunction<dim>>(1.);
+      // TODO: Generalize this.
+      // --> rhs_function available only in PrimalSolver
+
+      //SparseMatrix<double>      flux_matrix;
+      //Vector<double>            flux_rhs;
+      double flux = 0.;
+
+      FEValues<dim> fe_values(*this->fe,
+                              *this->quadrature,
+                              update_values | update_gradients | update_quadrature_points |
+                              update_JxW_values);
+      const unsigned int dofs_per_cell = this->fe->n_dofs_per_cell();
+      const unsigned int n_q_points    = this->quadrature->size();
+
+      FullMatrix<double>    cell_matrix(dofs_per_cell, dofs_per_cell);
+      Vector<double>        cell_rhs(dofs_per_cell);
+
+      std::vector<double>                  rhs_values(n_q_points);
+      std::vector<Tensor<1, dim>>          rg_gradients(n_q_points);
+
+      std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
+
+      for (const auto &cell : dof_handler.active_cell_iterators()) {
+        bool cell_is_on_emitter = false;
+        for (const auto &face : cell->face_iterators())
+          if (face->at_boundary() && face->boundary_id() == 1) {
+            cell_is_on_emitter = true;
+            break;
+          }
+        if (cell_is_on_emitter) {
+          fe_values.reinit(cell);
+
+          fe_values.get_function_gradients(this->Rg_vector, rg_gradients);
+          rhs_function->value_list(fe_values.get_quadrature_points(),rhs_values);
+
+          cell_matrix = 0;
+          cell_rhs = 0;
+
+          for (const unsigned int q_index : fe_values.quadrature_point_indices()) {
+            for (const unsigned int i : fe_values.dof_indices()){
+              for (const unsigned int j : fe_values.dof_indices())
+                flux +=
+                  eps_r * eps_0 *
+                  solution(local_dof_indices[j]) *      // w_j
+                  (fe_values.shape_grad(i, q_index) *   // grad phi_i(x_q)
+                  fe_values.shape_grad(j, q_index) *  // grad phi_j(x_q)
+                  fe_values.JxW(q_index));            // dx
+              // NOTE: Inverted signs for rhs contributions
+              flux -=
+                (fe_values.shape_value(i, q_index) *   // phi_i(x_q)
+                rhs_values[q_index] *              // f(x_q)
+                fe_values.JxW(q_index));               //dx
+              flux +=
+                eps_r * eps_0 *
+                (fe_values.shape_grad(i, q_index) *   // grad phi_i(x_q)
+                rg_gradients[q_index] *               // grad_Rg(x_q)
+                fe_values.JxW(q_index));              // dx
+            }
+          }
+
+        } // end if boundary
+      } // end cell loop
+
+      std::cout << std::scientific << std::setprecision(12)
+                << "   2.Flux=" << flux << std::endl;
 
 
+      /*
 
+      // Apply boundary values
+      std::map<types::global_dof_index, double> boundary_values;
+      VectorTools::interpolate_boundary_values(primal_dof_handler,1, Functions::ZeroFunction<dim>(), boundary_values);
+      VectorTools::interpolate_boundary_values(primal_dof_handler,9, Functions::ZeroFunction<dim>(), boundary_values);
+      //VectorTools::interpolate_boundary_values(primal_dof_handler,1, exact_solution_function, boundary_values);
+      //VectorTools::interpolate_boundary_values(primal_dof_handler,9, exact_solution_function, boundary_values);
 
+      // Condense constraints
+      primal_constraints.condense(primal_system_matrix);
+      primal_constraints.condense(primal_rhs);
+
+      MatrixTools::apply_boundary_values(boundary_values, primal_system_matrix, uh0, primal_rhs); */
     }
 
     template <int dim>

@@ -122,6 +122,8 @@ namespace IonPropulsion{
 
       void copy_local_to_global(const AssemblyCopyData &copy_data,
                                 LinearSystem &          linear_system) const;
+
+      void compute_flux();
     };
 
 
