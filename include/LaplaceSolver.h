@@ -33,7 +33,11 @@ namespace IonPropulsion{
 
       virtual void print_convergence_table() const {};
 
+      virtual void compute_flux() = 0;
+
     protected:
+
+
       const SmartPointer<Triangulation<dim>> triangulation;
       std::shared_ptr<ConvergenceTable> convergence_table;
 
@@ -92,8 +96,11 @@ namespace IonPropulsion{
       virtual void construct_Rg_vector() = 0;
       virtual void retrieve_Rg() = 0;
 
+
+
     public:
       const LinearSystem* get_linear_system() const { return linear_system_ptr.get(); }
+      virtual void compute_flux() override;
 
     private:
       struct AssemblyScratchData
@@ -122,8 +129,6 @@ namespace IonPropulsion{
 
       void copy_local_to_global(const AssemblyCopyData &copy_data,
                                 LinearSystem &          linear_system) const;
-
-      void compute_flux();
     };
 
 

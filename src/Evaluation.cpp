@@ -47,8 +47,11 @@ namespace IonPropulsion{
 							break;
 						}
 
-			AssertThrow(evaluation_point_found,
-									ExcEvaluationPointNotFound(evaluation_point));
+			//AssertThrow(evaluation_point_found, ExcEvaluationPointNotFound(evaluation_point));
+			if (!evaluation_point_found) {
+				cout<<"      Vertex not found in the mesh."<<std::endl;
+				point_value = VectorTools::point_value(dof_handler, solution, evaluation_point);
+			}
 
 			std::cout << std::scientific << std::setprecision(12)
 								<< "   Point value=" << point_value << std::endl;

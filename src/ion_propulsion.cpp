@@ -13,8 +13,8 @@ int main()
       Framework<dim>::ProblemDescription descriptor;
 
       // First set the refinement criterion we wish to use:
-      //descriptor.refinement_criterion = Framework<dim>::ProblemDescription::dual_weighted_error_estimator;
-      descriptor.refinement_criterion = Framework<dim>::ProblemDescription::global_refinement;
+      descriptor.refinement_criterion = Framework<dim>::ProblemDescription::dual_weighted_error_estimator;
+      //descriptor.refinement_criterion = Framework<dim>::ProblemDescription::global_refinement;
 
       descriptor.primal_fe_degree = 1;
       descriptor.dual_fe_degree   = 2;
@@ -24,6 +24,7 @@ int main()
 
       //const Point<dim> evaluation_point(0.75, 0.75);
       const Point<dim> evaluation_point(0.0039, 0.0039);
+      //const Point<dim> evaluation_point(0.00595308, 0.00356424);
       descriptor.dual_functional = std::make_unique<DualFunctional::PointValueEvaluation<dim>>(evaluation_point);
       //descriptor.dual_functional = std::make_unique<DualFunctional::FluxEvaluation<dim>>(1);
 

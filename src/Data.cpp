@@ -148,11 +148,10 @@ namespace IonPropulsion{
     {
       const unsigned int dim = 2;
 
-      const unsigned int NUM_PRELIMINARY_GLOBAL_REF = 0;
-      const unsigned int NUM_PRELIMINARY_REF = 0;
       const double l = 0.0004;
 
-      const std::string path_to_mesh = "../mesh/TinyStep14_1_99.msh";
+      //const std::string path_to_mesh = "../mesh/TinyStep14_1_99.msh";
+      const std::string path_to_mesh = "../mesh/TinyStep14_deFalco.msh";
       cout << endl << "Reading file: " << path_to_mesh << endl;
       std::ifstream input_file(path_to_mesh);
       GridIn<2>       grid_in;

@@ -92,6 +92,7 @@ namespace IonPropulsion{
 
       solver->set_refinement_cycle(step);
       solver->solve_problem();
+      solver->compute_flux();
       solver->update_convergence_table();
       solver->output_solution();
 
@@ -104,10 +105,8 @@ namespace IonPropulsion{
           solver->postprocess(*evaluator);
         }
 
-
       unsigned int DoFs_before_refinement = solver->n_dofs();
       solver->refine_grid();
-
       solver->print_convergence_table();
       CSVLogger::getInstance().flushRow();
 

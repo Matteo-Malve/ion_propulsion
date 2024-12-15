@@ -81,6 +81,8 @@ namespace IonPropulsion{
 
       virtual void solve_problem() override;
 
+      virtual void compute_flux() override;
+
       virtual void postprocess(
         const Evaluation::EvaluationBase<dim> &postprocessor) const override;
 

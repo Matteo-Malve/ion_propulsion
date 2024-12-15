@@ -20,23 +20,38 @@ namespace IonPropulsion{
       // So, first set everything to zeros...
       rhs.reinit(dof_handler.n_dofs());
 
+      // Keep track of nearest vertex
+      double min_distance = std::numeric_limits<double>::max();
+      typename DoFHandler<dim>::active_cell_iterator nearest_cell;
+      unsigned int nearest_vertex = 0;
+
       // ...then loop over cells and find the evaluation point among the
       // vertices (or very close to a vertex, which may happen due to floating
       // point round-off):
       for (const auto &cell : dof_handler.active_cell_iterators())
-        for (const auto vertex : cell->vertex_indices())
-          if (cell->vertex(vertex).distance(evaluation_point) <
-              cell->diameter() * 1e-8)
+        for (const auto vertex : cell->vertex_indices()) {
+          double distance = cell->vertex(vertex).distance(evaluation_point);
+          if (distance < cell->diameter() * 1e-8)
           {
             // Ok, found, so set corresponding entry, and leave function
             // since we are finished:
             rhs(cell->vertex_dof_index(vertex, 0)) = 1;
             return;
           }
+          // Keep track of the nearest vertex if the exact point isn't found
+          if (distance < min_distance) {
+            min_distance = distance;
+            nearest_cell = cell;
+            nearest_vertex = vertex;
+          }
+        }
 
-      // Finally, a sanity check: if we somehow got here, then we must have
-      // missed the evaluation point, so raise an exception unconditionally:
-      AssertThrow(false, ExcEvaluationPointNotFound(evaluation_point));
+      // If no vertex within tolerance was found, set rhs at the nearest vertex
+      if (min_distance < std::numeric_limits<double>::max()) {
+        rhs(nearest_cell->vertex_dof_index(nearest_vertex, 0)) = 1;
+      } else {
+        AssertThrow(false, ExcEvaluationPointNotFound(evaluation_point));
+      }
     }
 
     // ------------------------------------------------------

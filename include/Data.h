@@ -3,6 +3,7 @@
 
 #include "includes.h"
 #include "CSVLogger.h"
+#include "Constants.h"
 
 namespace IonPropulsion{
 	using namespace dealii;

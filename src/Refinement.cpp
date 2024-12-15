@@ -308,6 +308,12 @@ namespace IonPropulsion{
       tasks.join_all();
     }
 
+    template <int dim>
+    void WeightedResidual<dim>::compute_flux()
+    {
+      PrimalSolver<dim>::compute_flux();
+    }
+
 
     template <int dim>
     void WeightedResidual<dim>::solve_primal_problem()
@@ -396,6 +402,13 @@ namespace IonPropulsion{
       data_out.add_data_vector(PrimalSolver<dim>::Rg_vector, "Rg");
       data_out.add_data_vector(PrimalSolver<dim>::solution, "uh");
       data_out.add_data_vector(dual_solution, "zh");
+
+      Vector<double> boundary_ids(this->triangulation->n_active_cells());
+      for (const auto &cell : this->triangulation->active_cell_iterators())
+        for (unsigned int face = 0; face < GeometryInfo<dim>::faces_per_cell; ++face)
+          if (cell->face(face)->at_boundary())
+            boundary_ids[cell->active_cell_index()] = cell->face(face)->boundary_id();
+      data_out.add_data_vector(boundary_ids, "boundary_ids");
 
       data_out.build_patches();
 
