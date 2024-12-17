@@ -38,7 +38,7 @@ int main()
 
       // Set the maximal number of degrees of freedom after which we want the
       // program to stop refining the mesh further:
-      descriptor.max_degrees_of_freedom = 2000000000; // 20k
+      descriptor.max_degrees_of_freedom = 20000; // 20k
 
       // Finally pass the descriptor object to a function that runs the entire
       // solution with it:

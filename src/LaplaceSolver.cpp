@@ -83,62 +83,60 @@ namespace IonPropulsion{
       //Vector<double>            flux_rhs;
       double flux = 0.;
 
-      FEValues<dim> fe_values(*this->fe,
-                              *this->quadrature,
+      const QGauss<dim-1> face_quadrature(dof_handler.get_fe().degree + 1);
+      FEFaceValues<dim> fe_face_values(*this->fe,
+                              face_quadrature,
                               update_values | update_gradients | update_quadrature_points |
                               update_JxW_values);
-      const unsigned int dofs_per_cell = this->fe->n_dofs_per_cell();
-      const unsigned int n_q_points    = this->quadrature->size();
+      const unsigned int dofs_per_face = this->fe->n_dofs_per_face(); // TODO: devo reinizializzare? Cambai con hanging nodes?
+      const unsigned int n_face_q_points = face_quadrature.size();
 
-      FullMatrix<double>    cell_matrix(dofs_per_cell, dofs_per_cell);
-      Vector<double>        cell_rhs(dofs_per_cell);
+      std::vector<double>                  rhs_values(n_face_q_points);
+      std::vector<Tensor<1, dim>>          rg_gradients(n_face_q_points);
 
-      std::vector<double>                  rhs_values(n_q_points);
-      std::vector<Tensor<1, dim>>          rg_gradients(n_q_points);
+      std::vector<types::global_dof_index> local_dof_indices(dofs_per_face);
 
-      std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
-
+      // Cycle on all cells
       for (const auto &cell : dof_handler.active_cell_iterators()) {
-        bool cell_is_on_emitter = false;
+
+        // Determine if cell is on the EMITTER
         for (const auto &face : cell->face_iterators())
           if (face->at_boundary() && face->boundary_id() == 1) {
-            cell_is_on_emitter = true;
-            break;
-          }
-        if (cell_is_on_emitter) {
-          fe_values.reinit(cell);
 
-          fe_values.get_function_gradients(this->Rg_vector, rg_gradients);
-          rhs_function->value_list(fe_values.get_quadrature_points(),rhs_values);
+            fe_face_values.reinit(cell,face);
 
-          cell_matrix = 0;
-          cell_rhs = 0;
+            // Evaluate: gradRg & F
+            fe_face_values.get_function_gradients(this->Rg_vector, rg_gradients);
+            rhs_function->value_list(fe_face_values.get_quadrature_points(),rhs_values);
 
-          for (const unsigned int q_index : fe_values.quadrature_point_indices()) {
-            for (const unsigned int i : fe_values.dof_indices()){
-              for (const unsigned int j : fe_values.dof_indices())
-                flux +=
+
+            for (const unsigned int q_index : fe_face_values.quadrature_point_indices()) {
+              for (const unsigned int i : fe_face_values.dof_indices()){
+                for (const unsigned int j : fe_face_values.dof_indices())
+                  flux +=
+                    eps_r * eps_0 *
+                    solution(local_dof_indices[j]) *             // w_j
+                    (fe_face_values.shape_grad(i, q_index) *   // grad phi_i(x_q)
+                    fe_face_values.shape_grad(j, q_index) *  // grad phi_j(x_q)
+                    fe_face_values.JxW(q_index));                     // dx
+                // NOTE: Inverted signs for rhs contributions
+                flux -=
+                  (fe_face_values.shape_value(i, q_index) *   // phi_i(x_q)
+                  rhs_values[q_index] *                         // f(x_q)
+                  fe_face_values.JxW(q_index));                      //dx
+                /*flux +=
                   eps_r * eps_0 *
-                  solution(local_dof_indices[j]) *      // w_j
-                  (fe_values.shape_grad(i, q_index) *   // grad phi_i(x_q)
-                  fe_values.shape_grad(j, q_index) *  // grad phi_j(x_q)
-                  fe_values.JxW(q_index));            // dx
-              // NOTE: Inverted signs for rhs contributions
-              flux -=
-                (fe_values.shape_value(i, q_index) *   // phi_i(x_q)
-                rhs_values[q_index] *              // f(x_q)
-                fe_values.JxW(q_index));               //dx
-              flux +=
-                eps_r * eps_0 *
-                (fe_values.shape_grad(i, q_index) *   // grad phi_i(x_q)
-                rg_gradients[q_index] *               // grad_Rg(x_q)
-                fe_values.JxW(q_index));              // dx
+                  (fe_face_values.shape_grad(i, q_index) *   // grad phi_i(x_q)
+                  rg_gradients[q_index] *                      // grad_Rg(x_q)
+                  fe_face_values.JxW(q_index));                     // dx*/
             }
           }
 
         } // end if boundary
       } // end cell loop
 
+
+      // Output the result
       std::cout << std::scientific << std::setprecision(12)
                 << "   2.Flux=" << flux << std::endl;
 
@@ -341,7 +339,7 @@ namespace IonPropulsion{
       template <int dim>
       void Solver<dim>::LinearSystem::solve(Vector<double> &solution) const   // Note: We will pass homogeneous_solution
       {
-        SolverControl            solver_control(10000, 1e-12);
+        SolverControl            solver_control(1000, 1e-12);
         SolverCG<Vector<double>> cg(solver_control);
 
         PreconditionSSOR<SparseMatrix<double>> preconditioner;

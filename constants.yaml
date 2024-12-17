@@ -29,7 +29,7 @@ PATH_TO_MESH: ../mesh/cerchi_concentrici.msh  # Path to the mesh file
 
 # Refinement parameters
 NUM_PRELIMINARY_REF: 0              # Number of preliminary refinements
-NUM_PRELIMINARY_GLOBAL_REF: 2       # Number of preliminary global refinements
+NUM_PRELIMINARY_GLOBAL_REF: 0       # Number of preliminary global refinements
 NUM_REFINEMENT_CYCLES: 10           # Number of refinement cycles
 
 # Convergence analysis
