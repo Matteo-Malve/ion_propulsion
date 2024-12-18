@@ -4,6 +4,8 @@
 #include "includes.h"
 #include "CSVLogger.h"
 #include "Constants.h"
+#include <deal.II/grid/grid_in.h>
+
 
 namespace IonPropulsion{
 	using namespace dealii;
@@ -168,6 +170,175 @@ namespace IonPropulsion{
       // complicated here, see immediately below.
       static void create_coarse_grid(Triangulation<dim> &coarse_grid);
     };
+
+    // ------------------------------------------------------
+    // FullTestSqruareComparison
+    // ------------------------------------------------------
+    constexpr double pi = 3.14159265358979323846;
+
+    template <int dim>
+    struct FullTestSqruareComparison
+    {
+      // We need a class to denote the boundary values of the problem. In this
+      // case, this is simple: it's the zero function, so don't even declare a
+      // class, just an alias:
+      //using BoundaryValues = ExactSolution5b<dim>;
+      class BoundaryValues : public Function<dim>
+      {
+      public:
+        virtual double value(const Point<dim> & p,
+                             const unsigned int component) const override {
+          (void)component;
+
+          double sigma2 = 0.0000005;
+          double Ve = 20000.;
+          double l = 0.0004;
+
+
+          const auto x = p[0];
+          const auto y = p[1];
+          double r = sqrt(x*x + y*y);
+          double expTerm = std::exp(- std::pow(r-l, 2) / (2 * sigma2));
+          double freq = 0.5;
+          double argX = (std::abs(x)-l) * pi / l * freq;
+          double argY = (std::abs(y)-l) * pi / l * freq;
+
+          return expTerm * Ve * (1 - sin(argX) * sin(argY));
+
+        }
+      };
+
+      class ExactSolution : public Function<dim>
+      {
+      public:
+        virtual double value(const Point<dim> & p,
+                             const unsigned int component) const override {
+          (void)component;
+
+          double sigma2 = 0.0000005;
+          double Ve = 20000.;
+          double l = 0.0004;
+
+
+          const auto x = p[0];
+          const auto y = p[1];
+          double r = sqrt(x*x + y*y);
+          double expTerm = std::exp(- std::pow(r-l, 2) / (2 * sigma2));
+          double freq = 0.5;
+          double argX = (std::abs(x)-l) * pi / l * freq;
+          double argY = (std::abs(y)-l) * pi / l * freq;
+
+          return expTerm * Ve * (1 - sin(argX) * sin(argY));
+
+        }
+      };
+
+      class RightHandSide : public Function<dim>
+      {
+      public:
+        virtual double value(const Point<dim> & p,
+                             const unsigned int component) const override {
+          (void)component;
+          double sigma2 = 0.0000005;
+          double freq = 0.5;
+          double l = 0.0004;
+          double Ve = 20000.;
+
+          const auto x = p[0];
+          const auto y = p[1];
+          double r = sqrt(x*x + y*y);
+          double expTerm = std::exp(- std::pow(r-l, 2) / (2 * sigma2));
+          double argX = (std::abs(x)-l) * pi / l * freq;
+          double argY = (std::abs(y)-l) * pi / l * freq;
+          double signX = x>=0 ? +1. : -1.;
+          double signY = y>=0 ? +1. : -1.;
+
+          return - 1 * 1 *
+                  (1 / ( l*l * sigma2*sigma2 * r)) * expTerm * Ve *
+                  (   2 * freq * l * pi * sigma2 * x * (r-l) * cos(argX) * sin(argY) * signX +
+                      freq*freq * pi*pi * sigma2*sigma2 * r * sin(argX) * sin(argY) +
+                      2 * freq * l * pi * sigma2 * y * (r-l) * cos(argY) * sin(argX) * signY +
+                      freq*freq * pi*pi * sigma2*sigma2 * r * sin(argX) * sin(argY) -
+                      l * ( l * ( l*l * r + r * (r*r - 2*sigma2) +l * (sigma2 - 2*r*r) ) *  (- 1 + sin(argX) * sin(argY) ))
+                  );
+        }
+      };
+
+      // Finally a function to generate the coarse grid. This is somewhat more
+      // complicated here, see immediately below.
+      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+    };
+
+    // ------------------------------------------------------
+    // Circular
+    // ------------------------------------------------------
+
+    template <int dim>
+    struct Circular
+    {
+      // We need a class to denote the boundary values of the problem. In this
+      // case, this is simple: it's the zero function, so don't even declare a
+      // class, just an alias:
+      //using BoundaryValues = ExactSolution5b<dim>;
+      class BoundaryValues : public Function<dim> {
+      public:
+        virtual double value(const Point<dim> & p,
+                             const unsigned int component) const override {
+          (void)component;
+          double Ve = 20000.;
+          double l = 0.0004;
+          double L = 0.004;
+
+          const auto x = p[0];
+          const auto y = p[1];
+          const double r = std::sqrt(x*x + y*y);
+
+          return Ve * (r-L) / (l-L);
+        }
+      };
+      class ExactSolution : public Function<dim>
+      {
+      public:
+        virtual double value(const Point<dim> & p,
+                             const unsigned int component) const override {
+          (void)component;
+          double Ve = 20000.;
+          double l = 0.0004;
+          double L = 0.004;
+
+          const auto x = p[0];
+          const auto y = p[1];
+          const double r = std::sqrt(x*x + y*y);
+
+          return Ve * (r-L) / (l-L);
+
+        }
+      };
+
+      class RightHandSide : public Function<dim>
+      {
+      public:
+        virtual double value(const Point<dim> & p,
+                             const unsigned int component) const override {
+          (void)component;
+          double Ve = 20000.;
+          double l = 0.0004;
+          double L = 0.004;
+          const auto x = p[0];
+          const auto y = p[1];
+          const double r = std::sqrt(x*x + y*y);
+
+          double laplacian = Ve / ((l-L)*r);
+          return - eps_0 * eps_r * laplacian;
+        }
+      };
+
+      // Finally a function to generate the coarse grid. This is somewhat more
+      // complicated here, see immediately below.
+      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+    };
+
+
   } // namespace Data
 }
 

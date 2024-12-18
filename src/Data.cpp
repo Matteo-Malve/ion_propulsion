@@ -184,6 +184,45 @@ namespace IonPropulsion{
 
     }
 
+    // ------------------------------------------------------
+    // FullTestSqruareComparison
+    // ------------------------------------------------------
+
+    template <>
+    void FullTestSqruareComparison<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    {
+         const std::string path_to_mesh = "../mesh/FullTestSquare.msh";
+      //const std::string path_to_mesh = "../mesh/TinyStep14_deFalco.msh";
+      cout << std::endl << "Reading file: " << path_to_mesh << std::endl;
+      std::ifstream input_file(path_to_mesh);
+      GridIn<2>       grid_in;
+      grid_in.attach_triangulation(coarse_grid);
+      grid_in.read_msh(input_file);
+
+    }
+
+    // ------------------------------------------------------
+    // Circular
+    // ------------------------------------------------------
+
+    template <>
+    void Circular<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    {
+      const std::string path_to_mesh = "../mesh/cerchi_concentrici.msh";
+      cout << std::endl << "Reading file: " << path_to_mesh << std::endl;
+      std::ifstream input_file(path_to_mesh);
+      GridIn<2>       grid_in;
+      grid_in.attach_triangulation(coarse_grid);
+      grid_in.read_msh(input_file);
+
+      double pi = 3.14159265358979323846;
+      double Ve = 20000.;
+      double l = 0.0004;
+      double L = 0.004;
+      cout<< "Exact flux: "<< 2 * pi * l * Ve / (L-l) <<std::endl;
+
+    }
+
     // Template instantiation
     template struct SetUpBase<2>;
     template struct CurvedRidges<2>;
@@ -193,6 +232,12 @@ namespace IonPropulsion{
 
     template struct Rectangle_1_99<2>;
     template struct SetUp<IonPropulsion::Data::Rectangle_1_99<2>, 2>;
+
+    template struct FullTestSqruareComparison<2>;
+    template struct SetUp<IonPropulsion::Data::FullTestSqruareComparison<2>, 2>;
+
+    template struct Circular<2>;
+    template struct SetUp<IonPropulsion::Data::Circular<2>, 2>;
 
   } // namespace Data
 } // namespace IonPropulsion

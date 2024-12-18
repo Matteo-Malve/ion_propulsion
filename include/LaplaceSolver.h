@@ -84,6 +84,8 @@ namespace IonPropulsion{
 
         void solve(Vector<double> &solution) const;
 
+        void compute_flux(const DoFHandler<dim> &dof_handler,Vector<double> &solution);
+
         AffineConstraints<double> hanging_node_constraints;
         SparsityPattern           sparsity_pattern;
         SparseMatrix<double>      matrix;

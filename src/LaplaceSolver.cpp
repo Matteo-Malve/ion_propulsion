@@ -63,9 +63,12 @@ namespace IonPropulsion{
       assemble_linear_system(*linear_system_ptr);
       linear_system_ptr->solve(homogeneous_solution /*solution*/);
 
+
       // Retrieve lifting
       solution = homogeneous_solution;
       retrieve_Rg();
+
+      linear_system_ptr->compute_flux(dof_handler, solution);
 
       // Compute flux
       //compute_flux();
@@ -112,13 +115,16 @@ namespace IonPropulsion{
 
             for (const unsigned int q_index : fe_face_values.quadrature_point_indices()) {
               for (const unsigned int i : fe_face_values.dof_indices()){
-                for (const unsigned int j : fe_face_values.dof_indices())
+                for (const unsigned int j : fe_face_values.dof_indices()) {
+                  //if (local_dof_indices[j]<1.8e4)
+                    //cout<<"sol: "<< solution(local_dof_indices[j]) << std::endl;
                   flux +=
                     eps_r * eps_0 *
                     solution(local_dof_indices[j]) *             // w_j
                     (fe_face_values.shape_grad(i, q_index) *   // grad phi_i(x_q)
                     fe_face_values.shape_grad(j, q_index) *  // grad phi_j(x_q)
                     fe_face_values.JxW(q_index));                     // dx
+                }
                 // NOTE: Inverted signs for rhs contributions
                 flux -=
                   (fe_face_values.shape_value(i, q_index) *   // phi_i(x_q)
@@ -230,15 +236,15 @@ namespace IonPropulsion{
       std::map<types::global_dof_index, double> boundary_value_map;
       VectorTools::interpolate_boundary_values(dof_handler,
                                                0,
-                                               Functions::ZeroFunction<dim>(),  /*Now assigned by Rg in construction*/
+                                               Functions::ZeroFunction<dim>(),
                                                boundary_value_map);
       VectorTools::interpolate_boundary_values(dof_handler,
                                                1,
-                                               Functions::ZeroFunction<dim>(),  /*Now assigned by Rg in construction*/
+                                               Functions::ZeroFunction<dim>(),
                                                boundary_value_map);
       VectorTools::interpolate_boundary_values(dof_handler,
                                                9,
-                                               Functions::ZeroFunction<dim>(),  /*Now assigned by Rg in construction*/
+                                               Functions::ZeroFunction<dim>(),
                                                boundary_value_map);
       rhs_task.join();
       linear_system.hanging_node_constraints.condense(linear_system.rhs);
@@ -351,6 +357,28 @@ namespace IonPropulsion{
 
       //cout<<"Solved system: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<std::endl;
       }
+
+    template <int dim>
+    void Solver<dim>::LinearSystem::compute_flux(const DoFHandler<dim> &dof_handler, Vector<double> &solution) {
+
+      Vector<double> Au(dof_handler.n_dofs());
+      matrix.vmult(Au, solution);
+      Au-=rhs;
+
+      std::vector<bool> boundary_dofs(dof_handler.n_dofs(), false);
+
+      // Extract boundary DoFs with boundary_id == 1
+      auto index_set = DoFTools::extract_boundary_dofs(dof_handler,
+                                      ComponentMask(),
+                                      std::set<types::boundary_id>({1}));
+
+      double flux = 0.;
+      for (auto index = index_set.begin(); index != index_set.end(); ++index) {
+        flux += Au(*index);
+      }
+
+      cout<<"   3.Flux : "<<flux<<std::endl;
+    }
 
     // ------------------------------------------------------
     // PrimalSolver
