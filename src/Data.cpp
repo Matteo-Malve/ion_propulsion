@@ -223,6 +223,31 @@ namespace IonPropulsion{
 
     }
 
+    // ------------------------------------------------------
+    // LogCircular
+    // ------------------------------------------------------
+
+    template <>
+    void LogCircular<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    {
+      const std::string path_to_mesh = "../mesh/cerchi_concentrici.msh";
+      cout << std::endl << "Reading file: " << path_to_mesh << std::endl;
+      std::ifstream input_file(path_to_mesh);
+      GridIn<2>       grid_in;
+      grid_in.attach_triangulation(coarse_grid);
+      grid_in.read_msh(input_file);
+
+      double pi = 3.14159265358979323846;
+      double Ve = 20000.;
+      double l = 0.0004;
+      double L = 0.004;
+      cout<< "Exact flux: "<< - 2 * pi * l    *   Ve / (log(l/L) * l) <<std::endl;
+
+      ExactSolution exact_solution;
+      cout<< "Exact value at (0.001,0.001): "<< exact_solution.value(Point<2>(0.001,0.001),0) <<std::endl;
+
+    }
+
     // Template instantiation
     template struct SetUpBase<2>;
     template struct CurvedRidges<2>;
@@ -238,6 +263,9 @@ namespace IonPropulsion{
 
     template struct Circular<2>;
     template struct SetUp<IonPropulsion::Data::Circular<2>, 2>;
+
+    template struct LogCircular<2>;
+    template struct SetUp<IonPropulsion::Data::LogCircular<2>, 2>;
 
   } // namespace Data
 } // namespace IonPropulsion

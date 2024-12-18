@@ -45,6 +45,10 @@ GOAL_FUNCTIONAL: PointValue       # Type of goal functional
 EVALUATION_RADIUS: 0.0002           # Evaluation radius [m]
 
 # EXACT VALUES
-# EXACT_POINT_VALUE: 0.0334473        # step14 classic
-EXACT_POINT_VALUE: 1.742630e-05       # 1:99
-EXACT_FLUX: -3.9252746598790566e-05   # 1:99
+# EXACT_POINT_VALUE: 0.0334473        # step14 classic (0.75, 0.75)
+# EXACT_POINT_VALUE: 1.742630e-05       # 1:99 (0.0039, 0.0039)
+EXACT_POINT_VALUE: 9030.9        # LogCircular, (0.001,0.001)
+
+#EXACT_FLUX: -3.9252746598790566e-05   # 1:99
+#EXACT_FLUX: 13962.6               # Circular
+EXACT_FLUX: 54575.1               # Log Circular

@@ -31,7 +31,7 @@ namespace IonPropulsion{
       for (const auto &cell : dof_handler.active_cell_iterators())
         for (const auto vertex : cell->vertex_indices()) {
           double distance = cell->vertex(vertex).distance(evaluation_point);
-          if (distance < cell->diameter() * 1e-8)
+          if (distance < cell->diameter() * 1.)
           {
             // Ok, found, so set corresponding entry, and leave function
             // since we are finished:
@@ -45,7 +45,7 @@ namespace IonPropulsion{
             nearest_vertex = vertex;
           }
         }
-
+      std::cout<<"      DualRhs: Point not found" << std::endl;
       // If no vertex within tolerance was found, set rhs at the nearest vertex
       if (min_distance < std::numeric_limits<double>::max()) {
         rhs(nearest_cell->vertex_dof_index(nearest_vertex, 0)) = 1;
@@ -178,6 +178,7 @@ namespace IonPropulsion{
     // Template instantiation
     template class DualFunctionalBase<2>;
     template class PointValueEvaluation<2>;
+    template class FluxEvaluation<2>;
     template class PointXDerivativeEvaluation<2>;
 
   } // namespace DualFunctional

@@ -143,8 +143,7 @@ namespace IonPropulsion{
 
 
       // Output the result
-      std::cout << std::scientific << std::setprecision(12)
-                << "   2.Flux=" << flux << std::endl;
+      //std::cout << std::scientific << std::setprecision(12)<< "   2.Flux=" << flux << std::endl;
 
 
       /*
@@ -361,23 +360,28 @@ namespace IonPropulsion{
     template <int dim>
     void Solver<dim>::LinearSystem::compute_flux(const DoFHandler<dim> &dof_handler, Vector<double> &solution) {
 
+      // Extract index sets
+      IndexSet complete_index_set = dof_handler.locally_owned_dofs();
+      auto e_index_set = DoFTools::extract_boundary_dofs(dof_handler,
+                                      ComponentMask(),
+                                      std::set<types::boundary_id>({1}));
+      auto d_index_set = DoFTools::extract_boundary_dofs(dof_handler,
+                                      ComponentMask(),
+                                      std::set<types::boundary_id>({1,9}));
+      IndexSet i_index_set = complete_index_set;
+      i_index_set.subtract_set(d_index_set);
+
+      // Compute A(enodes, :) * u - b(enodes)
       Vector<double> Au(dof_handler.n_dofs());
       matrix.vmult(Au, solution);
       Au-=rhs;
 
-      std::vector<bool> boundary_dofs(dof_handler.n_dofs(), false);
-
-      // Extract boundary DoFs with boundary_id == 1
-      auto index_set = DoFTools::extract_boundary_dofs(dof_handler,
-                                      ComponentMask(),
-                                      std::set<types::boundary_id>({1}));
-
       double flux = 0.;
-      for (auto index = index_set.begin(); index != index_set.end(); ++index) {
+      for (auto index = e_index_set.begin(); index != e_index_set.end(); ++index) {
         flux += Au(*index);
       }
 
-      cout<<"   3.Flux : "<<flux<<std::endl;
+      //cout<<"   3.Flux : "<<flux<<std::endl;
     }
 
     // ------------------------------------------------------
