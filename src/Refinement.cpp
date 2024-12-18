@@ -311,7 +311,7 @@ namespace IonPropulsion{
     template <int dim>
     void WeightedResidual<dim>::compute_flux()
     {
-      PrimalSolver<dim>::compute_flux();
+      //PrimalSolver<dim>::compute_flux();
     }
 
 

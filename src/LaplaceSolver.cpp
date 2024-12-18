@@ -68,7 +68,7 @@ namespace IonPropulsion{
       solution = homogeneous_solution;
       retrieve_Rg();
 
-      linear_system_ptr->compute_flux(dof_handler, solution);
+      //linear_system_ptr->compute_flux(dof_handler, solution);
 
       // Compute flux
       //compute_flux();
@@ -246,6 +246,15 @@ namespace IonPropulsion{
                                                Functions::ZeroFunction<dim>(),
                                                boundary_value_map);
       rhs_task.join();
+      bool nonzero = false;
+      for (size_t i=0; i<linear_system.rhs.size();i++) {
+        if (linear_system.rhs[i]!=0) {
+          nonzero = true;
+          break;
+        }
+      }
+      if (!nonzero)
+        cout<<"rhs is all zero"<<std::endl;
       linear_system.hanging_node_constraints.condense(linear_system.rhs);
       MatrixTools::apply_boundary_values(boundary_value_map,
                                          linear_system.matrix,

@@ -31,7 +31,7 @@ namespace IonPropulsion{
       for (const auto &cell : dof_handler.active_cell_iterators())
         for (const auto vertex : cell->vertex_indices()) {
           double distance = cell->vertex(vertex).distance(evaluation_point);
-          if (distance < cell->diameter() * 1.)
+          if (distance < cell->diameter() * 1.e-8)
           {
             // Ok, found, so set corresponding entry, and leave function
             // since we are finished:
