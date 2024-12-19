@@ -233,14 +233,23 @@ namespace IonPropulsion{
       grid_in.attach_triangulation(coarse_grid);
       grid_in.read_msh(input_file);
 
-      double pi = 3.14159265358979323846;
-      double Ve = 20000.;
-      double l = 0.0004;
-      double L = 0.04;
-      cout<< "Exact flux: "<< - 2 * pi * l    *   Ve / (log(l/L) * l) <<std::endl;
+      // Set up the circular manifold for the emitter (inner circle)
+      const Point<2> center(0.0, 0.0); // Center of the circles
 
-      ExactSolution exact_solution;
-      cout<< "Exact value at (0.001,0.001): "<< exact_solution.value(Point<2>(0.019375,0.),0) <<std::endl;
+      for (const auto &cell : coarse_grid.active_cell_iterators())
+      {
+        for (unsigned int face = 0; face < GeometryInfo<2>::faces_per_cell; ++face)
+        {
+          if (cell->face(face)->at_boundary() && cell->face(face)->boundary_id() == 1) // Boundary ID 1 for the emitter
+          {
+            cell->face(face)->set_manifold_id(1); // Assign manifold ID 1 for the emitter
+          }
+        }
+      }
+
+      // Attach a circular manifold to the emitter
+      SphericalManifold<2> circular_manifold(center);
+      coarse_grid.set_manifold(1, circular_manifold); // Set the manifold for the emitter
 
     }
 

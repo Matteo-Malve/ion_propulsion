@@ -418,10 +418,10 @@ namespace IonPropulsion{
                                    0.);
 
 
-      PrimalSolver<dim>::convergence_table->add_value("est err",estimated_error);
+      PrimalSolver<dim>::convergence_table->add_value("est err",std::fabs(estimated_error));
       PrimalSolver<dim>::convergence_table->set_scientific("est err",true);
 
-      CSVLogger::getInstance().addColumn("est err", to_string_with_precision(estimated_error,15));
+      CSVLogger::getInstance().addColumn("est err", to_string_with_precision(std::fabs(estimated_error),15));
     }
 
     template <int dim>
