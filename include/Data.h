@@ -379,8 +379,21 @@ namespace IonPropulsion{
           const double r = std::sqrt(x*x + y*y);
 
           return Ve / log(l/L) * log(r) - Ve * log(L) / log(l/L);
-
         }
+        virtual Tensor<1, dim> gradient(const Point<dim> &p, const unsigned int component = 0) const override {
+          (void)component;
+          double Ve = 20000.;
+          double l = 0.0004;
+          double L = 0.04;
+          const auto x = p[0];
+          const auto y = p[1];
+          const double r2 = x*x + y*y;
+
+          Tensor<1, dim> grad;
+          grad[0] = Ve * x /(r2 * log(l/L));
+          grad[1] = Ve * y /(r2 * log(l/L));
+          return grad;
+        };
       };
 
       using RightHandSide = Functions::ZeroFunction<dim>;

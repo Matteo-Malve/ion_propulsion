@@ -106,7 +106,7 @@ namespace IonPropulsion{
     void Solver<dim>::postprocess(
       const Evaluation::EvaluationBase<dim> &postprocessor) const
     {
-      std::pair<std::string, double> possible_pair = postprocessor(dof_handler, solution);
+      std::pair<std::string, double> possible_pair = postprocessor(dof_handler, solution,*this->triangulation);
       if (possible_pair.first != "null") {
         Base<dim>::convergence_table->add_value(possible_pair.first, possible_pair.second);
         Base<dim>::convergence_table->set_scientific(possible_pair.first, true);

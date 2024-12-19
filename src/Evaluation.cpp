@@ -29,9 +29,9 @@ namespace IonPropulsion{
 		PointValueEvaluation<dim>::operator()(
 			const DoFHandler<dim> &dof_handler,
 			const Vector<double> & solution,
-			const ExtraData* extra_data /*= nullptr*/) const
+			const Triangulation<dim> &       triangulation) const
 		{
-			(void)extra_data;
+			(void)triangulation;
 			double point_value = 1e20;
 
 			bool evaluation_point_found = false;
@@ -74,9 +74,9 @@ namespace IonPropulsion{
 		FluxEvaluation<dim>::operator()(
 			const DoFHandler<dim> &dof_handler,
 			const Vector<double>  &solution,
-			const ExtraData* extra_data /*= nullptr*/) const
+			const Triangulation<dim> &       triangulation) const
 		{
-			(void)extra_data;
+			(void)triangulation;
 			double flux = 0;
 			const QGauss<dim-1> face_quadrature(dof_handler.get_fe().degree + 1);
 			FEFaceValues<dim> fe_face_values(dof_handler.get_fe(),
@@ -105,110 +105,6 @@ namespace IonPropulsion{
 		}
 
 		// ------------------------------------------------------
-		// PointXDerivativeEvaluation
-		// ------------------------------------------------------
-
-		template <int dim>
-    PointXDerivativeEvaluation<dim>::PointXDerivativeEvaluation(
-      const Point<dim> &evaluation_point)
-      : evaluation_point(evaluation_point)
-    {}
-
-
-    // The more interesting things happen inside the function doing the actual
-    // evaluation:
-    template <int dim>
-		std::pair<std::string, double>
-		PointXDerivativeEvaluation<dim>::operator()(
-      const DoFHandler<dim> &dof_handler,
-      const Vector<double> & solution,
-			const ExtraData* extra_data /*= nullptr*/) const
-    {
-			(void)extra_data;
-      // This time initialize the return value with something useful, since we
-      // will have to add up a number of contributions and take the mean value
-      // afterwards...
-      double point_derivative = 0;
-
-      // ...then have some objects of which the meaning will become clear
-      // below...
-      QTrapezoid<dim>             vertex_quadrature;
-      FEValues<dim>               fe_values(dof_handler.get_fe(),
-                              vertex_quadrature,
-                              update_gradients | update_quadrature_points);
-      std::vector<Tensor<1, dim>> solution_gradients(vertex_quadrature.size());
-
-      // ...and next loop over all cells and their vertices, and count how
-      // often the vertex has been found:
-      unsigned int evaluation_point_hits = 0;
-      for (const auto &cell : dof_handler.active_cell_iterators())
-        for (const auto vertex : cell->vertex_indices())
-          if (cell->vertex(vertex) == evaluation_point)
-            {
-              // Things are now no more as simple, since we can't get the
-              // gradient of the finite element field as before, where we
-              // simply had to pick one degree of freedom at a vertex.
-              //
-              // Rather, we have to evaluate the finite element field on this
-              // cell, and at a certain point. As you know, evaluating finite
-              // element fields at certain points is done through the
-              // <code>FEValues</code> class, so we use that. The question is:
-              // the <code>FEValues</code> object needs to be a given a
-              // quadrature formula and can then compute the values of finite
-              // element quantities at the quadrature points. Here, we don't
-              // want to do quadrature, we simply want to specify some points!
-              //
-              // Nevertheless, the same way is chosen: use a special
-              // quadrature rule with points at the vertices, since these are
-              // what we are interested in. The appropriate rule is the
-              // trapezoidal rule, so that is the reason why we used that one
-              // above.
-              //
-              // Thus: initialize the <code>FEValues</code> object on this
-              // cell,
-              fe_values.reinit(cell);
-              // and extract the gradients of the solution vector at the
-              // vertices:
-              fe_values.get_function_gradients(solution, solution_gradients);
-
-              // Now we have the gradients at all vertices, so pick out that
-              // one which belongs to the evaluation point (note that the
-              // order of vertices is not necessarily the same as that of the
-              // quadrature points):
-              unsigned int q_point = 0;
-              for (; q_point < solution_gradients.size(); ++q_point)
-                if (fe_values.quadrature_point(q_point) == evaluation_point)
-                  break;
-
-              // Check that the evaluation point was indeed found,
-              Assert(q_point < solution_gradients.size(), ExcInternalError());
-              // and if so take the x-derivative of the gradient there as the
-              // value which we are interested in, and increase the counter
-              // indicating how often we have added to that variable:
-              point_derivative += solution_gradients[q_point][0];
-              ++evaluation_point_hits;
-
-              // Finally break out of the innermost loop iterating over the
-              // vertices of the present cell, since if we have found the
-              // evaluation point at one vertex it cannot be at a following
-              // vertex as well:
-              break;
-            }
-
-      // Now we have looped over all cells and vertices, so check whether the
-      // point was found:
-      AssertThrow(evaluation_point_hits > 0,
-                  ExcEvaluationPointNotFound(evaluation_point));
-
-      // We have simply summed up the contributions of all adjacent cells, so
-      // we still have to compute the mean value. Once this is done, report
-      // the status:
-      point_derivative /= evaluation_point_hits;
-      std::cout << "   Point x-derivative=" << point_derivative << std::endl;
-			return std::make_pair("null",-1.0e-20);
-    }
-
-		// ------------------------------------------------------
 		// GridOutput
 		// ------------------------------------------------------
 
@@ -223,22 +119,96 @@ namespace IonPropulsion{
 		GridOutput<dim>::operator()(
 			const DoFHandler<dim> &dof_handler,
 			const Vector<double> & /*solution*/,
-			const ExtraData* extra_data /*= nullptr*/) const
+			const Triangulation<dim> &       triangulation) const
 		{
-			(void)extra_data;
+			(void)triangulation;
 			std::ofstream out(output_name_base + "-" +
 												std::to_string(this->refinement_cycle) + ".svg");
 			GridOut().write_svg(dof_handler.get_triangulation(), out);
 			return std::make_pair("null",-1.0e-20);
 		}
 
+		// ------------------------------------------------------
+		// L2_error_estimate
+		// ------------------------------------------------------
+
+		template <int dim>
+		L2_error_estimate<dim>::L2_error_estimate(const Function<dim> & analytical_solution)
+			: analytical_solution(&analytical_solution)
+		{}
+
+
+		template <int dim>
+		std::pair<std::string, double>
+		L2_error_estimate<dim>::operator()(
+			const DoFHandler<dim> &dof_handler,
+			const Vector<double> & solution,
+			const Triangulation<dim> &       triangulation) const
+		{
+			// Set up an error vector
+			Vector<double> difference_per_cell(triangulation.n_active_cells());
+
+			// Compute the difference between the finite element solution and the exact solution
+			const QGauss<dim> quadrature_formula(2*dof_handler.get_fe().degree + 1);
+			VectorTools::integrate_difference(
+					dof_handler,
+					solution,
+					*analytical_solution,
+					difference_per_cell,
+					quadrature_formula,
+					VectorTools::L2_norm);
+
+			const double L2_error = VectorTools::compute_global_error(triangulation,
+																																difference_per_cell,
+																																VectorTools::L2_norm);
+			return std::make_pair("L2",L2_error);
+		}
+
+		// ------------------------------------------------------
+		// H1_error_estimate
+		// ------------------------------------------------------
+
+		template <int dim>
+		H1_error_estimate<dim>::H1_error_estimate(const Function<dim> & analytical_solution)
+			: analytical_solution(&analytical_solution)
+		{}
+
+
+		template <int dim>
+		std::pair<std::string, double>
+		H1_error_estimate<dim>::operator()(
+			const DoFHandler<dim> &dof_handler,
+			const Vector<double> & solution,
+			const Triangulation<dim> &       triangulation) const
+		{
+			// Set up an error vector
+			Vector<double> difference_per_cell(triangulation.n_active_cells());
+
+			// Compute the difference between the finite element solution and the exact solution
+			const QGauss<dim> quadrature_formula(2*dof_handler.get_fe().degree + 1);
+			VectorTools::integrate_difference(
+					dof_handler,
+					solution,
+					*analytical_solution,
+					difference_per_cell,
+					quadrature_formula,
+					VectorTools::H1_norm);
+
+			const double H1_error = VectorTools::compute_global_error(triangulation,
+																																difference_per_cell,
+																																VectorTools::H1_norm);
+			return std::make_pair("H1",H1_error);
+		}
+
 
 		// Template instantiation
-		template class GridOutput<2>;
-		template class PointXDerivativeEvaluation<2>;
+		template class EvaluationBase<2>;
 		template class PointValueEvaluation<2>;
 		template class FluxEvaluation<2>;
-		template class EvaluationBase<2>;
+		template class L2_error_estimate<2>;
+		template class H1_error_estimate<2>;
+		template class GridOutput<2>;
+
 
 	} // namespace Evaluation
 } // namespace IonPropulsion

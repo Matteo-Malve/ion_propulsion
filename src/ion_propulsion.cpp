@@ -29,10 +29,13 @@ int main()
           evaluation_point);
 
       Evaluation::PointValueEvaluation<dim> postprocessor1(evaluation_point);
-      Evaluation::GridOutput<dim>           postprocessor2("grid");
+      Evaluation::L2_error_estimate<dim> postprocessor2(descriptor.data->get_exact_solution());
+      Evaluation::H1_error_estimate<dim> postprocessor3(descriptor.data->get_exact_solution());
+      //Evaluation::GridOutput<dim>           postprocessor2("grid");
 
       descriptor.evaluator_list.push_back(&postprocessor1);
       descriptor.evaluator_list.push_back(&postprocessor2);
+      descriptor.evaluator_list.push_back(&postprocessor3);
 
       // Set the maximal number of degrees of freedom after which we want the
       // program to stop refining the mesh further:
