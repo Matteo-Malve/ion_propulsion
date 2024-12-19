@@ -22,7 +22,8 @@ int main()
       descriptor.data =
         std::make_unique<Data::SetUp<Data::LogCircular<dim>, dim>>();
 
-      const Point<dim> evaluation_point(0.0019, 0.);
+      //const Point<dim> evaluation_point(0.0019, 0.);
+      const Point<dim> evaluation_point(0.019375, 0.);
       descriptor.dual_functional =
         std::make_unique<DualFunctional::PointValueEvaluation<dim>>(
           evaluation_point);

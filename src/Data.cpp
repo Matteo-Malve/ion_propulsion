@@ -138,7 +138,8 @@ namespace IonPropulsion{
     template <>
     void LogCircular<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
     {
-      const std::string path_to_mesh = "../mesh/cerchi_concentrici.msh";
+      //const std::string path_to_mesh = "../mesh/cerchi_concentrici.msh";
+      const std::string path_to_mesh = "../mesh/cerchi_concentrici_1_100.msh";
       cout << std::endl << "Reading file: " << path_to_mesh << std::endl;
       std::ifstream input_file(path_to_mesh);
       GridIn<2>       grid_in;
