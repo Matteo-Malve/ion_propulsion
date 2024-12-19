@@ -240,7 +240,7 @@ namespace IonPropulsion{
       {
         for (unsigned int face = 0; face < GeometryInfo<2>::faces_per_cell; ++face)
         {
-          if (cell->face(face)->at_boundary() && cell->face(face)->boundary_id() == 1) // Boundary ID 1 for the emitter
+          if (cell->face(face)->at_boundary() && (cell->face(face)->boundary_id() == 1 || cell->face(face)->boundary_id() == 9)) // Boundary ID 1 for the emitter, 9 for collector
           {
             cell->face(face)->set_manifold_id(1); // Assign manifold ID 1 for the emitter
           }
