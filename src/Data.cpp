@@ -130,10 +130,29 @@ namespace IonPropulsion{
       // is a grid point, we refine once globally:
       coarse_grid.refine_global(1);
     }
+
+    // ------------------------------------------------------
+    // LogCircular
+    // ------------------------------------------------------
+
+    template <>
+    void LogCircular<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    {
+      const std::string path_to_mesh = "../mesh/cerchi_concentrici.msh";
+      cout << std::endl << "Reading file: " << path_to_mesh << std::endl;
+      std::ifstream input_file(path_to_mesh);
+      GridIn<2>       grid_in;
+      grid_in.attach_triangulation(coarse_grid);
+      grid_in.read_msh(input_file);
+    }
   // Template instantiation
   template struct SetUpBase<2>;
   template struct SetUp<IonPropulsion::Data::Exercise_2_3<2>, 2>;
   template struct CurvedRidges<2>;
+    template struct SetUp<IonPropulsion::Data::CurvedRidges<2>, 2>;
   template struct Exercise_2_3<2>;
+
+    template struct LogCircular<2>;
+    template struct SetUp<IonPropulsion::Data::LogCircular<2>, 2>;
   } // namespace Data
 } // namespace IonPropulsion

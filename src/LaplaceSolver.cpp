@@ -104,6 +104,14 @@ namespace IonPropulsion{
                                                0,
                                                *boundary_values,
                                                boundary_value_map);
+      VectorTools::interpolate_boundary_values(dof_handler,
+                                               1,
+                                               *boundary_values,
+                                               boundary_value_map);
+      VectorTools::interpolate_boundary_values(dof_handler,
+                                               9,
+                                               *boundary_values,
+                                               boundary_value_map);
 
       rhs_task.join();
       linear_system.hanging_node_constraints.condense(linear_system.rhs);

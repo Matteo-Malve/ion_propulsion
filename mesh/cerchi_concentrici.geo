@@ -28,9 +28,9 @@ Transfinite Surface {1};
 //+
 Transfinite Surface {2};
 //+
-Transfinite Curve {4, 2, 1, 3} = 100 Using Progression 1;
+Transfinite Curve {4, 2, 1, 3} = 80 Using Progression 1;
 //+
-Transfinite Curve {-5, 6} = 50 Using Progression 1.1;
+Transfinite Curve {-5, 6} = 49 Using Progression 1;
 //+
 Physical Surface(7) = {1, 2};
 //+

@@ -2,6 +2,8 @@
 #define DATA_H
 
 #include "includes.h"
+#include <deal.II/grid/grid_in.h>
+
 
 namespace IonPropulsion{
 	using namespace dealii;
@@ -98,6 +100,41 @@ namespace IonPropulsion{
           : Functions::ConstantFunction<dim>(1.)
         {}
       };
+
+      // Finally a function to generate the coarse grid. This is somewhat more
+      // complicated here, see immediately below.
+      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+    };
+
+    // ------------------------------------------------------
+    // LogCircular
+    // ------------------------------------------------------
+
+    template <int dim>
+    struct LogCircular
+    {
+      // We need a class to denote the boundary values of the problem. In this
+      // case, this is simple: it's the zero function, so don't even declare a
+      // class, just an alias:
+      //using BoundaryValues = ExactSolution5b<dim>;
+      class BoundaryValues : public Function<dim> {
+      public:
+        virtual double value(const Point<dim> & p,
+                             const unsigned int component) const override {
+          (void)component;
+          double Ve = 20000.;
+          double l = 0.0004;
+          //double L = 0.004;
+
+          const auto x = p[0];
+          const auto y = p[1];
+          const double r = std::sqrt(x*x + y*y);
+
+          return r < 1.1 * l ? Ve : 0.;
+        }
+      };
+
+      using RightHandSide = Functions::ZeroFunction<dim>;
 
       // Finally a function to generate the coarse grid. This is somewhat more
       // complicated here, see immediately below.

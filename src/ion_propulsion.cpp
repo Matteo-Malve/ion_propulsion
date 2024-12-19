@@ -20,9 +20,9 @@ int main()
       descriptor.dual_fe_degree   = 2;
 
       descriptor.data =
-        std::make_unique<Data::SetUp<Data::Exercise_2_3<dim>, dim>>();
+        std::make_unique<Data::SetUp<Data::LogCircular<dim>, dim>>();
 
-      const Point<dim> evaluation_point(0.75, 0.75);
+      const Point<dim> evaluation_point(0.0019, 0.);
       descriptor.dual_functional =
         std::make_unique<DualFunctional::PointValueEvaluation<dim>>(
           evaluation_point);
@@ -35,7 +35,7 @@ int main()
 
       // Set the maximal number of degrees of freedom after which we want the
       // program to stop refining the mesh further:
-      descriptor.max_degrees_of_freedom = 20000;
+      descriptor.max_degrees_of_freedom = 2000000;
 
       // Finally pass the descriptor object to a function that runs the entire
       // solution with it:
