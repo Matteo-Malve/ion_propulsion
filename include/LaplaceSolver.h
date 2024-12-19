@@ -67,9 +67,15 @@ namespace IonPropulsion{
       const SmartPointer<const Quadrature<dim - 1>> face_quadrature;
       DoFHandler<dim>                               dof_handler;
       Vector<double>                                solution;
+      Vector<double>                                homogeneous_solution;
+      Vector<double>                                Rg_vector;
       const SmartPointer<const Function<dim>>       boundary_values;
 
       virtual void assemble_rhs(Vector<double> &rhs) const = 0;
+
+      virtual void construct_Rg_vector() = 0;
+
+      virtual void retrieve_Rg() = 0;
 
     private:
       struct LinearSystem
@@ -111,6 +117,7 @@ namespace IonPropulsion{
 
       void copy_local_to_global(const AssemblyCopyData &copy_data,
                                 LinearSystem &          linear_system) const;
+
     };
 
 
@@ -133,6 +140,13 @@ namespace IonPropulsion{
     protected:
       const SmartPointer<const Function<dim>> rhs_function;
       virtual void assemble_rhs(Vector<double> &rhs) const override;
+
+      virtual void construct_Rg_vector() override;
+
+    private:
+      void retrieve_Rg() override {
+        this->solution += this->Rg_vector;
+      }
     };
 
     // ------------------------------------------------------
@@ -155,6 +169,10 @@ namespace IonPropulsion{
       virtual void assemble_rhs(Vector<double> &rhs) const override;
 
       static const Functions::ZeroFunction<dim> boundary_values;
+
+    private:
+      virtual void construct_Rg_vector() override {};
+      void retrieve_Rg() override {};
     };
 
     template <int dim>

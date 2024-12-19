@@ -26,7 +26,14 @@ namespace IonPropulsion{
     template <int dim>
     void RefinementGlobal<dim>::refine_grid()
     {
+      Vector<double> old_Rg_values = this->Rg_vector;
+      SolutionTransfer<dim> solution_transfer(this->dof_handler);
+      solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_values);
       this->triangulation->refine_global(1);
+      this->dof_handler.distribute_dofs(*(this->fe));
+      this->Rg_vector.reinit(this->dof_handler.n_dofs());
+      solution_transfer.interpolate(old_Rg_values, this->Rg_vector);
+      this->construct_Rg_vector();
     }
 
     template <int dim>
@@ -294,19 +301,62 @@ namespace IonPropulsion{
     }
 
     template <int dim>
+    void output_cell_flags_to_vtk(const Triangulation<dim> &triangulation, const std::string &filename="cell_flags.vtk") {
+      Vector<float> cell_flags(triangulation.n_active_cells());
+      unsigned int cell_index = 0;
+      for (const auto &cell : triangulation.active_cell_iterators())
+      {
+        if (cell->refine_flag_set())
+          cell_flags[cell_index] = 1.0; // Refinement flag
+        else if (cell->coarsen_flag_set())
+          cell_flags[cell_index] = -1.0; // Coarsening flag
+        else
+          cell_flags[cell_index] = 0.0; // No flag
+        ++cell_index;
+      }
+      DataOut<dim> data_out;
+      data_out.attach_triangulation(triangulation);
+      data_out.add_data_vector(cell_flags, "CellFlags",DataOut<dim>::type_cell_data);
+      data_out.build_patches();
+      std::ofstream output(filename);
+      data_out.write_vtk(output);
+      //std::cout << "   Cell flags written to " << filename << std::endl;
+    }
+
+    template <int dim>
     void WeightedResidual<dim>::refine_grid()
     {
+      // ERROR ESTIMATION
       Vector<float> error_indicators(this->triangulation->n_active_cells());
       estimate_error(error_indicators);
 
       for (float &error_indicator : error_indicators)
         error_indicator = std::fabs(error_indicator);
 
+      // GRID REFINEMENT
+
       GridRefinement::refine_and_coarsen_fixed_fraction(*this->triangulation,
                                                         error_indicators,
                                                         0.8,
                                                         0.02);
+      this->triangulation->prepare_coarsening_and_refinement();
+      SolutionTransfer<dim> solution_transfer(PrimalSolver<dim>::dof_handler);
+
+      Vector<double> old_Rg_values = PrimalSolver<dim>::Rg_vector;
+      solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_values);
+
+      output_cell_flags_to_vtk(*this->triangulation, "cell_flags-"+std::to_string(this->refinement_cycle)+".vtk");
+
       this->triangulation->execute_coarsening_and_refinement();
+
+      PrimalSolver<dim>::dof_handler.distribute_dofs(*PrimalSolver<dim>::fe);
+      PrimalSolver<dim>::Rg_vector.reinit(PrimalSolver<dim>::dof_handler.n_dofs());
+
+      solution_transfer.interpolate(old_Rg_values, PrimalSolver<dim>::Rg_vector);
+
+      PrimalSolver<dim>::construct_Rg_vector();
+
+      DualSolver<dim>::Rg_vector.reinit(DualSolver<dim>::dof_handler.n_dofs());
     }
 
     template <int dim>
@@ -329,8 +379,17 @@ namespace IonPropulsion{
       // Add the data vectors for which we want output. Add them both, the
       // <code>DataOut</code> functions can handle as many data vectors as you
       // wish to write to output:
-      data_out.add_data_vector(PrimalSolver<dim>::solution, "primal_solution");
-      data_out.add_data_vector(dual_solution, "dual_solution");
+      data_out.add_data_vector(PrimalSolver<dim>::homogeneous_solution, "uh0");
+      data_out.add_data_vector(PrimalSolver<dim>::Rg_vector, "Rg");
+      data_out.add_data_vector(PrimalSolver<dim>::solution, "uh");
+      data_out.add_data_vector(dual_solution, "zh");
+
+      Vector<double> boundary_ids(this->triangulation->n_active_cells());
+      for (const auto &cell : this->triangulation->active_cell_iterators())
+        for (unsigned int face = 0; face < GeometryInfo<dim>::faces_per_cell; ++face)
+          if (cell->face(face)->at_boundary())
+            boundary_ids[cell->active_cell_index()] = cell->face(face)->boundary_id();
+      data_out.add_data_vector(boundary_ids, "boundary_ids");
 
       data_out.build_patches();
 

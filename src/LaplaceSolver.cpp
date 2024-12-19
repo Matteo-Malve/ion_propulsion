@@ -57,16 +57,48 @@ namespace IonPropulsion{
       logger.addColumn("DoFs", std::to_string(this->dof_handler.n_dofs()));
     }
 
+    template <int dim>
+    void PrimalSolver<dim>::construct_Rg_vector() {
+      AffineConstraints<double> hanging_node_constraints;
+      hanging_node_constraints.clear();
+      void (*mhnc_p)(const DoFHandler<dim> &, AffineConstraints<double> &) =
+          &DoFTools::make_hanging_node_constraints;
+      // Start a side task then continue on the main thread
+      Threads::Task<void> side_task =
+        Threads::new_task(mhnc_p, this->dof_handler, hanging_node_constraints);
+
+      std::map<types::global_dof_index, double> boundary_value_map;
+      VectorTools::interpolate_boundary_values(this->dof_handler, 0, *(this->boundary_values), boundary_value_map);
+      VectorTools::interpolate_boundary_values(this->dof_handler, 1, *(this->boundary_values), boundary_value_map);
+      VectorTools::interpolate_boundary_values(this->dof_handler, 9, *(this->boundary_values), boundary_value_map);
+      for (const auto &boundary_value : boundary_value_map)
+        this->Rg_vector(boundary_value.first) = boundary_value.second;
+
+      side_task.join();
+      hanging_node_constraints.close();
+      hanging_node_constraints.distribute(this->Rg_vector);
+    }
 
     template <int dim>
     void Solver<dim>::solve_problem()
     {
       dof_handler.distribute_dofs(*fe);
+      homogeneous_solution.reinit(dof_handler.n_dofs());
       solution.reinit(dof_handler.n_dofs());
 
+      if (this->refinement_cycle == 0) {
+        Rg_vector.reinit(dof_handler.n_dofs());
+        construct_Rg_vector();
+      }
+
+      // Solve homogeneous system with lifting in the rhs
       LinearSystem linear_system(dof_handler);
       assemble_linear_system(linear_system);
-      linear_system.solve(solution);
+      linear_system.solve(homogeneous_solution);
+
+      // Retrieve lifting
+      solution = homogeneous_solution;
+      retrieve_Rg();
     }
 
 
@@ -120,15 +152,15 @@ namespace IonPropulsion{
       std::map<types::global_dof_index, double> boundary_value_map;
       VectorTools::interpolate_boundary_values(dof_handler,
                                                0,
-                                               *boundary_values,
+                                               Functions::ZeroFunction<dim>(),
                                                boundary_value_map);
       VectorTools::interpolate_boundary_values(dof_handler,
                                                1,
-                                               *boundary_values,
+                                               Functions::ZeroFunction<dim>(),
                                                boundary_value_map);
       VectorTools::interpolate_boundary_values(dof_handler,
                                                9,
-                                               *boundary_values,
+                                               Functions::ZeroFunction<dim>(),
                                                boundary_value_map);
 
       rhs_task.join();
@@ -136,7 +168,7 @@ namespace IonPropulsion{
 
       MatrixTools::apply_boundary_values(boundary_value_map,
                                          linear_system.matrix,
-                                         solution,
+                                         homogeneous_solution,
                                          linear_system.rhs);
     }
 
@@ -240,6 +272,8 @@ namespace IonPropulsion{
         cg.solve(matrix, solution, rhs, preconditioner);
 
         hanging_node_constraints.distribute(solution);
+
+        cout<<"Solved system: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<std::endl;
       }
 
     // ------------------------------------------------------
@@ -269,11 +303,14 @@ namespace IonPropulsion{
     {
       DataOut<dim> data_out;
       data_out.attach_dof_handler(this->dof_handler);
-      data_out.add_data_vector(this->solution, "solution");
+      data_out.add_data_vector(this->homogeneous_solution, "uh0");
+      data_out.add_data_vector(this->solution, "uh");
+      data_out.add_data_vector(this->Rg_vector, "Rg");
       data_out.build_patches();
 
       std::ofstream out("solution-" + std::to_string(this->refinement_cycle) +
                         ".vtu");
+
       data_out.write(out, DataOutBase::vtu);
 
       // Also update Convergence Table
@@ -290,35 +327,39 @@ namespace IonPropulsion{
     {
       FEValues<dim> fe_values(*this->fe,
                               *this->quadrature,
-                              update_values | update_quadrature_points |
+                              update_values | update_gradients | update_quadrature_points |
                                 update_JxW_values);
-
       const unsigned int dofs_per_cell = this->fe->n_dofs_per_cell();
       const unsigned int n_q_points    = this->quadrature->size();
 
       Vector<double>                       cell_rhs(dofs_per_cell);
       std::vector<double>                  rhs_values(n_q_points);
       std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
+      std::vector<Tensor<1, dim>>          rg_gradients(n_q_points);
 
       for (const auto &cell : this->dof_handler.active_cell_iterators())
-        {
-          cell_rhs = 0;
+      {
+        cell_rhs = 0;
 
-          fe_values.reinit(cell);
+        fe_values.reinit(cell);
+        fe_values.get_function_gradients(this->Rg_vector, rg_gradients);
+        rhs_function->value_list(fe_values.get_quadrature_points(),
+                                 rhs_values);
 
-          rhs_function->value_list(fe_values.get_quadrature_points(),
-                                   rhs_values);
-
-          for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
-            for (unsigned int i = 0; i < dofs_per_cell; ++i)
-              cell_rhs(i) += (fe_values.shape_value(i, q_point) * // phi_i(x_q)
-                              rhs_values[q_point] *               // f((x_q)
-                              fe_values.JxW(q_point));            // dx
-
-          cell->get_dof_indices(local_dof_indices);
-          for (unsigned int i = 0; i < dofs_per_cell; ++i)
-            rhs(local_dof_indices[i]) += cell_rhs(i);
-        }
+        for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
+          for (unsigned int i = 0; i < dofs_per_cell; ++i) {
+            cell_rhs(i) += (fe_values.shape_value(i, q_point) * // phi_i(x_q)
+                            rhs_values[q_point] *               // f((x_q)
+                            fe_values.JxW(q_point));            // dx
+            cell_rhs(i) -=
+                      (fe_values.shape_grad(i, q_point) *   // grad phi_i(x_q)
+                        rg_gradients[q_point] *             // grad_Rg(x_q)
+                        fe_values.JxW(q_point));            // dx
+          }
+        cell->get_dof_indices(local_dof_indices);
+        for (unsigned int i = 0; i < dofs_per_cell; ++i)
+          rhs(local_dof_indices[i]) += cell_rhs(i);
+      }
     }
 
     // ------------------------------------------------------
