@@ -306,6 +306,14 @@ namespace IonPropulsion{
       data_out.add_data_vector(this->homogeneous_solution, "uh0");
       data_out.add_data_vector(this->solution, "uh");
       data_out.add_data_vector(this->Rg_vector, "Rg");
+
+      Vector<double> boundary_ids(this->triangulation->n_active_cells());
+      for (const auto &cell : this->triangulation->active_cell_iterators())
+        for (unsigned int face = 0; face < GeometryInfo<dim>::faces_per_cell; ++face)
+          if (cell->face(face)->at_boundary())
+            boundary_ids[cell->active_cell_index()] = cell->face(face)->boundary_id();
+      data_out.add_data_vector(boundary_ids, "boundary_ids");
+
       data_out.build_patches();
 
       std::ofstream out("solution-" + std::to_string(this->refinement_cycle) +
@@ -313,11 +321,6 @@ namespace IonPropulsion{
 
       data_out.write(out, DataOutBase::vtu);
 
-      // Also update Convergence Table
-      // Convergence table update
-      this->convergence_table->add_value("cycle", this->refinement_cycle);
-      this->convergence_table->add_value("cells", this->triangulation->n_active_cells());
-      this->convergence_table->add_value("DoFs", this->dof_handler.n_dofs());
     }
 
 
