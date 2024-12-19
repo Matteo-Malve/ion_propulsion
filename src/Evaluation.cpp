@@ -1,5 +1,7 @@
 #include "Evaluation.h"
 
+#include <Constants.h>
+
 namespace IonPropulsion{
 	using namespace dealii;
 	namespace Evaluation{
@@ -12,21 +14,24 @@ namespace IonPropulsion{
 			refinement_cycle = step;
 		}
 
+		// ------------------------------------------------------
+		// PointValueEvaluation
+		// ------------------------------------------------------
+
 		template <int dim>
 		PointValueEvaluation<dim>::PointValueEvaluation(
 			const Point<dim> &evaluation_point)
 			: evaluation_point(evaluation_point)
 		{}
 
-		// ------------------------------------------------------
-		// PointValueEvaluation
-		// ------------------------------------------------------
-
 		template <int dim>
-		void
-		PointValueEvaluation<dim>::operator()(const DoFHandler<dim> &dof_handler,
-																					const Vector<double> & solution) const
+		std::pair<std::string, double>
+		PointValueEvaluation<dim>::operator()(
+			const DoFHandler<dim> &dof_handler,
+			const Vector<double> & solution,
+			const ExtraData* extra_data /*= nullptr*/) const
 		{
+			(void)extra_data;
 			double point_value = 1e20;
 
 			bool evaluation_point_found = false;
@@ -42,10 +47,61 @@ namespace IonPropulsion{
 							break;
 						}
 
-			AssertThrow(evaluation_point_found,
-									ExcEvaluationPointNotFound(evaluation_point));
+			//AssertThrow(evaluation_point_found, ExcEvaluationPointNotFound(evaluation_point));
+			if (!evaluation_point_found) {
+				cout<<"        Evaluation: Vertex not found in the mesh."<<std::endl;
+				point_value = VectorTools::point_value(dof_handler, solution, evaluation_point);
+			}
 
-			std::cout << "   Point value=" << point_value << std::endl;
+			std::cout << std::scientific << std::setprecision(12)
+								<< "   Point value=" << point_value << std::endl;
+
+			// Update table with exact error
+			double exact_error = std::fabs(point_value-EXACT_POINT_VALUE);
+			return std::make_pair("ex POINT err",exact_error);
+		}
+
+		// ------------------------------------------------------
+		// FluxEvaluation
+		// ------------------------------------------------------
+
+		template <int dim>
+		FluxEvaluation<dim>::FluxEvaluation()
+		{}
+
+		template <int dim>
+		std::pair<std::string, double>
+		FluxEvaluation<dim>::operator()(
+			const DoFHandler<dim> &dof_handler,
+			const Vector<double>  &solution,
+			const ExtraData* extra_data /*= nullptr*/) const
+		{
+			(void)extra_data;
+			double flux = 0;
+			const QGauss<dim-1> face_quadrature(dof_handler.get_fe().degree + 1);
+			FEFaceValues<dim> fe_face_values(dof_handler.get_fe(),
+																			 face_quadrature,
+																			 update_gradients | update_normal_vectors | update_JxW_values);
+			const unsigned int n_face_q_points = face_quadrature.size();
+			std::vector<Tensor<1, dim>> solution_gradients(n_face_q_points);
+
+			for (const auto &cell : dof_handler.active_cell_iterators())
+				for (const auto &face : cell->face_iterators())
+					if (face->at_boundary() && face->boundary_id() == 1) {
+						fe_face_values.reinit(cell, face);
+						fe_face_values.get_function_gradients(solution, solution_gradients);
+						for (unsigned int q_point = 0; q_point < n_face_q_points; ++q_point) {
+							const Tensor<1, dim> &n = fe_face_values.normal_vector(q_point);
+							flux += ((-solution_gradients[q_point]) * (-n)) * fe_face_values.JxW(q_point);
+						}
+					}
+
+			std::cout << std::scientific << std::setprecision(12)
+								<< "   Flux=" << flux << std::endl;
+
+			// Update table with exact error
+			double exact_error = std::fabs(flux-EXACT_FLUX);
+			return std::make_pair("ex FLUX err",exact_error);
 		}
 
 		// ------------------------------------------------------
@@ -62,10 +118,13 @@ namespace IonPropulsion{
     // The more interesting things happen inside the function doing the actual
     // evaluation:
     template <int dim>
-    void PointXDerivativeEvaluation<dim>::operator()(
+		std::pair<std::string, double>
+		PointXDerivativeEvaluation<dim>::operator()(
       const DoFHandler<dim> &dof_handler,
-      const Vector<double> & solution) const
+      const Vector<double> & solution,
+			const ExtraData* extra_data /*= nullptr*/) const
     {
+			(void)extra_data;
       // This time initialize the return value with something useful, since we
       // will have to add up a number of contributions and take the mean value
       // afterwards...
@@ -146,6 +205,7 @@ namespace IonPropulsion{
       // the status:
       point_derivative /= evaluation_point_hits;
       std::cout << "   Point x-derivative=" << point_derivative << std::endl;
+			return std::make_pair("null",-1.0e-20);
     }
 
 		// ------------------------------------------------------
@@ -159,12 +219,17 @@ namespace IonPropulsion{
 
 
 		template <int dim>
-		void GridOutput<dim>::operator()(const DoFHandler<dim> &dof_handler,
-																		 const Vector<double> & /*solution*/) const
+		std::pair<std::string, double>
+		GridOutput<dim>::operator()(
+			const DoFHandler<dim> &dof_handler,
+			const Vector<double> & /*solution*/,
+			const ExtraData* extra_data /*= nullptr*/) const
 		{
+			(void)extra_data;
 			std::ofstream out(output_name_base + "-" +
 												std::to_string(this->refinement_cycle) + ".svg");
 			GridOut().write_svg(dof_handler.get_triangulation(), out);
+			return std::make_pair("null",-1.0e-20);
 		}
 
 
@@ -172,6 +237,7 @@ namespace IonPropulsion{
 		template class GridOutput<2>;
 		template class PointXDerivativeEvaluation<2>;
 		template class PointValueEvaluation<2>;
+		template class FluxEvaluation<2>;
 		template class EvaluationBase<2>;
 
 	} // namespace Evaluation

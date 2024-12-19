@@ -2,10 +2,18 @@
 #define EVALUATION_H
 
 #include "includes.h"
+#include "CSVLogger.h"
+
 
 namespace IonPropulsion{
   using namespace dealii;
   namespace Evaluation{
+
+    struct ExtraData {
+      const SparseMatrix<double>* matrix = nullptr;
+      const Vector<double>* rhs = nullptr;
+    };
+
     // ------------------------------------------------------
     // EvaluationBase
     // ------------------------------------------------------
@@ -13,13 +21,16 @@ namespace IonPropulsion{
     template <int dim>
     class EvaluationBase
     {
+    protected:
+
     public:
       virtual ~EvaluationBase() = default;
 
       void set_refinement_cycle(const unsigned int refinement_cycle);
 
-      virtual void operator()(const DoFHandler<dim> &dof_handler,
-                              const Vector<double> & solution) const = 0;
+      virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
+                                                        const Vector<double> & solution,
+                                                        const ExtraData* extra_data = nullptr) const = 0;
 
     protected:
       unsigned int refinement_cycle;
@@ -35,8 +46,9 @@ namespace IonPropulsion{
     public:
       PointValueEvaluation(const Point<dim> &evaluation_point);
 
-      virtual void operator()(const DoFHandler<dim> &dof_handler,
-                              const Vector<double> & solution) const override;
+      virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
+                                                        const Vector<double> & solution,
+                                                        const ExtraData* extra_data = nullptr) const override;
 
       DeclException1(
         ExcEvaluationPointNotFound,
@@ -49,6 +61,24 @@ namespace IonPropulsion{
     };
 
     // ------------------------------------------------------
+    // FluxEvaluation
+    // ------------------------------------------------------
+
+    template <int dim>
+    class FluxEvaluation : public EvaluationBase<dim>
+    {
+    public:
+      FluxEvaluation();
+
+      virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
+                                                        const Vector<double> & solution,
+                                                        const ExtraData* extra_data = nullptr) const override;
+
+    private:
+
+    };
+
+    // ------------------------------------------------------
     // PointXDerivativeEvaluation
     // ------------------------------------------------------
 
@@ -58,8 +88,9 @@ namespace IonPropulsion{
     public:
       PointXDerivativeEvaluation(const Point<dim> &evaluation_point);
 
-      virtual void operator()(const DoFHandler<dim> &dof_handler,
-                              const Vector<double> & solution) const override;
+      virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
+                                                        const Vector<double> & solution,
+                                                        const ExtraData* extra_data = nullptr) const override;
 
       DeclException1(
         ExcEvaluationPointNotFound,
@@ -81,8 +112,9 @@ namespace IonPropulsion{
     public:
       GridOutput(const std::string &output_name_base);
 
-      virtual void operator()(const DoFHandler<dim> &dof_handler,
-                              const Vector<double> & solution) const override;
+      virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
+                                                        const Vector<double> & solution,
+                                                        const ExtraData* extra_data = nullptr) const override;
 
     private:
       const std::string output_name_base;

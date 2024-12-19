@@ -1,3 +1,7 @@
+#ifndef INCLUDES_H
+#define INCLUDES_H
+
+#include <deal.II/base/convergence_table.h>
 #include <deal.II/base/quadrature_lib.h>
 #include <deal.II/base/function.h>
 #include <deal.II/base/logstream.h>
@@ -30,3 +34,7 @@
 #include <list>
 #include <memory>
 #include <numeric>
+
+#include "CSVLogger.h"
+
+#endif

@@ -21,6 +21,7 @@ namespace IonPropulsion{
                        const Function<dim> &      boundary_values);
 
       virtual void refine_grid() override;
+      void print_convergence_table() const override;
     };
 
     // ------------------------------------------------------
@@ -89,6 +90,9 @@ namespace IonPropulsion{
       virtual void refine_grid() override;
 
       virtual void output_solution() const override;
+
+      void update_convergence_table() override;
+      void print_convergence_table() const override;
 
     private:
 

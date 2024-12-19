@@ -28,9 +28,12 @@ namespace IonPropulsion{
       virtual void set_refinement_cycle(const unsigned int cycle);
 
       virtual void output_solution() const = 0;
+      virtual void update_convergence_table() = 0;
+      virtual void print_convergence_table() const {};
 
     protected:
       const SmartPointer<Triangulation<dim>> triangulation;
+      std::shared_ptr<ConvergenceTable> convergence_table;
 
       unsigned int refinement_cycle;
     };
@@ -55,6 +58,8 @@ namespace IonPropulsion{
         const Evaluation::EvaluationBase<dim> &postprocessor) const override;
 
       virtual unsigned int n_dofs() const override;
+
+      void update_convergence_table() override;
 
     protected:
       const SmartPointer<const FiniteElement<dim>>  fe;
