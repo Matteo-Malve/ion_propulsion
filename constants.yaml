@@ -1,0 +1,30 @@
+# Physical constants
+#eps_0: 8.854           # Electric permittivity of free space [F/m]
+#eps_r: 1.0006          # Relative permittivity
+eps_0: 1.0
+eps_r: 1.0
+Ve: 20000.0            # Electric potential [V]
+
+# Derived constants
+Ri: l
+Rc: 5*Ri
+dR2: Rc*Rc - Ri*Ri
+AC: -Ve / (dR2*dR2*dR2)
+AD: 3 * Ve / (dR2*dR2)
+AE: -3 * Ve / dR2
+AF: Ve
+
+
+# Refinement parameters
+NUM_PRELIMINARY_REF: 0              # Number of preliminary refinements
+NUM_PRELIMINARY_GLOBAL_REF: 0       # Number of preliminary global refinements
+
+
+# EXACT VALUES
+# EXACT_POINT_VALUE: 0.0334473        # step14 classic (0.75, 0.75)
+# EXACT_POINT_VALUE: 1.742630e-05       # 1:99 (0.0039, 0.0039)
+EXACT_POINT_VALUE: 9030.9        # LogCircular, (0.001,0.001)
+
+#EXACT_FLUX: -3.9252746598790566e-05   # 1:99
+#EXACT_FLUX: 13962.6               # Circular
+EXACT_FLUX: 54575.1               # Log Circular

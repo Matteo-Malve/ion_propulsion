@@ -1,7 +1,9 @@
 #include "Data.h"
+#include <deal.II/grid/grid_in.h>
 
 namespace IonPropulsion{
   using namespace dealii;
+  using std::endl;
   namespace Data{
 
     // ------------------------------------------------------
@@ -18,6 +20,12 @@ namespace IonPropulsion{
     const Function<dim> &SetUp<Traits, dim>::get_right_hand_side() const
     {
       return right_hand_side;
+    }
+
+    template <class Traits, int dim>
+    const Function<dim> &SetUp<Traits, dim>::get_exact_solution() const
+    {
+      return exact_solution;
     }
 
 
@@ -132,28 +140,128 @@ namespace IonPropulsion{
     }
 
     // ------------------------------------------------------
+    // Rectangle_1_99
+    // ------------------------------------------------------
+
+    template <>
+    void Rectangle_1_99<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    {
+      //const std::string path_to_mesh = "../mesh/TinyStep14_1_99.msh";
+      const std::string path_to_mesh = "../mesh/TinyStep14_deFalco.msh";
+      cout << endl << "Reading file: " << path_to_mesh << endl;
+      std::ifstream input_file(path_to_mesh);
+      GridIn<2>       grid_in;
+      grid_in.attach_triangulation(coarse_grid);
+      grid_in.read_msh(input_file);
+
+      /*coarse_grid.refine_global(NUM_PRELIMINARY_GLOBAL_REF);
+
+      for (unsigned int i = 0; i < NUM_PRELIMINARY_REF; ++i) {
+        Vector<float> criteria(coarse_grid.n_active_cells());
+        //cout  << "Active cells " << triangulation.n_active_cells() << endl;
+        unsigned int ctr = 0;
+
+        // Threshold
+        const double max_thickness = 2. * l;
+        const double min_thickness = 1.05 * l;
+        const double D = min_thickness + (max_thickness-min_thickness)/(NUM_PRELIMINARY_REF-1)*(NUM_PRELIMINARY_REF-1-i);
+
+        for (auto &cell : coarse_grid.active_cell_iterators()) {
+          const Point<dim> c = cell->center();
+          if(std::abs(c[1])<D && std::abs(c[0])<D)
+            criteria[ctr++] = 1;
+          else
+            criteria[ctr++] = 0;
+        }
+        GridRefinement::refine(coarse_grid, criteria, 0.5);
+        coarse_grid.execute_coarsening_and_refinement();
+      }
+      cout<<"Executed preliminary coarsening and refinement"<<endl;*/
+
+    }
+
+    // ------------------------------------------------------
+    // FullTestSqruareComparison
+    // ------------------------------------------------------
+
+    template <>
+    void FullTestSqruareComparison<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    {
+         const std::string path_to_mesh = "../mesh/FullTestSquare.msh";
+      //const std::string path_to_mesh = "../mesh/TinyStep14_deFalco.msh";
+      cout << std::endl << "Reading file: " << path_to_mesh << std::endl;
+      std::ifstream input_file(path_to_mesh);
+      GridIn<2>       grid_in;
+      grid_in.attach_triangulation(coarse_grid);
+      grid_in.read_msh(input_file);
+
+    }
+
+    // ------------------------------------------------------
+    // Circular
+    // ------------------------------------------------------
+
+    template <>
+    void Circular<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    {
+      const std::string path_to_mesh = "../mesh/cerchi_concentrici.msh";
+      cout << std::endl << "Reading file: " << path_to_mesh << std::endl;
+      std::ifstream input_file(path_to_mesh);
+      GridIn<2>       grid_in;
+      grid_in.attach_triangulation(coarse_grid);
+      grid_in.read_msh(input_file);
+
+      double pi = 3.14159265358979323846;
+      double Ve = 20000.;
+      double l = 0.0004;
+      double L = 0.004;
+      cout<< "Exact flux: "<< 2 * pi * l * Ve / (L-l) <<std::endl;
+
+    }
+
+    // ------------------------------------------------------
     // LogCircular
     // ------------------------------------------------------
 
     template <>
     void LogCircular<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
     {
-      //const std::string path_to_mesh = "../mesh/cerchi_concentrici.msh";
       const std::string path_to_mesh = "../mesh/cerchi_concentrici_1_100.msh";
       cout << std::endl << "Reading file: " << path_to_mesh << std::endl;
       std::ifstream input_file(path_to_mesh);
       GridIn<2>       grid_in;
       grid_in.attach_triangulation(coarse_grid);
       grid_in.read_msh(input_file);
+
+      double pi = 3.14159265358979323846;
+      double Ve = 20000.;
+      double l = 0.0004;
+      double L = 0.04;
+      cout<< "Exact flux: "<< - 2 * pi * l    *   Ve / (log(l/L) * l) <<std::endl;
+
+      ExactSolution exact_solution;
+      cout<< "Exact value at (0.001,0.001): "<< exact_solution.value(Point<2>(0.019375,0.),0) <<std::endl;
+
     }
-  // Template instantiation
-  template struct SetUpBase<2>;
-  template struct SetUp<IonPropulsion::Data::Exercise_2_3<2>, 2>;
-  template struct CurvedRidges<2>;
-    template struct SetUp<IonPropulsion::Data::CurvedRidges<2>, 2>;
-  template struct Exercise_2_3<2>;
+
+    // Template instantiation
+    template struct SetUpBase<2>;
+    template struct CurvedRidges<2>;
+
+    template struct Exercise_2_3<2>;
+    template struct SetUp<IonPropulsion::Data::Exercise_2_3<2>, 2>;
+
+    template struct Rectangle_1_99<2>;
+    template struct SetUp<IonPropulsion::Data::Rectangle_1_99<2>, 2>;
+
+    template struct FullTestSqruareComparison<2>;
+    template struct SetUp<IonPropulsion::Data::FullTestSqruareComparison<2>, 2>;
+
+    template struct Circular<2>;
+    template struct SetUp<IonPropulsion::Data::Circular<2>, 2>;
 
     template struct LogCircular<2>;
     template struct SetUp<IonPropulsion::Data::LogCircular<2>, 2>;
+
   } // namespace Data
 } // namespace IonPropulsion
