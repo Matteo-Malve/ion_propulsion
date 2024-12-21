@@ -99,7 +99,9 @@ namespace IonPropulsion{
 					}
 
 			std::cout << std::scientific << std::setprecision(12)
-								<< "   Flux=" << flux << std::endl;
+								<< "   Comp. Flux=" << flux << std::endl;
+			std::cout << std::scientific << std::setprecision(12)
+								<< "   Exact Flux=" << EXACT_FLUX << std::endl;
 
 			// Update table with exact error
 			double exact_error = std::fabs(flux-EXACT_FLUX);

@@ -63,7 +63,7 @@ namespace IonPropulsion{
     class FluxEvaluation : public EvaluationBase<dim>
     {
     public:
-      FluxEvaluation();
+      FluxEvaluation();   // TODO: Construct with std::set Boundary iDs
 
       virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
                                                         const Vector<double> & solution,

@@ -234,6 +234,12 @@ namespace IonPropulsion{
       grid_in.attach_triangulation(coarse_grid);
       grid_in.read_msh(input_file);
 
+      double pi = 3.14159265358979323846;
+      double Ve = 20000.;
+      double l = 0.0004;
+      double L = 0.004;
+      cout<< "Exact flux: "<< - (2 * pi * l) * (Ve / (log(l/L)*l)) <<std::endl;
+
       //ExactSolution exact_solution;
       //cout<<"ExactSolution at (0.0019, 0) = "<<exact_solution.value(Point<2>(0.0019, 0.),0)<< std::endl;
 
