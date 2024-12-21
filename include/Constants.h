@@ -16,6 +16,8 @@ extern double EXACT_FLUX;
 extern unsigned int NUM_PRELIMINARY_GLOBAL_REF;
 extern unsigned int NUM_PRELIMINARY_REF;
 
+extern bool MANUAL_LIFTING_ON;
+
 class ConstantsParser {
 public:
     explicit ConstantsParser(const std::string &filePath) {

@@ -1,5 +1,7 @@
 #include "LaplaceSolver.h"
 
+#include <Constants.h>
+
 namespace IonPropulsion{
   using namespace dealii;
   namespace LaplaceSolver{
@@ -86,19 +88,23 @@ namespace IonPropulsion{
       homogeneous_solution.reinit(dof_handler.n_dofs());
       solution.reinit(dof_handler.n_dofs());
 
-      if (this->refinement_cycle == 0) {
-        Rg_vector.reinit(dof_handler.n_dofs());
-        construct_Rg_vector();
+      if(MANUAL_LIFTING_ON) {
+        if (this->refinement_cycle == 0) {
+          Rg_vector.reinit(dof_handler.n_dofs());
+          construct_Rg_vector();
+        }
       }
+
 
       // Solve homogeneous system with lifting in the rhs
       LinearSystem linear_system(dof_handler);
       assemble_linear_system(linear_system);
       linear_system.solve(homogeneous_solution);
+      solution = homogeneous_solution;
 
       // Retrieve lifting
-      solution = homogeneous_solution;
-      retrieve_Rg();
+      if(MANUAL_LIFTING_ON)
+        retrieve_Rg();
     }
 
 
@@ -150,18 +156,34 @@ namespace IonPropulsion{
       linear_system.hanging_node_constraints.condense(linear_system.matrix);
 
       std::map<types::global_dof_index, double> boundary_value_map;
-      VectorTools::interpolate_boundary_values(dof_handler,
+      if(MANUAL_LIFTING_ON) {
+        VectorTools::interpolate_boundary_values(dof_handler,
                                                0,
                                                Functions::ZeroFunction<dim>(),
                                                boundary_value_map);
-      VectorTools::interpolate_boundary_values(dof_handler,
-                                               1,
-                                               Functions::ZeroFunction<dim>(),
+        VectorTools::interpolate_boundary_values(dof_handler,
+                                                 1,
+                                                 Functions::ZeroFunction<dim>(),
+                                                 boundary_value_map);
+        VectorTools::interpolate_boundary_values(dof_handler,
+                                                 9,
+                                                 Functions::ZeroFunction<dim>(),
+                                                 boundary_value_map);
+      } else {
+        VectorTools::interpolate_boundary_values(dof_handler,
+                                               0,
+                                               *boundary_values,
                                                boundary_value_map);
-      VectorTools::interpolate_boundary_values(dof_handler,
-                                               9,
-                                               Functions::ZeroFunction<dim>(),
-                                               boundary_value_map);
+        VectorTools::interpolate_boundary_values(dof_handler,
+                                                 1,
+                                                 *boundary_values,
+                                                 boundary_value_map);
+        VectorTools::interpolate_boundary_values(dof_handler,
+                                                 9,
+                                                 *boundary_values,
+                                                 boundary_value_map);
+      }
+
 
       rhs_task.join();
       linear_system.hanging_node_constraints.condense(linear_system.rhs);
@@ -303,9 +325,12 @@ namespace IonPropulsion{
     {
       DataOut<dim> data_out;
       data_out.attach_dof_handler(this->dof_handler);
-      data_out.add_data_vector(this->homogeneous_solution, "uh0");
       data_out.add_data_vector(this->solution, "uh");
-      data_out.add_data_vector(this->Rg_vector, "Rg");
+
+      if(MANUAL_LIFTING_ON) {
+        data_out.add_data_vector(this->homogeneous_solution, "uh0");
+        data_out.add_data_vector(this->Rg_vector, "Rg");
+      }
 
       Vector<double> boundary_ids(this->triangulation->n_active_cells());
       for (const auto &cell : this->triangulation->active_cell_iterators())
@@ -345,19 +370,22 @@ namespace IonPropulsion{
         cell_rhs = 0;
 
         fe_values.reinit(cell);
-        fe_values.get_function_gradients(this->Rg_vector, rg_gradients);
         rhs_function->value_list(fe_values.get_quadrature_points(),
                                  rhs_values);
+        if(MANUAL_LIFTING_ON)
+          fe_values.get_function_gradients(this->Rg_vector, rg_gradients);
 
         for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
           for (unsigned int i = 0; i < dofs_per_cell; ++i) {
             cell_rhs(i) += (fe_values.shape_value(i, q_point) * // phi_i(x_q)
                             rhs_values[q_point] *               // f((x_q)
                             fe_values.JxW(q_point));            // dx
-            cell_rhs(i) -=
+            if(MANUAL_LIFTING_ON) {
+              cell_rhs(i) -=
                       (fe_values.shape_grad(i, q_point) *   // grad phi_i(x_q)
                         rg_gradients[q_point] *             // grad_Rg(x_q)
                         fe_values.JxW(q_point));            // dx
+            }
           }
         cell->get_dof_indices(local_dof_indices);
         for (unsigned int i = 0; i < dofs_per_cell; ++i)

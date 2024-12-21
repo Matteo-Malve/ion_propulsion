@@ -29,3 +29,5 @@ EXACT_POINT_VALUE: 3148.182801        # LogCircular_1_100, (0.019375,0.)
 #EXACT_FLUX: -3.9252746598790566e-05   # 1:99
 #EXACT_FLUX: 13962.6               # Circular
 EXACT_FLUX: 54575.1               # Log Circular
+
+MANUAL_LIFTING_ON: 0    # 1: ON, 0: OFF

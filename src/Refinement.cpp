@@ -1,5 +1,7 @@
 #include "Refinement.h"
 
+#include <Constants.h>
+
 namespace IonPropulsion{
   using namespace dealii;
   namespace LaplaceSolver{
@@ -339,24 +341,30 @@ namespace IonPropulsion{
                                                         error_indicators,
                                                         0.8,
                                                         0.02);
-      this->triangulation->prepare_coarsening_and_refinement();
-      SolutionTransfer<dim> solution_transfer(PrimalSolver<dim>::dof_handler);
+      if (MANUAL_LIFTING_ON) {
+        this->triangulation->prepare_coarsening_and_refinement();
+        SolutionTransfer<dim> solution_transfer(PrimalSolver<dim>::dof_handler);
 
-      Vector<double> old_Rg_values = PrimalSolver<dim>::Rg_vector;
-      solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_values);
+        Vector<double> old_Rg_values = PrimalSolver<dim>::Rg_vector;
+        solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_values);
 
-      output_cell_flags_to_vtk(*this->triangulation, "cell_flags-"+std::to_string(this->refinement_cycle)+".vtk");
+        output_cell_flags_to_vtk(*this->triangulation, "cell_flags-"+std::to_string(this->refinement_cycle)+".vtk");
 
-      this->triangulation->execute_coarsening_and_refinement();
+        this->triangulation->execute_coarsening_and_refinement();
 
-      PrimalSolver<dim>::dof_handler.distribute_dofs(*PrimalSolver<dim>::fe);
-      PrimalSolver<dim>::Rg_vector.reinit(PrimalSolver<dim>::dof_handler.n_dofs());
+        PrimalSolver<dim>::dof_handler.distribute_dofs(*PrimalSolver<dim>::fe);
+        PrimalSolver<dim>::Rg_vector.reinit(PrimalSolver<dim>::dof_handler.n_dofs());
 
-      solution_transfer.interpolate(old_Rg_values, PrimalSolver<dim>::Rg_vector);
+        solution_transfer.interpolate(old_Rg_values, PrimalSolver<dim>::Rg_vector);
 
-      PrimalSolver<dim>::construct_Rg_vector();
+        PrimalSolver<dim>::construct_Rg_vector();
 
-      DualSolver<dim>::Rg_vector.reinit(DualSolver<dim>::dof_handler.n_dofs());
+        DualSolver<dim>::Rg_vector.reinit(DualSolver<dim>::dof_handler.n_dofs());
+      } else {
+        this->triangulation->execute_coarsening_and_refinement();
+      }
+
+
     }
 
     template <int dim>
@@ -379,9 +387,11 @@ namespace IonPropulsion{
       // Add the data vectors for which we want output. Add them both, the
       // <code>DataOut</code> functions can handle as many data vectors as you
       // wish to write to output:
-      data_out.add_data_vector(PrimalSolver<dim>::homogeneous_solution, "uh0");
-      data_out.add_data_vector(PrimalSolver<dim>::Rg_vector, "Rg");
       data_out.add_data_vector(PrimalSolver<dim>::solution, "uh");
+      if (MANUAL_LIFTING_ON) {
+        data_out.add_data_vector(PrimalSolver<dim>::homogeneous_solution, "uh0");
+        data_out.add_data_vector(PrimalSolver<dim>::Rg_vector, "Rg");
+      }
       data_out.add_data_vector(dual_solution, "zh");
 
       Vector<double> boundary_ids(this->triangulation->n_active_cells());

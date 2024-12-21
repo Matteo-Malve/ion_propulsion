@@ -6,6 +6,10 @@ int main()
   try
     {
       using namespace IonPropulsion;
+    if (MANUAL_LIFTING_ON)
+      cout<<"Lifting strategy:   Manual lifting"<<std::endl;
+    else
+      cout<<"Lifting strategy:   Automatic imposition of BCs"<<std::endl;
 
       // Describe the problem we want to solve here by passing a descriptor
       // object to the function doing the rest of the work:
@@ -14,7 +18,7 @@ int main()
 
       // First set the refinement criterion we wish to use:
       descriptor.refinement_criterion =
-        Framework<dim>::ProblemDescription::global_refinement;
+        Framework<dim>::ProblemDescription::dual_weighted_error_estimator;
 
       descriptor.primal_fe_degree = 1;
       descriptor.dual_fe_degree   = 2;
