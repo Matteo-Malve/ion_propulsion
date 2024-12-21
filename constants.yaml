@@ -24,10 +24,11 @@ NUM_PRELIMINARY_GLOBAL_REF: 0       # Number of preliminary global refinements
 # EXACT_POINT_VALUE: 0.0334473        # step14 classic (0.75, 0.75)
 # EXACT_POINT_VALUE: 1.742630e-05       # 1:99 (0.0039, 0.0039)
 # EXACT_POINT_VALUE: 9030.9        # LogCircular, (0.001,0.001)
-EXACT_POINT_VALUE: 3148.182801        # LogCircular_1_100, (0.019375,0.)
+EXACT_POINT_VALUE: 6466.13      # LogCircular, (0.0019,0)
+//EXACT_POINT_VALUE: 3148.182801        # LogCircular_1_100, (0.019375,0.)
 
 #EXACT_FLUX: -3.9252746598790566e-05   # 1:99
 #EXACT_FLUX: 13962.6               # Circular
 EXACT_FLUX: 54575.1               # Log Circular
 
-MANUAL_LIFTING_ON: 0    # 1: ON, 0: OFF
+MANUAL_LIFTING_ON: 1    # 1: ON, 0: OFF

@@ -226,12 +226,17 @@ namespace IonPropulsion{
     template <>
     void LogCircular<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
     {
-      const std::string path_to_mesh = "../mesh/cerchi_concentrici_1_100.msh";
+      //const std::string path_to_mesh = "../mesh/cerchi_concentrici_1_100.msh";
+      const std::string path_to_mesh = "../mesh/cerchi_concentrici.msh";
       cout << std::endl << "Reading file: " << path_to_mesh << std::endl;
       std::ifstream input_file(path_to_mesh);
       GridIn<2>       grid_in;
       grid_in.attach_triangulation(coarse_grid);
       grid_in.read_msh(input_file);
+
+      //ExactSolution exact_solution;
+      //cout<<"ExactSolution at (0.0019, 0) = "<<exact_solution.value(Point<2>(0.0019, 0.),0)<< std::endl;
+
 
       // Set up the circular manifold for the emitter (inner circle)
       const Point<2> center(0.0, 0.0); // Center of the circles
