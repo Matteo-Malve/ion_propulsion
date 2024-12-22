@@ -121,6 +121,7 @@ namespace IonPropulsion{
         Base<dim>::convergence_table->set_scientific(possible_pair.first, true);
         CSVLogger::getInstance().addColumn(possible_pair.first, to_string_with_precision(possible_pair.second,15));
       }
+
     }
 
 
@@ -210,7 +211,7 @@ namespace IonPropulsion{
       // Step 1: Au-b
       Vector<double> Au(dof_handler.n_dofs());
       linear_system.Umatrix.vmult(Au, solution);
-      Au-=linear_system.rhs;
+      Au-=linear_system.rhs;        // TODO: rhs tuttp 0 a quanto pare
       // Step 2: for i in e_nodes DO flux -= (Au-b)[i]
       double flux = 0.;
       for (auto index = e_index_set.begin(); index != e_index_set.end(); ++index) {
@@ -218,7 +219,10 @@ namespace IonPropulsion{
       }
 
       std::cout << std::scientific << std::setprecision(12)
-                << "   2nd o. flux = " << flux << std::endl;
+                << "   Cons. flux = " << flux << std::endl;
+
+      conservative_flux = flux;
+
     }
 
     template <int dim>

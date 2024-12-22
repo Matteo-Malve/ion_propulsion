@@ -46,6 +46,8 @@ namespace IonPropulsion{
     template <int dim>
     void  RefinementGlobal<dim>::print_convergence_table() const
     {
+      Base<dim>::convergence_table->add_value("Cons. FLUX err", this->conservative_flux-EXACT_FLUX);
+      Base<dim>::convergence_table->set_scientific("Cons. FLUX err", true);
       this->convergence_table->omit_column_from_convergence_rate_evaluation("cycle");
       this->convergence_table->omit_column_from_convergence_rate_evaluation("cells");
       this->convergence_table->omit_column_from_convergence_rate_evaluation("DoFs");

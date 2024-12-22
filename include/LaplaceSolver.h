@@ -70,6 +70,7 @@ namespace IonPropulsion{
       Vector<double>                                homogeneous_solution;
       Vector<double>                                Rg_vector;
       const SmartPointer<const Function<dim>>       boundary_values;
+      double                                        conservative_flux;
 
       virtual void assemble_rhs(Vector<double> &rhs) const = 0;
 

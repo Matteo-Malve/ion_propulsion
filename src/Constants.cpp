@@ -7,7 +7,7 @@ double eps_0 = GlobalConstants::getInstance().get("eps_0");
 
 double EXACT_POINT_VALUE = 0.0334473;
  // GlobalConstants::getInstance().get("EXACT_POINT_VALUE");
-double EXACT_FLUX = GlobalConstants::getInstance().get("EXACT_FLUX");
+double EXACT_FLUX = -3.9252746598790566e-05;
 
 unsigned int NUM_PRELIMINARY_GLOBAL_REF = GlobalConstants::getInstance().get("NUM_PRELIMINARY_GLOBAL_REF");;
 unsigned int NUM_PRELIMINARY_REF = GlobalConstants::getInstance().get("NUM_PRELIMINARY_REF");;
