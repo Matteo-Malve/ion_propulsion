@@ -99,8 +99,11 @@ namespace IonPropulsion{
       // Solve homogeneous system with lifting in the rhs
       LinearSystem linear_system(dof_handler);
       assemble_linear_system(linear_system);
+
       linear_system.solve(homogeneous_solution);
       solution = homogeneous_solution;
+
+      compute_second_order_flux(linear_system);   // NEW
 
       // Retrieve lifting
       if(MANUAL_LIFTING_ON)
@@ -194,6 +197,29 @@ namespace IonPropulsion{
                                          linear_system.rhs);
     }
 
+    template <int dim>
+    void Solver<dim>::compute_second_order_flux(LinearSystem &linear_system) {
+
+      // Extract set of DoFs on the emitter
+      IndexSet complete_index_set = dof_handler.locally_owned_dofs();
+      auto e_index_set = DoFTools::extract_boundary_dofs(dof_handler,
+                                      ComponentMask(),
+                                      std::set<types::boundary_id>({1}));
+
+      // Compute flux = - sum((Au-b)(e_nodes))
+      // Step 1: Au-b
+      Vector<double> Au(dof_handler.n_dofs());
+      linear_system.Umatrix.vmult(Au, solution);
+      Au-=linear_system.rhs;
+      // Step 2: for i in e_nodes DO flux -= (Au-b)[i]
+      double flux = 0.;
+      for (auto index = e_index_set.begin(); index != e_index_set.end(); ++index) {
+        flux -= Au(*index);
+      }
+
+      std::cout << std::scientific << std::setprecision(12)
+                << "   2nd o. flux = " << flux << std::endl;
+    }
 
     template <int dim>
     Solver<dim>::AssemblyScratchData::AssemblyScratchData(
@@ -245,58 +271,62 @@ namespace IonPropulsion{
                                            LinearSystem &linear_system) const
     {
       for (unsigned int i = 0; i < copy_data.local_dof_indices.size(); ++i)
-        for (unsigned int j = 0; j < copy_data.local_dof_indices.size(); ++j)
+        for (unsigned int j = 0; j < copy_data.local_dof_indices.size(); ++j) {
           linear_system.matrix.add(copy_data.local_dof_indices[i],
                                    copy_data.local_dof_indices[j],
                                    copy_data.cell_matrix(i, j));
+          linear_system.Umatrix.add(copy_data.local_dof_indices[i],
+                                   copy_data.local_dof_indices[j],
+                                   copy_data.cell_matrix(i, j));
+        }
+
     }
 
 
-      template <int dim>
-      Solver<dim>::LinearSystem::LinearSystem(const DoFHandler<dim> &dof_handler)
-      {
-        hanging_node_constraints.clear();
+    template <int dim>
+    Solver<dim>::LinearSystem::LinearSystem(const DoFHandler<dim> &dof_handler)
+    {
+      hanging_node_constraints.clear();
 
-        void (*mhnc_p)(const DoFHandler<dim> &, AffineConstraints<double> &) =
-          &DoFTools::make_hanging_node_constraints;
+      void (*mhnc_p)(const DoFHandler<dim> &, AffineConstraints<double> &) =
+        &DoFTools::make_hanging_node_constraints;
 
-        // Start a side task then continue on the main thread
-        Threads::Task<void> side_task =
-          Threads::new_task(mhnc_p, dof_handler, hanging_node_constraints);
+      // Start a side task then continue on the main thread
+      Threads::Task<void> side_task =
+        Threads::new_task(mhnc_p, dof_handler, hanging_node_constraints);
 
-        DynamicSparsityPattern dsp(dof_handler.n_dofs(), dof_handler.n_dofs());
-        DoFTools::make_sparsity_pattern(dof_handler, dsp);
-
-
-
-        // Wait for the side task to be done before going further
-        side_task.join();
-
-        hanging_node_constraints.close();
-        hanging_node_constraints.condense(dsp);
-        sparsity_pattern.copy_from(dsp);
-
-        matrix.reinit(sparsity_pattern);
-        rhs.reinit(dof_handler.n_dofs());
-      }
+      DynamicSparsityPattern dsp(dof_handler.n_dofs(), dof_handler.n_dofs());
+      DoFTools::make_sparsity_pattern(dof_handler, dsp);
 
 
 
-      template <int dim>
-      void Solver<dim>::LinearSystem::solve(Vector<double> &solution) const
-      {
-        SolverControl            solver_control(5000, 1e-12);
-        SolverCG<Vector<double>> cg(solver_control);
+      // Wait for the side task to be done before going further
+      side_task.join();
 
-        PreconditionSSOR<SparseMatrix<double>> preconditioner;
-        preconditioner.initialize(matrix, 1.2);
+      hanging_node_constraints.close();
+      hanging_node_constraints.condense(dsp);
+      sparsity_pattern.copy_from(dsp);
 
-        cg.solve(matrix, solution, rhs, preconditioner);
+      matrix.reinit(sparsity_pattern);
+      Umatrix.reinit(sparsity_pattern);
+      rhs.reinit(dof_handler.n_dofs());
+    }
 
-        hanging_node_constraints.distribute(solution);
 
-        cout<<"Solved system: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<std::endl;
-      }
+
+    template <int dim>
+    void Solver<dim>::LinearSystem::solve(Vector<double> &solution) const
+    {
+      SolverControl            solver_control(5000, 1e-12);
+      SolverCG<Vector<double>> cg(solver_control);
+
+      PreconditionSSOR<SparseMatrix<double>> preconditioner;
+      preconditioner.initialize(matrix, 1.2);
+      cg.solve(matrix, solution, rhs, preconditioner);
+      hanging_node_constraints.distribute(solution);
+
+      cout<<"Solved system: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<std::endl;
+    }
 
     // ------------------------------------------------------
     // PrimalSolver

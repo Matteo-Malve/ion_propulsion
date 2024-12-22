@@ -54,9 +54,9 @@ namespace IonPropulsion{
 			}
 
 			std::cout << std::scientific << std::setprecision(12)
-								<< "   Point value=" << point_value << std::endl;
+								<< "   Point value = " << point_value << std::endl;
 			std::cout << std::scientific << std::setprecision(12)
-								<< "   Exact value=" << EXACT_POINT_VALUE << std::endl;
+								<< "   Exact value = " << EXACT_POINT_VALUE << std::endl;
 
 			// Update table with exact error
 			double exact_error = std::fabs(point_value-EXACT_POINT_VALUE);
@@ -99,9 +99,9 @@ namespace IonPropulsion{
 					}
 
 			std::cout << std::scientific << std::setprecision(12)
-								<< "   Comp. Flux=" << flux << std::endl;
+								<< "   Comp. Flux = " << flux << std::endl;
 			std::cout << std::scientific << std::setprecision(12)
-								<< "   Exact Flux=" << EXACT_FLUX << std::endl;
+								<< "   Exact Flux = " << EXACT_FLUX << std::endl;
 
 			// Update table with exact error
 			double exact_error = std::fabs(flux-EXACT_FLUX);

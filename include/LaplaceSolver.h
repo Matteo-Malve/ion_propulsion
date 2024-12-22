@@ -77,7 +77,7 @@ namespace IonPropulsion{
 
       virtual void retrieve_Rg() = 0;
 
-    private:
+
       struct LinearSystem
       {
         LinearSystem(const DoFHandler<dim> &dof_handler);
@@ -88,8 +88,12 @@ namespace IonPropulsion{
         SparsityPattern           sparsity_pattern;
         SparseMatrix<double>      matrix;
         Vector<double>            rhs;
+        SparseMatrix<double>      Umatrix;
       };
 
+      virtual void compute_second_order_flux(LinearSystem &linear_system);
+
+    private:
 
       struct AssemblyScratchData
       {
@@ -117,6 +121,7 @@ namespace IonPropulsion{
 
       void copy_local_to_global(const AssemblyCopyData &copy_data,
                                 LinearSystem &          linear_system) const;
+
 
     };
 
@@ -173,6 +178,9 @@ namespace IonPropulsion{
     private:
       virtual void construct_Rg_vector() override {};
       void retrieve_Rg() override {};
+
+      void compute_second_order_flux(typename Solver<dim>::LinearSystem &) override{};
+
     };
 
     template <int dim>
