@@ -28,14 +28,19 @@ namespace IonPropulsion{
     template <int dim>
     void RefinementGlobal<dim>::refine_grid()
     {
-      Vector<double> old_Rg_values = this->Rg_vector;
-      SolutionTransfer<dim> solution_transfer(this->dof_handler);
-      solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_values);
-      this->triangulation->refine_global(1);
-      this->dof_handler.distribute_dofs(*(this->fe));
-      this->Rg_vector.reinit(this->dof_handler.n_dofs());
-      solution_transfer.interpolate(old_Rg_values, this->Rg_vector);
-      this->construct_Rg_vector();
+      if (MANUAL_LIFTING_ON) {
+        Vector<double> old_Rg_values = this->Rg_vector;
+        SolutionTransfer<dim> solution_transfer(this->dof_handler);
+        solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_values);
+        this->triangulation->refine_global(1);
+        this->dof_handler.distribute_dofs(*(this->fe));
+        this->Rg_vector.reinit(this->dof_handler.n_dofs());
+        solution_transfer.interpolate(old_Rg_values, this->Rg_vector);
+        this->construct_Rg_vector();
+      } else {
+        this->triangulation->refine_global(1);
+      }
+
     }
 
     template <int dim>
