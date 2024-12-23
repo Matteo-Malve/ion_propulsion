@@ -215,7 +215,7 @@ namespace IonPropulsion{
       // Step 2: for i in e_nodes DO flux -= (Au-b)[i]
       double flux = 0.;
       for (auto index = e_index_set.begin(); index != e_index_set.end(); ++index) {
-        flux -= Au(*index);
+        flux += Au(*index);
       }
 
       std::cout << std::scientific << std::setprecision(12)

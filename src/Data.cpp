@@ -264,6 +264,49 @@ namespace IonPropulsion{
 
     }
 
+    // ------------------------------------------------------
+    // CircularZeroDirichlet
+    // ------------------------------------------------------
+
+    template <>
+    void CircularZeroDirichlet<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    {
+      //const std::string path_to_mesh = "../mesh/cerchi_concentrici_1_100.msh";
+      const std::string path_to_mesh = "../mesh/cerchi_concentrici.msh";
+      cout << std::endl << "Reading file: " << path_to_mesh << std::endl;
+      std::ifstream input_file(path_to_mesh);
+      GridIn<2>       grid_in;
+      grid_in.attach_triangulation(coarse_grid);
+      grid_in.read_msh(input_file);
+
+      double pi = 3.14159265358979323846;
+      double l = 0.0004;
+      double L = 0.004;
+      std::cout << std::scientific << std::setprecision(12)
+                << "Exact flux: " << - (2 * pi * l) * (pi / (L-l)) << std::endl;
+
+
+
+      // Set up the circular manifold for the emitter (inner circle)
+      const Point<2> center(0.0, 0.0); // Center of the circles
+
+      for (const auto &cell : coarse_grid.active_cell_iterators())
+      {
+        for (unsigned int face = 0; face < GeometryInfo<2>::faces_per_cell; ++face)
+        {
+          if (cell->face(face)->at_boundary() && (cell->face(face)->boundary_id() == 1 || cell->face(face)->boundary_id() == 9)) // Boundary ID 1 for the emitter, 9 for collector
+          {
+            cell->face(face)->set_manifold_id(1); // Assign manifold ID 1 for the emitter
+          }
+        }
+      }
+
+      // Attach a circular manifold to the emitter
+      SphericalManifold<2> circular_manifold(center);
+      coarse_grid.set_manifold(1, circular_manifold); // Set the manifold for the emitter
+
+    }
+
     // Template instantiation
     template struct SetUpBase<2>;
     template struct CurvedRidges<2>;
@@ -282,6 +325,9 @@ namespace IonPropulsion{
 
     template struct LogCircular<2>;
     template struct SetUp<IonPropulsion::Data::LogCircular<2>, 2>;
+
+    template struct CircularZeroDirichlet<2>;
+    template struct SetUp<IonPropulsion::Data::CircularZeroDirichlet<2>, 2>;
 
   } // namespace Data
 } // namespace IonPropulsion

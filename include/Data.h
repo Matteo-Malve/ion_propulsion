@@ -403,6 +403,92 @@ namespace IonPropulsion{
       static void create_coarse_grid(Triangulation<dim> &coarse_grid);
     };
 
+    // ------------------------------------------------------
+    // CircularZeroDirichlet
+    // ------------------------------------------------------
+
+    template <int dim>
+    struct CircularZeroDirichlet
+    {
+
+      class BoundaryValues : public Function<dim> {
+      public:
+        virtual double value(const Point<dim> & p,
+                             const unsigned int component) const override {
+          (void)component;
+
+          double l = 0.0004;
+          double L = 0.004;
+
+          const auto x = p[0];
+          const auto y = p[1];
+          const double r = std::sqrt(x*x + y*y);
+          double arg = pi*(r-l)/(L-l);
+
+          return sin(arg);
+        }
+      };
+
+      class ExactSolution : public Function<dim> {
+      public:
+        virtual double value(const Point<dim> & p,
+                             const unsigned int component) const override {
+          (void)component;
+
+          double l = 0.0004;
+          double L = 0.004;
+
+          const auto x = p[0];
+          const auto y = p[1];
+          const double r = std::sqrt(x*x + y*y);
+          double arg = pi*(r-l)/(L-l);
+
+          return sin(arg);
+        }
+        virtual Tensor<1, dim> gradient(const Point<dim> &p, const unsigned int component = 0) const override {
+          (void)component;
+
+          double l = 0.0004;
+          double L = 0.004;
+          const auto x = p[0];
+          const auto y = p[1];
+          const double r = std::sqrt(x*x + y*y);
+          double arg = pi*(r-l)/(L-l);
+
+          Tensor<1, dim> grad;
+          grad[0] = (pi * x * cos(-arg) ) / ((L-l) * r);
+          grad[1] = (pi * y * cos(-arg) ) / ((L-l) * r);
+          return grad;
+        };
+      };
+
+      class RightHandSide : public Function<dim> {
+      public:
+        virtual double value(const Point<dim> & p,
+                             const unsigned int component) const override {
+          (void)component;
+
+          double l = 0.0004;
+          double L = 0.004;
+
+          const auto x = p[0];
+          const auto y = p[1];
+          const double r = std::sqrt(x*x + y*y);
+          double arg = pi*(r-l)/(L-l);
+
+          return (pi * x*x * cos(arg) / ((L-l)* r*r*r))
+          + (pi * y*y * cos(arg) / ((L-l)* r*r*r))
+          - (2 * pi * cos(arg) / ((L-l)*r))
+          + (pi*pi * x*x * sin(arg) / ((L-l)*(L-l)*r*r) )
+          + (pi*pi * y*y * sin(arg) / ((L-l)*(L-l)*r*r));
+        };
+      };
+
+      // Finally a function to generate the coarse grid. This is somewhat more
+      // complicated here, see immediately below.
+      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+    };
+
 
   } // namespace Data
 }

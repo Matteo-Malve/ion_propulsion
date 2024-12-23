@@ -23,12 +23,12 @@ int main()
     descriptor.primal_fe_degree = 1;
     descriptor.dual_fe_degree   = 2;
 
-    descriptor.data = std::make_unique<Data::SetUp<Data::Rectangle_1_99<dim>, dim>>();
+    descriptor.data = std::make_unique<Data::SetUp<Data::CircularZeroDirichlet<dim>, dim>>();
 
-    //const Point<dim> evaluation_point(0.0019, 0.);    // LogCircular 1:10
+    const Point<dim> evaluation_point(0.0019, 0.);    // LogCircular 1:10
     //const Point<dim> evaluation_point(0.019375, 0.);    // LogCircular 1:100
     //const Point<dim> evaluation_point(0.0039, 0.0039);      // ??
-    const Point<dim> evaluation_point(0.0006, 0.0006);      // Rectangular_1_99_DeFalco PointEvaluation is sharp. Requires vertex //TODO: Extrapolation of value
+    //const Point<dim> evaluation_point(0.0006, 0.0006);      // Rectangular_1_99_DeFalco PointEvaluation is sharp. Requires vertex //TODO: Extrapolation of value
     //const Point<dim> evaluation_point(0.75, 0.75);    // original-step14
 
     descriptor.dual_functional =
