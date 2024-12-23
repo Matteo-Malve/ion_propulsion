@@ -105,7 +105,7 @@ namespace IonPropulsion{
 
 			// Update table with exact error
 			double exact_error = std::fabs(flux-EXACT_FLUX);
-			return std::make_pair("ex FLUX err",exact_error);
+			return std::make_pair("std FLUX err",exact_error);
 		}
 
 		// ------------------------------------------------------

@@ -339,11 +339,11 @@ namespace IonPropulsion{
     };
 
     // ------------------------------------------------------
-    // LogCircular
+    // LogCircular_1_10
     // ------------------------------------------------------
 
     template <int dim>
-    struct LogCircular
+    struct LogCircular_1_10
     {
       // We need a class to denote the boundary values of the problem. In this
       // case, this is simple: it's the zero function, so don't even declare a
@@ -356,7 +356,7 @@ namespace IonPropulsion{
           (void)component;
           double Ve = 20000.;
           double l = 0.0004;
-          //double L = 0.04;
+          // double L = 0.04;
 
           const auto x = p[0];
           const auto y = p[1];
@@ -372,7 +372,7 @@ namespace IonPropulsion{
           (void)component;
           double Ve = 20000.;
           double l = 0.0004;
-          double L = 0.04;
+          double L = 0.004;
 
           const auto x = p[0];
           const auto y = p[1];
@@ -384,7 +384,7 @@ namespace IonPropulsion{
           (void)component;
           double Ve = 20000.;
           double l = 0.0004;
-          double L = 0.04;
+          double L = 0.004;
           const auto x = p[0];
           const auto y = p[1];
           const double r2 = x*x + y*y;
@@ -404,7 +404,7 @@ namespace IonPropulsion{
     };
 
     // ------------------------------------------------------
-    // CircularZeroDirichlet
+    // CircularZeroDirichlet (1:10)
     // ------------------------------------------------------
 
     template <int dim>

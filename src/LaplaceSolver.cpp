@@ -201,40 +201,6 @@ namespace IonPropulsion{
     }
 
     template <int dim>
-    void Solver<dim>::compute_second_order_flux(LinearSystem &linear_system) {
-      // Extract set of DoFs on the emitter
-      IndexSet complete_index_set = dof_handler.locally_owned_dofs();
-      auto e_index_set = DoFTools::extract_boundary_dofs(dof_handler,
-                                      ComponentMask(),
-                                      std::set<types::boundary_id>({1}));
-      double flux = 0.;
-      Vector<double> Au(dof_handler.n_dofs());
-
-      // Compute flux = - sum((Au-b)(e_nodes))
-      // Step 1: Au-b
-      if (MANUAL_LIFTING_ON) {
-        linear_system.Umatrix.vmult(Au, solution);
-        Au-=linear_system.rhs;
-        Vector<double> ARg(dof_handler.n_dofs());
-        linear_system.Umatrix.vmult(ARg, Rg_vector);
-        Au+=ARg;
-      } else {
-        linear_system.Umatrix.vmult(Au, solution);
-        Au-=linear_system.rhs;
-      }
-
-      // Step 2: for i in e_nodes DO flux -= (Au-b)[i]
-      for (auto index = e_index_set.begin(); index != e_index_set.end(); ++index) {
-        flux += Au(*index);
-      }
-      std::cout << std::scientific << std::setprecision(12)
-                  << "   Cons. flux = " << flux << std::endl;
-
-      conservative_flux = flux;
-
-    }
-
-    template <int dim>
     Solver<dim>::AssemblyScratchData::AssemblyScratchData(
       const FiniteElement<dim> &fe,
       const Quadrature<dim> &   quadrature)
@@ -434,6 +400,40 @@ namespace IonPropulsion{
         for (unsigned int i = 0; i < dofs_per_cell; ++i)
           rhs(local_dof_indices[i]) += cell_rhs(i);
       }
+    }
+
+    template <int dim>
+    void PrimalSolver<dim>::compute_second_order_flux(typename Solver<dim>::LinearSystem &linear_system) {
+      // Extract set of DoFs on the emitter
+      IndexSet complete_index_set = this->dof_handler.locally_owned_dofs();
+      auto e_index_set = DoFTools::extract_boundary_dofs(this->dof_handler,
+                                      ComponentMask(),
+                                      std::set<types::boundary_id>({1}));
+      double flux = 0.;
+      Vector<double> Au(this->dof_handler.n_dofs());
+
+      // Compute flux = - sum((Au-b)(e_nodes))
+      // Step 1: Au-b
+      if (MANUAL_LIFTING_ON) {
+        linear_system.Umatrix.vmult(Au, this->solution);
+        Au-=linear_system.rhs;
+        Vector<double> ARg(this->dof_handler.n_dofs());
+        linear_system.Umatrix.vmult(ARg, this->Rg_vector);
+        Au+=ARg;
+      } else { // TODO: for now works only on zero Dirichlet BCs
+        linear_system.Umatrix.vmult(Au, this->solution);
+        Au-=linear_system.rhs;
+      }
+
+      // Step 2: for i in e_nodes DO flux -= (Au-b)[i]
+      for (auto index = e_index_set.begin(); index != e_index_set.end(); ++index) {
+        flux += Au(*index);
+      }
+      std::cout << std::scientific << std::setprecision(12)
+                  << "   Cons. flux = " << flux << std::endl;
+
+      this->conservative_flux = flux;
+
     }
 
     // ------------------------------------------------------

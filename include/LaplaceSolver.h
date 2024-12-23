@@ -92,7 +92,7 @@ namespace IonPropulsion{
         SparseMatrix<double>      Umatrix;
       };
 
-      virtual void compute_second_order_flux(LinearSystem &linear_system);
+      virtual void compute_second_order_flux(LinearSystem &linear_system) = 0;
 
     private:
 
@@ -149,6 +149,8 @@ namespace IonPropulsion{
 
       virtual void construct_Rg_vector() override;
 
+      void compute_second_order_flux(typename Solver<dim>::LinearSystem &linear_system) override;
+
     private:
       void retrieve_Rg() override {
         this->solution += this->Rg_vector;
@@ -180,7 +182,7 @@ namespace IonPropulsion{
       virtual void construct_Rg_vector() override {};
       void retrieve_Rg() override {};
 
-      void compute_second_order_flux(typename Solver<dim>::LinearSystem &) override{};
+      void compute_second_order_flux(typename Solver<dim>::LinearSystem & ) override {};
 
     };
 

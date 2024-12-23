@@ -48,6 +48,9 @@ namespace IonPropulsion{
     {
       Base<dim>::convergence_table->add_value("Cons. FLUX err", std::fabs(this->conservative_flux-EXACT_FLUX));
       Base<dim>::convergence_table->set_scientific("Cons. FLUX err", true);
+      CSVLogger& logger = CSVLogger::getInstance();
+      logger.addColumn("Cons. FLUX err", std::to_string(std::fabs(this->conservative_flux-EXACT_FLUX)));
+
       this->convergence_table->omit_column_from_convergence_rate_evaluation("cycle");
       this->convergence_table->omit_column_from_convergence_rate_evaluation("cells");
       this->convergence_table->omit_column_from_convergence_rate_evaluation("DoFs");
@@ -514,6 +517,11 @@ namespace IonPropulsion{
     template <int dim>
     void WeightedResidual<dim>::print_convergence_table() const
     {
+      Base<dim>::convergence_table->add_value("Cons. FLUX err", std::fabs(PrimalSolver<dim>::conservative_flux-EXACT_FLUX));
+      Base<dim>::convergence_table->set_scientific("Cons. FLUX err", true);
+      CSVLogger& logger = CSVLogger::getInstance();
+      logger.addColumn("Cons. FLUX err", std::to_string(std::fabs(PrimalSolver<dim>::conservative_flux-EXACT_FLUX)));
+
       // No convergence rates. Makes no sense
       cout<<std::endl;
       PrimalSolver<dim>::convergence_table->write_text(std::cout);

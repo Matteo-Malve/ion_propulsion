@@ -220,11 +220,11 @@ namespace IonPropulsion{
     }
 
     // ------------------------------------------------------
-    // LogCircular
+    // LogCircular_1_10
     // ------------------------------------------------------
 
     template <>
-    void LogCircular<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    void LogCircular_1_10<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
     {
       //const std::string path_to_mesh = "../mesh/cerchi_concentrici_1_100.msh";
       const std::string path_to_mesh = "../mesh/cerchi_concentrici.msh";
@@ -323,8 +323,8 @@ namespace IonPropulsion{
     template struct Circular<2>;
     template struct SetUp<IonPropulsion::Data::Circular<2>, 2>;
 
-    template struct LogCircular<2>;
-    template struct SetUp<IonPropulsion::Data::LogCircular<2>, 2>;
+    template struct LogCircular_1_10<2>;
+    template struct SetUp<IonPropulsion::Data::LogCircular_1_10<2>, 2>;
 
     template struct CircularZeroDirichlet<2>;
     template struct SetUp<IonPropulsion::Data::CircularZeroDirichlet<2>, 2>;

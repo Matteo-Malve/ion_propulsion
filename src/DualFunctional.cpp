@@ -97,10 +97,74 @@ namespace IonPropulsion{
       rhs /= total_volume;
     }
 
+    // ------------------------------------------------------
+    // StandardFluxEvaluation
+    // ------------------------------------------------------
+    template <int dim>
+      StandardFluxEvaluation<dim>::StandardFluxEvaluation(
+        const unsigned int boundary_id)
+        : boundary_id(boundary_id)
+    {}
+
+    template <int dim>
+    void
+    StandardFluxEvaluation<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler,
+                                            Vector<double> &       rhs) const
+    {
+      // Set up:
+      rhs.reinit(dof_handler.n_dofs());
+
+      auto & fe_face = dof_handler.get_fe();
+
+      // Quadrature
+      const QGauss<dim-1> face_quadrature(fe_face.degree + 1);
+
+      // Finite elements
+      FEFaceValues<dim> fe_face_values(fe_face,
+                                       face_quadrature,
+                                       update_gradients |
+                                       update_normal_vectors |
+                                       update_JxW_values);
+
+      const unsigned int dofs_per_cell = fe_face.n_dofs_per_cell();
+      const unsigned int n_face_q_points = face_quadrature.size();
+      const unsigned int n_facet_dofs = fe_face.n_dofs_per_cell();
+      Vector<double> cell_rhs(dofs_per_cell);
+      std::vector<unsigned int> local_dof_indices(dofs_per_cell);
+
+      // Loop over all cells and faces
+      for (const auto &cell : dof_handler.active_cell_iterators()) {
+        cell_rhs = 0;
+
+        for (const auto &face : cell->face_iterators()) {
+          // Process only boundary faces with the specified boundary_id
+          if (face->at_boundary() && face->boundary_id() == 1) {
+            fe_face_values.reinit(cell, face);
+
+            // Compute flux for this face
+            for (unsigned int q_point = 0; q_point < n_face_q_points; ++q_point) {
+              const Tensor<1, dim> &n = fe_face_values.normal_vector(q_point);
+
+              for (unsigned int i = 0; i < n_facet_dofs; ++i) {
+                // Sum the flux contribution from each quadrature point on the boundary
+                cell_rhs[i] += (fe_face_values.shape_grad(i, q_point) * (-n)) * fe_face_values.JxW(q_point);
+              }
+            }
+          }
+        }
+
+        // Local to global: sum the contribution of this cell to the rhs
+        cell->get_dof_indices(local_dof_indices);
+        for (unsigned int i = 0; i < n_facet_dofs; ++i)
+          rhs(local_dof_indices[i]) += cell_rhs[i];
+      }
+    }
+
     // Template instantiation
     template class DualFunctionalBase<2>;
     template class PointValueEvaluation<2>;
     template class PointXDerivativeEvaluation<2>;
+    template class StandardFluxEvaluation<2>;
 
   } // namespace DualFunctional
 } // namespace IonPropulsion

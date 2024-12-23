@@ -7,9 +7,9 @@ double eps_0 = GlobalConstants::getInstance().get("eps_0");
 
 //double EXACT_POINT_VALUE = 0.0334473; // step14 classic (0.75, 0.75)
 //double EXACT_POINT_VALUE = 1.742630e-05;       // 1:99 (0.0039, 0.0039)
-//double EXACT_POINT_VALUE = 9030.9;        // LogCircular, (0.001,0.001)
-double EXACT_POINT_VALUE = 6466.13;      // LogCircular, (0.0019,0)
-//double sEXACT_POINT_VALUE = 3148.182801 ;       // LogCircular_1_100, (0.019375,0.)
+//double EXACT_POINT_VALUE = 9030.9;        // LogCircular_1_10, (0.001,0.001)
+double EXACT_POINT_VALUE = 6466.13;      // LogCircular_1_10, (0.0019,0)
+//double EXACT_POINT_VALUE = 3148.182801 ;       // LogCircular_1_100, (0.019375,0.)
 
 //double EXACT_FLUX = -3.9252746598790566e-05;  // Rectangle_1_99 by extrapolation
 //double EXACT_FLUX = -2.193245422464e+00;   // CircularZeroDirichlet exact
