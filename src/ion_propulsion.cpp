@@ -23,7 +23,7 @@ int main()
     descriptor.primal_fe_degree = 1;
     descriptor.dual_fe_degree   = 2;
 
-    descriptor.data = std::make_unique<Data::SetUp<Data::CircularZeroDirichlet<dim>, dim>>();
+    descriptor.data = std::make_unique<Data::SetUp<Data::LogCircular<dim>, dim>>();
 
     const Point<dim> evaluation_point(0.0019, 0.);    // LogCircular 1:10
     //const Point<dim> evaluation_point(0.019375, 0.);    // LogCircular 1:100

@@ -108,6 +108,8 @@ namespace IonPropulsion{
       // Retrieve lifting
       if(MANUAL_LIFTING_ON)
         retrieve_Rg();
+
+
     }
 
 
@@ -200,26 +202,33 @@ namespace IonPropulsion{
 
     template <int dim>
     void Solver<dim>::compute_second_order_flux(LinearSystem &linear_system) {
-
       // Extract set of DoFs on the emitter
       IndexSet complete_index_set = dof_handler.locally_owned_dofs();
       auto e_index_set = DoFTools::extract_boundary_dofs(dof_handler,
                                       ComponentMask(),
                                       std::set<types::boundary_id>({1}));
+      double flux = 0.;
+      Vector<double> Au(dof_handler.n_dofs());
 
       // Compute flux = - sum((Au-b)(e_nodes))
       // Step 1: Au-b
-      Vector<double> Au(dof_handler.n_dofs());
-      linear_system.Umatrix.vmult(Au, solution);
-      Au-=linear_system.rhs;        // TODO: rhs tuttp 0 a quanto pare
+      if (MANUAL_LIFTING_ON) {
+        linear_system.Umatrix.vmult(Au, solution);
+        Au-=linear_system.rhs;
+        Vector<double> ARg(dof_handler.n_dofs());
+        linear_system.Umatrix.vmult(ARg, Rg_vector);
+        Au+=ARg;
+      } else {
+        linear_system.Umatrix.vmult(Au, solution);
+        Au-=linear_system.rhs;
+      }
+
       // Step 2: for i in e_nodes DO flux -= (Au-b)[i]
-      double flux = 0.;
       for (auto index = e_index_set.begin(); index != e_index_set.end(); ++index) {
         flux += Au(*index);
       }
-
       std::cout << std::scientific << std::setprecision(12)
-                << "   Cons. flux = " << flux << std::endl;
+                  << "   Cons. flux = " << flux << std::endl;
 
       conservative_flux = flux;
 
