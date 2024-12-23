@@ -97,13 +97,13 @@ namespace IonPropulsion{
 
 
       // Solve homogeneous system with lifting in the rhs
-      LinearSystem linear_system(dof_handler);
-      assemble_linear_system(linear_system);
+      linear_system_ptr = std::make_unique<LinearSystem>(dof_handler);
+      assemble_linear_system(*linear_system_ptr);
 
-      linear_system.solve(homogeneous_solution);
+      linear_system_ptr->solve(homogeneous_solution);
       solution = homogeneous_solution;
 
-      compute_second_order_flux(linear_system);   // NEW
+      compute_second_order_flux(*linear_system_ptr);   // NEW
 
       // Retrieve lifting
       if(MANUAL_LIFTING_ON)

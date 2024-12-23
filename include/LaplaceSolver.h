@@ -92,6 +92,8 @@ namespace IonPropulsion{
         SparseMatrix<double>      Umatrix;
       };
 
+      std::unique_ptr<LinearSystem>                 linear_system_ptr;
+
       virtual void compute_second_order_flux(LinearSystem &linear_system) = 0;
 
     private:
