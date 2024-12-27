@@ -410,7 +410,8 @@ namespace IonPropulsion{
                                       ComponentMask(),
                                       std::set<types::boundary_id>({1}));
       double flux = 0.;
-      Vector<double> Au(this->dof_handler.n_dofs());
+      //Vector<double> Au(this->dof_handler.n_dofs());
+      Au.reinit(this->dof_handler.n_dofs());
 
       // Compute flux = - sum((Au-b)(e_nodes))
       // Step 1: Au-b

@@ -146,7 +146,10 @@ namespace IonPropulsion{
       virtual void output_solution() const override;
 
     protected:
-      const SmartPointer<const Function<dim>> rhs_function;
+      const SmartPointer<const Function<dim>>       rhs_function;
+      double                                        conservative_flux;
+      Vector<double>                                Au;
+
       virtual void assemble_rhs(Vector<double> &rhs) const override;
 
       virtual void construct_Rg_vector() override;
