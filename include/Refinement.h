@@ -94,6 +94,8 @@ namespace IonPropulsion{
       void update_convergence_table() override;
       void print_convergence_table() const override;
 
+      virtual void conservative_flux_rhs(Vector<double> & rhs) const override;
+
     private:
 
       void solve_primal_problem();
@@ -184,6 +186,8 @@ namespace IonPropulsion{
                                          FaceData &            face_data,
                                          FaceIntegrals &face_integrals) const;
     };
+
+
 
   } // namespace LaplaceSolver
 } // namespace IonPropulsion

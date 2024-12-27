@@ -276,12 +276,15 @@ namespace IonPropulsion{
     template <int dim>
     void WeightedResidual<dim>::solve_problem()
     {
-      Threads::TaskGroup<void> tasks;
+      /*Threads::TaskGroup<void> tasks;
       tasks +=
         Threads::new_task(&WeightedResidual<dim>::solve_primal_problem, *this);
       tasks +=
         Threads::new_task(&WeightedResidual<dim>::solve_dual_problem, *this);
-      tasks.join_all();
+      tasks.join_all();*/
+
+      solve_primal_problem();
+      solve_dual_problem();
     }
 
 
@@ -766,6 +769,58 @@ namespace IonPropulsion{
       // Finally store the value with the parent face.
       face_integrals[face] = sum;
     }
+
+    template <int dim>
+    void WeightedResidual<dim>::conservative_flux_rhs(Vector<double> & rhs) const {
+
+      auto & primal_dof_handler = PrimalSolver<dim>::dof_handler;
+      auto & dual_dof_handler = DualSolver<dim>::dof_handler;
+
+      IndexSet not_on_emitter_index_set = dual_dof_handler.locally_owned_dofs();
+      auto e_index_set = DoFTools::extract_boundary_dofs(dual_dof_handler,
+                                      ComponentMask(),
+                                      std::set<types::boundary_id>({1}));
+      not_on_emitter_index_set.subtract_set(e_index_set);
+
+      Vector<double> Au(primal_dof_handler.n_dofs());
+      Vector<double> ARg(primal_dof_handler.n_dofs());
+
+
+      if (MANUAL_LIFTING_ON) {
+        PrimalSolver<dim>::linear_system_ptr->Umatrix.vmult(Au, PrimalSolver<dim>::solution);
+        Au-=PrimalSolver<dim>::linear_system_ptr->rhs;
+        PrimalSolver<dim>::linear_system_ptr->Umatrix.vmult(ARg, PrimalSolver<dim>::Rg_vector);
+        Au+=ARg;
+      } else { // TODO: for now works only on zero Dirichlet BCs
+        PrimalSolver<dim>::linear_system_ptr->Umatrix.vmult(Au, PrimalSolver<dim>::solution);
+        Au-=PrimalSolver<dim>::linear_system_ptr->rhs;
+      }
+
+      AffineConstraints<double> dual_hanging_node_constraints;
+      DoFTools::make_hanging_node_constraints(dual_dof_handler,
+                                              dual_hanging_node_constraints);
+      dual_hanging_node_constraints.close();
+      rhs.reinit(dual_dof_handler.n_dofs());
+      FETools::interpolate(primal_dof_handler,
+                           Au,
+                           dual_dof_handler,
+                           dual_hanging_node_constraints,
+                           rhs);
+
+      for (auto index = not_on_emitter_index_set.begin(); index != not_on_emitter_index_set.end(); ++index) {
+        rhs(*index) = 0.;
+      }
+      unsigned int nonzero_values = 0;
+      for (size_t i = 0; i < rhs.size(); ++i)
+        if (abs(rhs(i)) > 1e-6)
+          nonzero_values++;
+      cout<<"dual_rhs's size: "<<rhs.size()<<std::endl
+          <<"nonzero values:  "<<nonzero_values<<std::endl;
+
+    }
+
+
+
     // Template instantiation
     template class RefinementGlobal<2>;
     template class RefinementKelly<2>;

@@ -161,49 +161,14 @@ namespace IonPropulsion{
       }
     }
 
-    // ------------------------------------------------------
-    // ConservativeFluxEvaluation
-    // ------------------------------------------------------
-    template <int dim>
-      ConservativeFluxEvaluation<dim>::ConservativeFluxEvaluation(
-        const unsigned int boundary_id)
-        : boundary_id(boundary_id)
-    {}
 
-    template <int dim>
-    void
-    ConservativeFluxEvaluation<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler,
-                                            Vector<double> &       rhs) const
-    {
-
-    }
-
-    template <int dim>
-    void
-    ConservativeFluxEvaluation<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler,
-                                            Vector<double> &       rhs,
-                                            Vector<double> & Au         )
-    {
-      IndexSet not_on_emitter_index_set = dof_handler.locally_owned_dofs();
-      auto e_index_set = DoFTools::extract_boundary_dofs(dof_handler,
-                                      ComponentMask(),
-                                      std::set<types::boundary_id>({boundary_id}));
-      not_on_emitter_index_set.subtract_set(e_index_set);
-
-      rhs = Au;
-
-      for (auto index = not_on_emitter_index_set.begin(); index != not_on_emitter_index_set.end(); ++index) {
-        rhs = 0.;
-      }
-
-    }
 
     // Template instantiation
     template class DualFunctionalBase<2>;
     template class PointValueEvaluation<2>;
     template class PointXDerivativeEvaluation<2>;
     template class StandardFluxEvaluation<2>;
-    template class ConservativeFluxEvaluation<2>;
+
 
   } // namespace DualFunctional
 } // namespace IonPropulsion

@@ -19,6 +19,9 @@ namespace IonPropulsion{
     public:
       virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
                                 Vector<double> &       rhs) const = 0;
+      /*virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
+                                Vector<double> &       rhs,
+                                std::unique_ptr<LaplaceSolver::Base<dim>> &) const {};*/
     };
     // ------------------------------------------------------
     // PointValueEvaluation
@@ -80,21 +83,7 @@ namespace IonPropulsion{
       const unsigned int boundary_id;
     };
 
-    // ------------------------------------------------------
-    // ConservativeFluxEvaluation
-    // ------------------------------------------------------
-    template <int dim>
-    class ConservativeFluxEvaluation : public DualFunctionalBase<dim>
-    {
-    public:
-      ConservativeFluxEvaluation(const unsigned int boundary_id);
 
-      virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
-                                Vector<double> &       rhs) const override;
-
-    protected:
-      const unsigned int boundary_id;
-    };
 
   } // namespace DualFunctional
 

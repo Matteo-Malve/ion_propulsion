@@ -179,8 +179,8 @@ namespace IonPropulsion{
     protected:
       const SmartPointer<const DualFunctional::DualFunctionalBase<dim>>
                    dual_functional;
-      virtual void assemble_rhs(Vector<double> &rhs) const override;
-
+      virtual void assemble_rhs(Vector<double> &rhs) const override;  //TODO: do it in WeightedResidual
+      virtual void conservative_flux_rhs(Vector<double> & rhs) const = 0;   //TODO: New
       static const Functions::ZeroFunction<dim> boundary_values;
 
     private:
