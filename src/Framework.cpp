@@ -31,21 +31,23 @@ namespace IonPropulsion{
     switch (descriptor.refinement_criterion)
       {
         case ProblemDescription::dual_weighted_error_estimator:
-          {
-            solver = std::make_unique<LaplaceSolver::WeightedResidual<dim>>(
-              triangulation,
-              primal_fe,
-              dual_fe,
-              quadrature,
-              face_quadrature,
-              descriptor.data->get_right_hand_side(),
-              descriptor.data->get_boundary_values(),
-              *descriptor.dual_functional);
-            break;
+        {
+          cout<<"Refinement strategy: dual_weighted_error_estimator"<<std::endl;
+          solver = std::make_unique<LaplaceSolver::WeightedResidual<dim>>(
+            triangulation,
+            primal_fe,
+            dual_fe,
+            quadrature,
+            face_quadrature,
+            descriptor.data->get_right_hand_side(),
+            descriptor.data->get_boundary_values(),
+            *descriptor.dual_functional);
+          break;
           }
 
         case ProblemDescription::global_refinement:
           {
+          cout<<"Refinement strategy: global_refinement"<<std::endl;
             solver = std::make_unique<LaplaceSolver::RefinementGlobal<dim>>(
               triangulation,
               primal_fe,
@@ -58,6 +60,7 @@ namespace IonPropulsion{
 
         case ProblemDescription::kelly_indicator:
           {
+          cout<<"Refinement strategy: kelly_indicator"<<std::endl;
             solver = std::make_unique<LaplaceSolver::RefinementKelly<dim>>(
               triangulation,
               primal_fe,
@@ -70,6 +73,7 @@ namespace IonPropulsion{
 
         case ProblemDescription::weighted_kelly_indicator:
           {
+          cout<<"Refinement strategy: weighted_kelly_indicator"<<std::endl;
             solver =
               std::make_unique<LaplaceSolver::RefinementWeightedKelly<dim>>(
                 triangulation,
@@ -92,7 +96,6 @@ namespace IonPropulsion{
 
       solver->set_refinement_cycle(step);
       solver->solve_problem();
-      //solver->compute_flux();
       solver->update_convergence_table();
       solver->output_solution();
 

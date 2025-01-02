@@ -9,11 +9,6 @@ namespace IonPropulsion{
   using namespace dealii;
   namespace Evaluation{
 
-    struct ExtraData {
-      const SparseMatrix<double>* matrix = nullptr;
-      const Vector<double>* rhs = nullptr;
-    };
-
     // ------------------------------------------------------
     // EvaluationBase
     // ------------------------------------------------------
@@ -30,7 +25,7 @@ namespace IonPropulsion{
 
       virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
                                                         const Vector<double> & solution,
-                                                        const ExtraData* extra_data = nullptr) const = 0;
+                                                        const Triangulation<dim> &       triangulation) const = 0;
 
     protected:
       unsigned int refinement_cycle;
@@ -48,7 +43,7 @@ namespace IonPropulsion{
 
       virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
                                                         const Vector<double> & solution,
-                                                        const ExtraData* extra_data = nullptr) const override;
+                                                        const Triangulation<dim> &       triangulation) const override;
 
       DeclException1(
         ExcEvaluationPointNotFound,
@@ -68,39 +63,16 @@ namespace IonPropulsion{
     class FluxEvaluation : public EvaluationBase<dim>
     {
     public:
-      FluxEvaluation();
+      FluxEvaluation();   // TODO: Construct with std::set Boundary iDs
 
       virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
                                                         const Vector<double> & solution,
-                                                        const ExtraData* extra_data = nullptr) const override;
+                                                        const Triangulation<dim> &       triangulation) const override;
 
     private:
 
     };
 
-    // ------------------------------------------------------
-    // PointXDerivativeEvaluation
-    // ------------------------------------------------------
-
-    template <int dim>
-    class PointXDerivativeEvaluation : public EvaluationBase<dim>
-    {
-    public:
-      PointXDerivativeEvaluation(const Point<dim> &evaluation_point);
-
-      virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
-                                                        const Vector<double> & solution,
-                                                        const ExtraData* extra_data = nullptr) const override;
-
-      DeclException1(
-        ExcEvaluationPointNotFound,
-        Point<dim>,
-        << "The evaluation point " << arg1
-        << " was not found among the vertices of the present grid.");
-
-    private:
-      const Point<dim> evaluation_point;
-    };
 
     // ------------------------------------------------------
     // GridOutput
@@ -114,12 +86,50 @@ namespace IonPropulsion{
 
       virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
                                                         const Vector<double> & solution,
-                                                        const ExtraData* extra_data = nullptr) const override;
+                                                        const Triangulation<dim> &       triangulation) const override;
 
     private:
       const std::string output_name_base;
+
     };
 
+    // ------------------------------------------------------
+    // L2_error_estimate
+    // ------------------------------------------------------
+
+    template <int dim>
+    class L2_error_estimate : public EvaluationBase<dim>
+    {
+    public:
+      L2_error_estimate(const Function<dim> & analytical_solution);
+
+      virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
+                                                        const Vector<double> & solution,
+                                                        const Triangulation<dim> &       triangulation) const override;
+
+    private:
+      const std::string output_name_base;
+      const SmartPointer<const Function<dim>> analytical_solution;
+    };
+
+    // ------------------------------------------------------
+    // H1_error_estimate
+    // ------------------------------------------------------
+
+    template <int dim>
+    class H1_error_estimate : public EvaluationBase<dim>
+    {
+    public:
+      H1_error_estimate(const Function<dim> & analytical_solution);
+
+      virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
+                                                        const Vector<double> & solution,
+                                                        const Triangulation<dim> &       triangulation) const override;
+
+    private:
+      const std::string output_name_base;
+      const SmartPointer<const Function<dim>> analytical_solution;
+    };
 
   } // namespace Evaluation
 }

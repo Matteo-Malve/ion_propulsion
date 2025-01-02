@@ -1,5 +1,6 @@
 #include "LaplaceSolver.h"
-#include "Constants.h"
+
+#include <Constants.h>
 
 namespace IonPropulsion{
   using namespace dealii;
@@ -46,122 +47,6 @@ namespace IonPropulsion{
       dof_handler.clear();
     }
 
-
-    template <int dim>
-    void Solver<dim>::solve_problem()
-    {
-      dof_handler.distribute_dofs(*fe);
-      homogeneous_solution.reinit(dof_handler.n_dofs());
-      solution.reinit(dof_handler.n_dofs());
-
-      if (this->refinement_cycle == 0) {
-        Rg_vector.reinit(dof_handler.n_dofs());
-        construct_Rg_vector();
-      }
-
-      linear_system_ptr = std::make_unique<LinearSystem>(dof_handler);
-      assemble_linear_system(*linear_system_ptr);
-      linear_system_ptr->solve(homogeneous_solution /*solution*/);
-
-
-      // Retrieve lifting
-      solution = homogeneous_solution;
-      retrieve_Rg();
-
-      //linear_system_ptr->compute_flux(dof_handler, solution);
-
-      // Compute flux
-      //compute_flux();
-
-    }
-
-    template <int dim>
-    void Solver<dim>::compute_flux() {
-
-      std::unique_ptr<const Function<dim>> rhs_function = std::make_unique<Functions::ConstantFunction<dim>>(1.);
-      // TODO: Generalize this.
-      // --> rhs_function available only in PrimalSolver
-
-      //SparseMatrix<double>      flux_matrix;
-      //Vector<double>            flux_rhs;
-      double flux = 0.;
-
-      const QGauss<dim-1> face_quadrature(dof_handler.get_fe().degree + 1);
-      FEFaceValues<dim> fe_face_values(*this->fe,
-                              face_quadrature,
-                              update_values | update_gradients | update_quadrature_points |
-                              update_JxW_values);
-      const unsigned int dofs_per_face = this->fe->n_dofs_per_face(); // TODO: devo reinizializzare? Cambai con hanging nodes?
-      const unsigned int n_face_q_points = face_quadrature.size();
-
-      std::vector<double>                  rhs_values(n_face_q_points);
-      std::vector<Tensor<1, dim>>          rg_gradients(n_face_q_points);
-
-      std::vector<types::global_dof_index> local_dof_indices(dofs_per_face);
-
-      // Cycle on all cells
-      for (const auto &cell : dof_handler.active_cell_iterators()) {
-
-        // Determine if cell is on the EMITTER
-        for (const auto &face : cell->face_iterators())
-          if (face->at_boundary() && face->boundary_id() == 1) {
-
-            fe_face_values.reinit(cell,face);
-
-            // Evaluate: gradRg & F
-            fe_face_values.get_function_gradients(this->Rg_vector, rg_gradients);
-            rhs_function->value_list(fe_face_values.get_quadrature_points(),rhs_values);
-
-
-            for (const unsigned int q_index : fe_face_values.quadrature_point_indices()) {
-              for (const unsigned int i : fe_face_values.dof_indices()){
-                for (const unsigned int j : fe_face_values.dof_indices()) {
-                  //if (local_dof_indices[j]<1.8e4)
-                    //cout<<"sol: "<< solution(local_dof_indices[j]) << std::endl;
-                  flux +=
-                    eps_r * eps_0 *
-                    solution(local_dof_indices[j]) *             // w_j
-                    (fe_face_values.shape_grad(i, q_index) *   // grad phi_i(x_q)
-                    fe_face_values.shape_grad(j, q_index) *  // grad phi_j(x_q)
-                    fe_face_values.JxW(q_index));                     // dx
-                }
-                // NOTE: Inverted signs for rhs contributions
-                flux -=
-                  (fe_face_values.shape_value(i, q_index) *   // phi_i(x_q)
-                  rhs_values[q_index] *                         // f(x_q)
-                  fe_face_values.JxW(q_index));                      //dx
-                /*flux +=
-                  eps_r * eps_0 *
-                  (fe_face_values.shape_grad(i, q_index) *   // grad phi_i(x_q)
-                  rg_gradients[q_index] *                      // grad_Rg(x_q)
-                  fe_face_values.JxW(q_index));                     // dx*/
-            }
-          }
-
-        } // end if boundary
-      } // end cell loop
-
-
-      // Output the result
-      //std::cout << std::scientific << std::setprecision(12)<< "   2.Flux=" << flux << std::endl;
-
-
-      /*
-
-      // Apply boundary values
-      std::map<types::global_dof_index, double> boundary_values;
-      VectorTools::interpolate_boundary_values(primal_dof_handler,1, Functions::ZeroFunction<dim>(), boundary_values);
-      VectorTools::interpolate_boundary_values(primal_dof_handler,9, Functions::ZeroFunction<dim>(), boundary_values);
-      //VectorTools::interpolate_boundary_values(primal_dof_handler,1, exact_solution_function, boundary_values);
-      //VectorTools::interpolate_boundary_values(primal_dof_handler,9, exact_solution_function, boundary_values);
-
-      // Condense constraints
-      primal_constraints.condense(primal_system_matrix);
-      primal_constraints.condense(primal_rhs);
-
-      MatrixTools::apply_boundary_values(boundary_values, primal_system_matrix, uh0, primal_rhs); */
-    }
-
     template <int dim>
     void Solver<dim>::update_convergence_table() {
       this->convergence_table->add_value("cycle", this->refinement_cycle);
@@ -174,25 +59,70 @@ namespace IonPropulsion{
       logger.addColumn("DoFs", std::to_string(this->dof_handler.n_dofs()));
     }
 
+    template <int dim>
+    void PrimalSolver<dim>::construct_Rg_vector() {
+      AffineConstraints<double> hanging_node_constraints;
+      hanging_node_constraints.clear();
+      void (*mhnc_p)(const DoFHandler<dim> &, AffineConstraints<double> &) =
+          &DoFTools::make_hanging_node_constraints;
+      // Start a side task then continue on the main thread
+      Threads::Task<void> side_task =
+        Threads::new_task(mhnc_p, this->dof_handler, hanging_node_constraints);
+
+      std::map<types::global_dof_index, double> boundary_value_map;
+      VectorTools::interpolate_boundary_values(this->dof_handler, 0, *(this->boundary_values), boundary_value_map);
+      VectorTools::interpolate_boundary_values(this->dof_handler, 1, *(this->boundary_values), boundary_value_map);
+      VectorTools::interpolate_boundary_values(this->dof_handler, 9, *(this->boundary_values), boundary_value_map);
+      for (const auto &boundary_value : boundary_value_map)
+        this->Rg_vector(boundary_value.first) = boundary_value.second;
+
+      side_task.join();
+      hanging_node_constraints.close();
+      hanging_node_constraints.distribute(this->Rg_vector);
+    }
+
+    template <int dim>
+    void Solver<dim>::solve_problem()
+    {
+      dof_handler.distribute_dofs(*fe);
+      homogeneous_solution.reinit(dof_handler.n_dofs());
+      solution.reinit(dof_handler.n_dofs());
+
+      if(MANUAL_LIFTING_ON) {
+        if (this->refinement_cycle == 0) {
+          Rg_vector.reinit(dof_handler.n_dofs());
+          construct_Rg_vector();
+        }
+      }
+
+
+      // Solve homogeneous system with lifting in the rhs
+      linear_system_ptr = std::make_unique<LinearSystem>(dof_handler);
+      assemble_linear_system(*linear_system_ptr);
+
+      linear_system_ptr->solve(homogeneous_solution);
+      solution = homogeneous_solution;
+
+      compute_second_order_flux(*linear_system_ptr);   // NEW
+
+      // Retrieve lifting
+      if(MANUAL_LIFTING_ON)
+        retrieve_Rg();
+
+
+    }
+
 
     template <int dim>
     void Solver<dim>::postprocess(
       const Evaluation::EvaluationBase<dim> &postprocessor) const
     {
-      Evaluation::ExtraData extra_data;
-      if (linear_system_ptr) {
-        extra_data.matrix = &linear_system_ptr->matrix;
-        extra_data.rhs = &linear_system_ptr->rhs;
-      }
-
-      std::pair<std::string, double> possible_pair = postprocessor(dof_handler, solution, &extra_data);
-
+      std::pair<std::string, double> possible_pair = postprocessor(dof_handler, solution,*this->triangulation);
       if (possible_pair.first != "null") {
         Base<dim>::convergence_table->add_value(possible_pair.first, possible_pair.second);
         Base<dim>::convergence_table->set_scientific(possible_pair.first, true);
         CSVLogger::getInstance().addColumn(possible_pair.first, to_string_with_precision(possible_pair.second,15));
       }
-
 
     }
 
@@ -229,39 +159,53 @@ namespace IonPropulsion{
                       copier,
                       AssemblyScratchData(*fe, *quadrature),
                       AssemblyCopyData());
-
       linear_system.hanging_node_constraints.condense(linear_system.matrix);
 
       std::map<types::global_dof_index, double> boundary_value_map;
-      VectorTools::interpolate_boundary_values(dof_handler,
+      if(MANUAL_LIFTING_ON) {
+        VectorTools::interpolate_boundary_values(dof_handler,
                                                0,
                                                Functions::ZeroFunction<dim>(),
                                                boundary_value_map);
-      VectorTools::interpolate_boundary_values(dof_handler,
-                                               1,
-                                               Functions::ZeroFunction<dim>(),
+        VectorTools::interpolate_boundary_values(dof_handler,
+                                                 1,
+                                                 Functions::ZeroFunction<dim>(),
+                                                 boundary_value_map);
+        VectorTools::interpolate_boundary_values(dof_handler,
+                                                 9,
+                                                 Functions::ZeroFunction<dim>(),
+                                                 boundary_value_map);
+      } else {
+        VectorTools::interpolate_boundary_values(dof_handler,
+                                               0,
+                                               *boundary_values,
                                                boundary_value_map);
-      VectorTools::interpolate_boundary_values(dof_handler,
-                                               9,
-                                               Functions::ZeroFunction<dim>(),
-                                               boundary_value_map);
-      rhs_task.join();
-      bool nonzero = false;
-      for (size_t i=0; i<linear_system.rhs.size();i++) {
-        if (linear_system.rhs[i]!=0) {
-          nonzero = true;
-          break;
-        }
+        VectorTools::interpolate_boundary_values(dof_handler,
+                                                 1,
+                                                 *boundary_values,
+                                                 boundary_value_map);
+        VectorTools::interpolate_boundary_values(dof_handler,
+                                                 9,
+                                                 *boundary_values,
+                                                 boundary_value_map);
       }
-      if (!nonzero)
-        cout<<"rhs is all zero"<<std::endl;
+
+
+      rhs_task.join();
       linear_system.hanging_node_constraints.condense(linear_system.rhs);
+
       MatrixTools::apply_boundary_values(boundary_value_map,
                                          linear_system.matrix,
-                                         homogeneous_solution /*solution*/,
+                                         homogeneous_solution,
                                          linear_system.rhs);
-    }
 
+      unsigned int nonzero_values = 0;
+      for (size_t i = 0; i < linear_system.rhs.size(); ++i)
+        if (abs(linear_system.rhs(i)) > 1e-6)
+          nonzero_values++;
+      cout<<"      rhs's size: "<<linear_system.rhs.size()<<std::endl
+          <<"      nonzero values:  "<<nonzero_values<<std::endl;
+    }
 
     template <int dim>
     Solver<dim>::AssemblyScratchData::AssemblyScratchData(
@@ -299,9 +243,9 @@ namespace IonPropulsion{
         for (unsigned int i = 0; i < dofs_per_cell; ++i)
           for (unsigned int j = 0; j < dofs_per_cell; ++j)
             copy_data.cell_matrix(i, j) += eps_r * eps_0 *
-              (scratch_data.fe_values.shape_grad(i, q_point) *          // grad phi_i(x_q)
-               scratch_data.fe_values.shape_grad(j, q_point) *        // grad phi_j(x_q)
-               scratch_data.fe_values.JxW(q_point));                    // dx
+              (scratch_data.fe_values.shape_grad(i, q_point) *
+               scratch_data.fe_values.shape_grad(j, q_point) *
+               scratch_data.fe_values.JxW(q_point));
 
       cell->get_dof_indices(copy_data.local_dof_indices);
     }
@@ -313,84 +257,61 @@ namespace IonPropulsion{
                                            LinearSystem &linear_system) const
     {
       for (unsigned int i = 0; i < copy_data.local_dof_indices.size(); ++i)
-        for (unsigned int j = 0; j < copy_data.local_dof_indices.size(); ++j)
+        for (unsigned int j = 0; j < copy_data.local_dof_indices.size(); ++j) {
           linear_system.matrix.add(copy_data.local_dof_indices[i],
                                    copy_data.local_dof_indices[j],
                                    copy_data.cell_matrix(i, j));
+          linear_system.Umatrix.add(copy_data.local_dof_indices[i],
+                                   copy_data.local_dof_indices[j],
+                                   copy_data.cell_matrix(i, j));
+        }
+
     }
 
 
-      template <int dim>
-      Solver<dim>::LinearSystem::LinearSystem(const DoFHandler<dim> &dof_handler)
-      {
-        hanging_node_constraints.clear();
+    template <int dim>
+    Solver<dim>::LinearSystem::LinearSystem(const DoFHandler<dim> &dof_handler)
+    {
+      hanging_node_constraints.clear();
 
-        void (*mhnc_p)(const DoFHandler<dim> &, AffineConstraints<double> &) =
-          &DoFTools::make_hanging_node_constraints;
+      void (*mhnc_p)(const DoFHandler<dim> &, AffineConstraints<double> &) =
+        &DoFTools::make_hanging_node_constraints;
 
-        // Start a side task then continue on the main thread
-        Threads::Task<void> side_task =
-          Threads::new_task(mhnc_p, dof_handler, hanging_node_constraints);
+      // Start a side task then continue on the main thread
+      Threads::Task<void> side_task =
+        Threads::new_task(mhnc_p, dof_handler, hanging_node_constraints);
 
-        DynamicSparsityPattern dsp(dof_handler.n_dofs(), dof_handler.n_dofs());
-        DoFTools::make_sparsity_pattern(dof_handler, dsp);
-
-
-
-        // Wait for the side task to be done before going further
-        side_task.join();
-
-        hanging_node_constraints.close();
-        hanging_node_constraints.condense(dsp);
-        sparsity_pattern.copy_from(dsp);
-
-        matrix.reinit(sparsity_pattern);
-        rhs.reinit(dof_handler.n_dofs());
-      }
+      DynamicSparsityPattern dsp(dof_handler.n_dofs(), dof_handler.n_dofs());
+      DoFTools::make_sparsity_pattern(dof_handler, dsp);
 
 
 
-      template <int dim>
-      void Solver<dim>::LinearSystem::solve(Vector<double> &solution) const   // Note: We will pass homogeneous_solution
-      {
-        SolverControl            solver_control(1000, 1e-12);
-        SolverCG<Vector<double>> cg(solver_control);
+      // Wait for the side task to be done before going further
+      side_task.join();
 
-        PreconditionSSOR<SparseMatrix<double>> preconditioner;
-        preconditioner.initialize(matrix, 1.2);
+      hanging_node_constraints.close();
+      hanging_node_constraints.condense(dsp);
+      sparsity_pattern.copy_from(dsp);
 
-        cg.solve(matrix, solution, rhs, preconditioner);
+      matrix.reinit(sparsity_pattern);
+      Umatrix.reinit(sparsity_pattern);
+      rhs.reinit(dof_handler.n_dofs());
+    }
 
-        hanging_node_constraints.distribute(solution);
 
-      //cout<<"Solved system: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<std::endl;
-      }
 
     template <int dim>
-    void Solver<dim>::LinearSystem::compute_flux(const DoFHandler<dim> &dof_handler, Vector<double> &solution) {
+    void Solver<dim>::LinearSystem::solve(Vector<double> &solution) const
+    {
+      SolverControl            solver_control(5000, 1e-12);
+      SolverCG<Vector<double>> cg(solver_control);
 
-      // Extract index sets
-      IndexSet complete_index_set = dof_handler.locally_owned_dofs();
-      auto e_index_set = DoFTools::extract_boundary_dofs(dof_handler,
-                                      ComponentMask(),
-                                      std::set<types::boundary_id>({1}));
-      auto d_index_set = DoFTools::extract_boundary_dofs(dof_handler,
-                                      ComponentMask(),
-                                      std::set<types::boundary_id>({1,9}));
-      IndexSet i_index_set = complete_index_set;
-      i_index_set.subtract_set(d_index_set);
+      PreconditionSSOR<SparseMatrix<double>> preconditioner;
+      preconditioner.initialize(matrix, 1.2);
+      cg.solve(matrix, solution, rhs, preconditioner);
+      hanging_node_constraints.distribute(solution);
 
-      // Compute A(enodes, :) * u - b(enodes)
-      Vector<double> Au(dof_handler.n_dofs());
-      matrix.vmult(Au, solution);
-      Au-=rhs;
-
-      double flux = 0.;
-      for (auto index = e_index_set.begin(); index != e_index_set.end(); ++index) {
-        flux += Au(*index);
-      }
-
-      //cout<<"   3.Flux : "<<flux<<std::endl;
+      cout<<"Solved system: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<std::endl;
     }
 
     // ------------------------------------------------------
@@ -413,28 +334,6 @@ namespace IonPropulsion{
       , rhs_function(&rhs_function)
     {}
 
-    template <int dim>
-    void PrimalSolver<dim>::construct_Rg_vector() {
-      AffineConstraints<double> hanging_node_constraints;
-      hanging_node_constraints.clear();
-      void (*mhnc_p)(const DoFHandler<dim> &, AffineConstraints<double> &) =
-          &DoFTools::make_hanging_node_constraints;
-      // Start a side task then continue on the main thread
-      Threads::Task<void> side_task =
-        Threads::new_task(mhnc_p, this->dof_handler, hanging_node_constraints);
-
-      std::map<types::global_dof_index, double> boundary_value_map;
-      VectorTools::interpolate_boundary_values(this->dof_handler, 0, *(this->boundary_values), boundary_value_map);
-      VectorTools::interpolate_boundary_values(this->dof_handler, 1, *(this->boundary_values), boundary_value_map);
-      VectorTools::interpolate_boundary_values(this->dof_handler, 9, *(this->boundary_values), boundary_value_map);
-      for (const auto &boundary_value : boundary_value_map)
-        this->Rg_vector(boundary_value.first) = boundary_value.second;
-
-      side_task.join();
-      hanging_node_constraints.close();
-      hanging_node_constraints.distribute(this->Rg_vector);
-    }
-
 
 
     template <int dim>
@@ -442,9 +341,12 @@ namespace IonPropulsion{
     {
       DataOut<dim> data_out;
       data_out.attach_dof_handler(this->dof_handler);
-      data_out.add_data_vector(this->homogeneous_solution, "uh0");
       data_out.add_data_vector(this->solution, "uh");
-      data_out.add_data_vector(this->Rg_vector, "Rg");
+
+      if(MANUAL_LIFTING_ON) {
+        data_out.add_data_vector(this->homogeneous_solution, "uh0");
+        data_out.add_data_vector(this->Rg_vector, "Rg");
+      }
 
       Vector<double> boundary_ids(this->triangulation->n_active_cells());
       for (const auto &cell : this->triangulation->active_cell_iterators())
@@ -457,6 +359,7 @@ namespace IonPropulsion{
 
       std::ofstream out("solution-" + std::to_string(this->refinement_cycle) +
                         ".vtu");
+
       data_out.write(out, DataOutBase::vtu);
 
     }
@@ -479,28 +382,66 @@ namespace IonPropulsion{
       std::vector<Tensor<1, dim>>          rg_gradients(n_q_points);
 
       for (const auto &cell : this->dof_handler.active_cell_iterators())
-        {
-          cell_rhs = 0;
+      {
+        cell_rhs = 0;
 
-          fe_values.reinit(cell);
+        fe_values.reinit(cell);
+        rhs_function->value_list(fe_values.get_quadrature_points(),
+                                 rhs_values);
+        if(MANUAL_LIFTING_ON)
           fe_values.get_function_gradients(this->Rg_vector, rg_gradients);
-          rhs_function->value_list(fe_values.get_quadrature_points(),
-                                   rhs_values);
 
-          for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
-            for (unsigned int i = 0; i < dofs_per_cell; ++i) {
-              cell_rhs(i) += (fe_values.shape_value(i, q_point) * // phi_i(x_q)
-                              rhs_values[q_point] *               // f((x_q)
-                              fe_values.JxW(q_point));            // dx
-              cell_rhs(i) -=   eps_r * eps_0 *
-                        (fe_values.shape_grad(i, q_point) *   // grad phi_i(x_q)
-                          rg_gradients[q_point] *             // grad_Rg(x_q)
-                          fe_values.JxW(q_point));            // dx
+        for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
+          for (unsigned int i = 0; i < dofs_per_cell; ++i) {
+            cell_rhs(i) += (fe_values.shape_value(i, q_point) * // phi_i(x_q)
+                            rhs_values[q_point] *               // f((x_q)
+                            fe_values.JxW(q_point));            // dx
+            if(MANUAL_LIFTING_ON) {
+              cell_rhs(i) -= eps_r * eps_0 *
+                      (fe_values.shape_grad(i, q_point) *   // grad phi_i(x_q)
+                        rg_gradients[q_point] *             // grad_Rg(x_q)
+                        fe_values.JxW(q_point));            // dx
             }
-          cell->get_dof_indices(local_dof_indices);
-          for (unsigned int i = 0; i < dofs_per_cell; ++i)
-            rhs(local_dof_indices[i]) += cell_rhs(i);
-        }
+          }
+        cell->get_dof_indices(local_dof_indices);
+        for (unsigned int i = 0; i < dofs_per_cell; ++i)
+          rhs(local_dof_indices[i]) += cell_rhs(i);
+      }
+    }
+
+    template <int dim>
+    void PrimalSolver<dim>::compute_second_order_flux(typename Solver<dim>::LinearSystem &linear_system) {
+      // Extract set of DoFs on the emitter
+      IndexSet complete_index_set = this->dof_handler.locally_owned_dofs();
+      auto e_index_set = DoFTools::extract_boundary_dofs(this->dof_handler,
+                                      ComponentMask(),
+                                      std::set<types::boundary_id>({1}));
+      double flux = 0.;
+      //Vector<double> Au(this->dof_handler.n_dofs());
+      Au.reinit(this->dof_handler.n_dofs());
+
+      // Compute flux = - sum((Au-b)(e_nodes))
+      // Step 1: Au-b
+      if (MANUAL_LIFTING_ON) {
+        linear_system.Umatrix.vmult(Au, this->solution);
+        Au-=linear_system.rhs;
+        Vector<double> ARg(this->dof_handler.n_dofs());
+        linear_system.Umatrix.vmult(ARg, this->Rg_vector);
+        Au+=ARg;
+      } else { // TODO: for now works only on zero Dirichlet BCs
+        linear_system.Umatrix.vmult(Au, this->solution);
+        Au-=linear_system.rhs;
+      }
+
+      // Step 2: for i in e_nodes DO flux -= (Au-b)[i]
+      for (auto index = e_index_set.begin(); index != e_index_set.end(); ++index) {
+        flux += Au(*index);
+      }
+      std::cout << std::scientific << std::setprecision(12)
+                  << "   Cons. flux = " << flux << std::endl;
+
+      this->conservative_flux = flux;
+
     }
 
     // ------------------------------------------------------
@@ -527,7 +468,8 @@ namespace IonPropulsion{
     template <int dim>
     void DualSolver<dim>::assemble_rhs(Vector<double> &rhs) const
     {
-      dual_functional->assemble_rhs(this->dof_handler, rhs);
+      dual_functional->assemble_rhs(this->dof_handler, rhs);   //TODO: do it in WeightedResidual
+      //this->conservative_flux_rhs(rhs);
     }
 
     // Template instantiation

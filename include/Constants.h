@@ -13,9 +13,10 @@ extern double eps_0;
 extern double eps_r;
 extern double EXACT_POINT_VALUE;
 extern double EXACT_FLUX;
-extern std::string GOAL_FUNCTIONAL;
 extern unsigned int NUM_PRELIMINARY_GLOBAL_REF;
 extern unsigned int NUM_PRELIMINARY_REF;
+
+extern bool MANUAL_LIFTING_ON;
 
 class ConstantsParser {
 public:

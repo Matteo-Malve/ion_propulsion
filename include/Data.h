@@ -253,7 +253,7 @@ namespace IonPropulsion{
           double signX = x>=0 ? +1. : -1.;
           double signY = y>=0 ? +1. : -1.;
 
-          return - 1 * 1 *
+          return - eps_0 * eps_r *
                   (1 / ( l*l * sigma2*sigma2 * r)) * expTerm * Ve *
                   (   2 * freq * l * pi * sigma2 * x * (r-l) * cos(argX) * sin(argY) * signX +
                       freq*freq * pi*pi * sigma2*sigma2 * r * sin(argX) * sin(argY) +
@@ -339,11 +339,11 @@ namespace IonPropulsion{
     };
 
     // ------------------------------------------------------
-    // LogCircular
+    // LogCircular_1_10
     // ------------------------------------------------------
 
     template <int dim>
-    struct LogCircular
+    struct LogCircular_1_10
     {
       // We need a class to denote the boundary values of the problem. In this
       // case, this is simple: it's the zero function, so don't even declare a
@@ -356,7 +356,7 @@ namespace IonPropulsion{
           (void)component;
           double Ve = 20000.;
           double l = 0.0004;
-          //double L = 0.004;
+          // double L = 0.004;
 
           const auto x = p[0];
           const auto y = p[1];
@@ -379,11 +379,176 @@ namespace IonPropulsion{
           const double r = std::sqrt(x*x + y*y);
 
           return Ve / log(l/L) * log(r) - Ve * log(L) / log(l/L);
-
         }
+        virtual Tensor<1, dim> gradient(const Point<dim> &p, const unsigned int component = 0) const override {
+          (void)component;
+          double Ve = 20000.;
+          double l = 0.0004;
+          double L = 0.004;
+          const auto x = p[0];
+          const auto y = p[1];
+          const double r2 = x*x + y*y;
+
+          Tensor<1, dim> grad;
+          grad[0] = Ve * x /(r2 * log(l/L));
+          grad[1] = Ve * y /(r2 * log(l/L));
+          return grad;
+        };
       };
 
       using RightHandSide = Functions::ZeroFunction<dim>;
+
+      // Finally a function to generate the coarse grid. This is somewhat more
+      // complicated here, see immediately below.
+      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+    };
+
+    // ------------------------------------------------------
+    // LogCircular_1_100
+    // ------------------------------------------------------
+
+    template <int dim>
+    struct LogCircular_1_100
+    {
+      // We need a class to denote the boundary values of the problem. In this
+      // case, this is simple: it's the zero function, so don't even declare a
+      // class, just an alias:
+      //using BoundaryValues = ExactSolution5b<dim>;
+      class BoundaryValues : public Function<dim> {
+      public:
+        virtual double value(const Point<dim> & p,
+                             const unsigned int component) const override {
+          (void)component;
+          double Ve = 20000.;
+          double l = 0.0004;
+          // double L = 0.04;
+
+          const auto x = p[0];
+          const auto y = p[1];
+          const double r = std::sqrt(x*x + y*y);
+
+          return r < 1.1 * l ? Ve : 0.;
+        }
+      };
+      class ExactSolution : public Function<dim> {
+      public:
+        virtual double value(const Point<dim> & p,
+                             const unsigned int component) const override {
+          (void)component;
+          double Ve = 20000.;
+          double l = 0.0004;
+          double L = 0.04;
+
+          const auto x = p[0];
+          const auto y = p[1];
+          const double r = std::sqrt(x*x + y*y);
+
+          return Ve / log(l/L) * log(r) - Ve * log(L) / log(l/L);
+        }
+        virtual Tensor<1, dim> gradient(const Point<dim> &p, const unsigned int component = 0) const override {
+          (void)component;
+          double Ve = 20000.;
+          double l = 0.0004;
+          double L = 0.04;
+          const auto x = p[0];
+          const auto y = p[1];
+          const double r2 = x*x + y*y;
+
+          Tensor<1, dim> grad;
+          grad[0] = Ve * x /(r2 * log(l/L));
+          grad[1] = Ve * y /(r2 * log(l/L));
+          return grad;
+        };
+      };
+
+      using RightHandSide = Functions::ZeroFunction<dim>;
+
+      // Finally a function to generate the coarse grid. This is somewhat more
+      // complicated here, see immediately below.
+      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+    };
+
+    // ------------------------------------------------------
+    // CircularZeroDirichlet (1:10)
+    // ------------------------------------------------------
+
+    template <int dim>
+    struct CircularZeroDirichlet
+    {
+
+      class BoundaryValues : public Function<dim> {
+      public:
+        virtual double value(const Point<dim> & p,
+                             const unsigned int component) const override {
+          (void)component;
+
+          double l = 0.0004;
+          double L = 0.004;
+
+          const auto x = p[0];
+          const auto y = p[1];
+          const double r = std::sqrt(x*x + y*y);
+          double arg = pi*(r-l)/(L-l);
+
+          return sin(arg);
+        }
+      };
+
+      class ExactSolution : public Function<dim> {
+      public:
+        virtual double value(const Point<dim> & p,
+                             const unsigned int component) const override {
+          (void)component;
+
+          double l = 0.0004;
+          double L = 0.004;
+
+          const auto x = p[0];
+          const auto y = p[1];
+          const double r = std::sqrt(x*x + y*y);
+          double arg = pi*(r-l)/(L-l);
+
+          return sin(arg);
+        }
+        virtual Tensor<1, dim> gradient(const Point<dim> &p, const unsigned int component = 0) const override {
+          (void)component;
+
+          double l = 0.0004;
+          double L = 0.004;
+          const auto x = p[0];
+          const auto y = p[1];
+          const double r = std::sqrt(x*x + y*y);
+          double arg = pi*(r-l)/(L-l);
+
+          Tensor<1, dim> grad;
+          grad[0] = (pi * x * cos(-arg) ) / ((L-l) * r);
+          grad[1] = (pi * y * cos(-arg) ) / ((L-l) * r);
+          return grad;
+        };
+      };
+
+      class RightHandSide : public Function<dim> {
+      public:
+        virtual double value(const Point<dim> & p,
+                             const unsigned int component) const override {
+          (void)component;
+
+          double l = 0.0004;
+          double L = 0.004;
+
+          const auto x = p[0];
+          const auto y = p[1];
+          const double r = std::sqrt(x*x + y*y);
+          double arg = pi*(r-l)/(L-l);
+
+          return eps_0 * eps_r *    //TODO: not sure of eps
+            (pi * x*x * cos(arg) / ((L-l)* r*r*r))
+          + (pi * y*y * cos(arg) / ((L-l)* r*r*r))
+          - (2 * pi * cos(arg) / ((L-l)*r))
+          + (pi*pi * x*x * sin(arg) / ((L-l)*(L-l)*r*r) )
+          + (pi*pi * y*y * sin(arg) / ((L-l)*(L-l)*r*r));
+        };
+      };
 
       // Finally a function to generate the coarse grid. This is somewhat more
       // complicated here, see immediately below.

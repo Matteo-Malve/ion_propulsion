@@ -28,16 +28,10 @@ namespace IonPropulsion{
       virtual void set_refinement_cycle(const unsigned int cycle);
 
       virtual void output_solution() const = 0;
-
       virtual void update_convergence_table() = 0;
-
       virtual void print_convergence_table() const {};
 
-      virtual void compute_flux() = 0;
-
     protected:
-
-
       const SmartPointer<Triangulation<dim>> triangulation;
       std::shared_ptr<ConvergenceTable> convergence_table;
 
@@ -67,16 +61,23 @@ namespace IonPropulsion{
 
       void update_convergence_table() override;
 
-
     protected:
       const SmartPointer<const FiniteElement<dim>>  fe;
       const SmartPointer<const Quadrature<dim>>     quadrature;
       const SmartPointer<const Quadrature<dim - 1>> face_quadrature;
       DoFHandler<dim>                               dof_handler;
-      Vector<double>                                homogeneous_solution;
       Vector<double>                                solution;
+      Vector<double>                                homogeneous_solution;
       Vector<double>                                Rg_vector;
       const SmartPointer<const Function<dim>>       boundary_values;
+      double                                        conservative_flux;
+
+      virtual void assemble_rhs(Vector<double> &rhs) const = 0;
+
+      virtual void construct_Rg_vector() = 0;
+
+      virtual void retrieve_Rg() = 0;
+
 
       struct LinearSystem
       {
@@ -84,27 +85,19 @@ namespace IonPropulsion{
 
         void solve(Vector<double> &solution) const;
 
-        void compute_flux(const DoFHandler<dim> &dof_handler,Vector<double> &solution);
-
         AffineConstraints<double> hanging_node_constraints;
         SparsityPattern           sparsity_pattern;
         SparseMatrix<double>      matrix;
         Vector<double>            rhs;
+        SparseMatrix<double>      Umatrix;
       };
 
       std::unique_ptr<LinearSystem>                 linear_system_ptr;
 
-      virtual void assemble_rhs(Vector<double> &rhs) const = 0;
-      virtual void construct_Rg_vector() = 0;
-      virtual void retrieve_Rg() = 0;
-
-
-
-    public:
-      const LinearSystem* get_linear_system() const { return linear_system_ptr.get(); }
-      virtual void compute_flux() override;
+      virtual void compute_second_order_flux(LinearSystem &linear_system) = 0;
 
     private:
+
       struct AssemblyScratchData
       {
         AssemblyScratchData(const FiniteElement<dim> &fe,
@@ -131,6 +124,8 @@ namespace IonPropulsion{
 
       void copy_local_to_global(const AssemblyCopyData &copy_data,
                                 LinearSystem &          linear_system) const;
+
+
     };
 
 
@@ -151,15 +146,20 @@ namespace IonPropulsion{
       virtual void output_solution() const override;
 
     protected:
-      const SmartPointer<const Function<dim>> rhs_function;
+      const SmartPointer<const Function<dim>>       rhs_function;
+      double                                        conservative_flux;
+      Vector<double>                                Au;
+
       virtual void assemble_rhs(Vector<double> &rhs) const override;
+
       virtual void construct_Rg_vector() override;
+
+      void compute_second_order_flux(typename Solver<dim>::LinearSystem &linear_system) override;
+
     private:
       void retrieve_Rg() override {
-        this->solution += this->Rg_vector; //TODO: Is another constraints::distribute() necessary?
-        //      Would be problematic as constraints are inside LinearSystem
-      };
-
+        this->solution += this->Rg_vector;
+      }
     };
 
     // ------------------------------------------------------
@@ -179,13 +179,16 @@ namespace IonPropulsion{
     protected:
       const SmartPointer<const DualFunctional::DualFunctionalBase<dim>>
                    dual_functional;
-      void assemble_rhs(Vector<double> &rhs) const override;
-
+      virtual void assemble_rhs(Vector<double> &rhs) const override;  //TODO: do it in WeightedResidual
+      virtual void conservative_flux_rhs(Vector<double> & rhs) const = 0;   //TODO: New
       static const Functions::ZeroFunction<dim> boundary_values;
 
     private:
-      void construct_Rg_vector() override {};
+      virtual void construct_Rg_vector() override {};
       void retrieve_Rg() override {};
+
+      void compute_second_order_flux(typename Solver<dim>::LinearSystem & ) override {};
+
     };
 
     template <int dim>

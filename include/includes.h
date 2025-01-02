@@ -1,3 +1,6 @@
+#ifndef INCLUDES_H
+#define INCLUDES_H
+
 #include <deal.II/base/convergence_table.h>
 #include <deal.II/base/quadrature_lib.h>
 #include <deal.II/base/function.h>
@@ -11,6 +14,7 @@
 #include <deal.II/lac/solver_cg.h>
 #include <deal.II/lac/precondition.h>
 #include <deal.II/lac/affine_constraints.h>
+#include <deal.II/grid/manifold_lib.h>
 #include <deal.II/grid/tria.h>
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/grid_out.h>
@@ -32,4 +36,7 @@
 #include <list>
 #include <memory>
 #include <numeric>
-#include <iomanip>
+
+#include "CSVLogger.h"
+
+#endif

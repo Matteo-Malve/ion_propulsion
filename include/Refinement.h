@@ -1,5 +1,6 @@
 #ifndef REFINEMENT_H
 #define REFINEMENT_H
+#include "includes.h"
 #include "LaplaceSolver.h"
 
 namespace IonPropulsion{
@@ -81,8 +82,6 @@ namespace IonPropulsion{
 
       virtual void solve_problem() override;
 
-      virtual void compute_flux() override;
-
       virtual void postprocess(
         const Evaluation::EvaluationBase<dim> &postprocessor) const override;
 
@@ -93,8 +92,9 @@ namespace IonPropulsion{
       virtual void output_solution() const override;
 
       void update_convergence_table() override;
-
       void print_convergence_table() const override;
+
+      virtual void conservative_flux_rhs(Vector<double> & rhs) const override;
 
     private:
 
@@ -144,7 +144,7 @@ namespace IonPropulsion{
           const Quadrature<dim> &    primal_quadrature,
           const Quadrature<dim - 1> &primal_face_quadrature,
           const Function<dim> &      rhs_function,
-          const Vector<double> &     Rg_plus_uh0hat,
+          const Vector<double> &     primal_solution,
           const Vector<double> &     dual_weights);
 
         WeightedResidualScratchData(
@@ -152,7 +152,7 @@ namespace IonPropulsion{
 
         CellData       cell_data;
         FaceData       face_data;
-        Vector<double> Rg_plus_uh0hat;
+        Vector<double> primal_solution;
         Vector<double> dual_weights;
       };
 
@@ -186,6 +186,8 @@ namespace IonPropulsion{
                                          FaceData &            face_data,
                                          FaceIntegrals &face_integrals) const;
     };
+
+
 
   } // namespace LaplaceSolver
 } // namespace IonPropulsion

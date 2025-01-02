@@ -2,7 +2,7 @@
 #define DUALFUNCTIONAL_H
 
 #include "includes.h"
-#include "CSVLogger.h"
+
 
 namespace IonPropulsion{
 
@@ -19,6 +19,9 @@ namespace IonPropulsion{
     public:
       virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
                                 Vector<double> &       rhs) const = 0;
+      /*virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
+                                Vector<double> &       rhs,
+                                std::unique_ptr<LaplaceSolver::Base<dim>> &) const {};*/
     };
     // ------------------------------------------------------
     // PointValueEvaluation
@@ -43,22 +46,6 @@ namespace IonPropulsion{
     };
 
     // ------------------------------------------------------
-    // FluxEvaluation
-    // ------------------------------------------------------
-    template <int dim>
-    class FluxEvaluation : public DualFunctionalBase<dim>
-    {
-    public:
-      FluxEvaluation(const unsigned int boundary_id);
-
-      virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
-                                Vector<double> &       rhs) const override;
-
-    protected:
-      const unsigned int boundary_id;
-    };
-
-    // ------------------------------------------------------
     // PointXDerivativeEvaluation
     // ------------------------------------------------------
     template <int dim>
@@ -79,6 +66,24 @@ namespace IonPropulsion{
     protected:
       const Point<dim> evaluation_point;
     };
+
+    // ------------------------------------------------------
+    // StandardFluxEvaluation
+    // ------------------------------------------------------
+    template <int dim>
+    class StandardFluxEvaluation : public DualFunctionalBase<dim>
+    {
+    public:
+      StandardFluxEvaluation(const unsigned int boundary_id);
+
+      virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
+                                Vector<double> &       rhs) const override;
+
+    protected:
+      const unsigned int boundary_id;
+    };
+
+
 
   } // namespace DualFunctional
 
