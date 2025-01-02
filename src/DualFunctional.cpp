@@ -128,7 +128,7 @@ namespace IonPropulsion{
                                        update_JxW_values);
 
       const unsigned int dofs_per_cell = fe_face.n_dofs_per_cell();
-      const unsigned int dofs_per_face = fe_face.n_dofs_per_face();
+      //const unsigned int dofs_per_face = fe_face.n_dofs_per_face();
       const unsigned int n_face_q_points = face_quadrature.size();
       Vector<double> cell_rhs(dofs_per_cell);
       std::vector<unsigned int> local_dof_indices(dofs_per_cell);

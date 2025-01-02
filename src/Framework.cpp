@@ -96,7 +96,6 @@ namespace IonPropulsion{
 
       solver->set_refinement_cycle(step);
       solver->solve_problem();
-      //solver->compute_flux();
       solver->update_convergence_table();
       solver->output_solution();
 

@@ -468,8 +468,8 @@ namespace IonPropulsion{
     template <int dim>
     void DualSolver<dim>::assemble_rhs(Vector<double> &rhs) const
     {
-      //dual_functional->assemble_rhs(this->dof_handler, rhs);   //TODO: do it in WeightedResidual
-      this->conservative_flux_rhs(rhs);
+      dual_functional->assemble_rhs(this->dof_handler, rhs);   //TODO: do it in WeightedResidual
+      //this->conservative_flux_rhs(rhs);
     }
 
     // Template instantiation
