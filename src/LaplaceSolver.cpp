@@ -198,6 +198,13 @@ namespace IonPropulsion{
                                          linear_system.matrix,
                                          homogeneous_solution,
                                          linear_system.rhs);
+
+      unsigned int nonzero_values = 0;
+      for (size_t i = 0; i < linear_system.rhs.size(); ++i)
+        if (abs(linear_system.rhs(i)) > 1e-6)
+          nonzero_values++;
+      cout<<"      rhs's size: "<<linear_system.rhs.size()<<std::endl
+          <<"      nonzero values:  "<<nonzero_values<<std::endl;
     }
 
     template <int dim>
@@ -235,7 +242,7 @@ namespace IonPropulsion{
       for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
         for (unsigned int i = 0; i < dofs_per_cell; ++i)
           for (unsigned int j = 0; j < dofs_per_cell; ++j)
-            copy_data.cell_matrix(i, j) +=
+            copy_data.cell_matrix(i, j) += eps_r * eps_0 *
               (scratch_data.fe_values.shape_grad(i, q_point) *
                scratch_data.fe_values.shape_grad(j, q_point) *
                scratch_data.fe_values.JxW(q_point));
@@ -390,7 +397,7 @@ namespace IonPropulsion{
                             rhs_values[q_point] *               // f((x_q)
                             fe_values.JxW(q_point));            // dx
             if(MANUAL_LIFTING_ON) {
-              cell_rhs(i) -=
+              cell_rhs(i) -= eps_r * eps_0 *
                       (fe_values.shape_grad(i, q_point) *   // grad phi_i(x_q)
                         rg_gradients[q_point] *             // grad_Rg(x_q)
                         fe_values.JxW(q_point));            // dx

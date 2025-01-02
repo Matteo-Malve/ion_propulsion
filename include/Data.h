@@ -253,7 +253,7 @@ namespace IonPropulsion{
           double signX = x>=0 ? +1. : -1.;
           double signY = y>=0 ? +1. : -1.;
 
-          return - 1 * 1 *
+          return - eps_0 * eps_r *
                   (1 / ( l*l * sigma2*sigma2 * r)) * expTerm * Ve *
                   (   2 * freq * l * pi * sigma2 * x * (r-l) * cos(argX) * sin(argY) * signX +
                       freq*freq * pi*pi * sigma2*sigma2 * r * sin(argX) * sin(argY) +
@@ -476,7 +476,8 @@ namespace IonPropulsion{
           const double r = std::sqrt(x*x + y*y);
           double arg = pi*(r-l)/(L-l);
 
-          return (pi * x*x * cos(arg) / ((L-l)* r*r*r))
+          return eps_0 * eps_r *    //TODO: not sure of eps
+            (pi * x*x * cos(arg) / ((L-l)* r*r*r))
           + (pi * y*y * cos(arg) / ((L-l)* r*r*r))
           - (2 * pi * cos(arg) / ((L-l)*r))
           + (pi*pi * x*x * sin(arg) / ((L-l)*(L-l)*r*r) )

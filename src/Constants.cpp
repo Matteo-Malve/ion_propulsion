@@ -2,8 +2,8 @@
 void useGlobalConstants();
 
 
-double eps_r = GlobalConstants::getInstance().get("eps_r");
-double eps_0 = GlobalConstants::getInstance().get("eps_0");
+double eps_r = 1.0;     // 8.854
+double eps_0 = 1.0; // 1.0006
 
 //double EXACT_POINT_VALUE = 0.0334473; // step14 classic (0.75, 0.75)
 //double EXACT_POINT_VALUE = 1.742630e-05;       // 1:99 (0.0039, 0.0039)

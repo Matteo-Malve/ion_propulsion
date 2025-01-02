@@ -73,7 +73,7 @@ namespace IonPropulsion{
       }
       t1 = t1 * t1;
 
-      return -u * (t1 + t2 + t3);
+      return - eps_0 * eps_r * u * (t1 + t2 + t3);  //  TODO not sure about eps
     }
 
     template <int dim>

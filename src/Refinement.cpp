@@ -602,7 +602,7 @@ namespace IonPropulsion{
       // with the present cell:
       double sum = 0;
       for (unsigned int p = 0; p < cell_data.fe_values.n_quadrature_points; ++p)
-        sum += ((cell_data.rhs_values[p] + cell_data.cell_laplacians[p]) *
+        sum += ((cell_data.rhs_values[p] + eps_0 * eps_r * cell_data.cell_laplacians[p]) *
                 cell_data.dual_weights[p] * cell_data.fe_values.JxW(p));
       error_indicators(cell->active_cell_index()) += sum;
     }
@@ -677,7 +677,7 @@ namespace IonPropulsion{
       // weights, and quadrature weights, to get the result for this face:
       double face_integral = 0;
       for (unsigned int p = 0; p < n_q_points; ++p)
-        face_integral +=
+        face_integral += eps_0 * eps_r *
           (face_data.jump_residual[p] * face_data.dual_weights[p] *
            face_data.fe_face_values_cell.JxW(p));
 
@@ -747,7 +747,7 @@ namespace IonPropulsion{
           // the global map:
           double face_integral = 0;
           for (unsigned int p = 0; p < n_q_points; ++p)
-            face_integral +=
+            face_integral += eps_0 * eps_r *
               (face_data.jump_residual[p] * face_data.dual_weights[p] *
                face_data.fe_face_values_neighbor.JxW(p));
           face_integrals[neighbor_child->face(neighbor_neighbor)] =
@@ -814,8 +814,8 @@ namespace IonPropulsion{
       for (size_t i = 0; i < rhs.size(); ++i)
         if (abs(rhs(i)) > 1e-6)
           nonzero_values++;
-      cout<<"dual_rhs's size: "<<rhs.size()<<std::endl
-          <<"nonzero values:  "<<nonzero_values<<std::endl;
+      cout<<"    dual_rhs's size: "<<rhs.size()<<std::endl
+          <<"    nonzero values:  "<<nonzero_values<<std::endl;
 
     }
 
