@@ -34,6 +34,7 @@ namespace IonPropulsion{
     template <class Traits, int dim>
     struct SetUp : public SetUpBase<dim>
     {
+
       virtual const Function<dim> &get_boundary_values() const override;
 
       virtual const Function<dim> &get_right_hand_side() const override;
@@ -56,10 +57,66 @@ namespace IonPropulsion{
     template <class Traits, int dim>
     const typename Traits::BoundaryValues SetUp<Traits, dim>::boundary_values;
     template <class Traits, int dim>
-    const typename Traits::RightHandSide SetUp<Traits, dim>::right_hand_side;
+    const typename Traits::RightHandSide SetUp<Traits, dim>::right_hand_side = typename Traits::RightHandSide();
     template <class Traits, int dim>
     const typename Traits::ExactSolution SetUp<Traits, dim>::exact_solution;
 
+    // ------------------------------------------------------
+    // SetupNone
+    // ------------------------------------------------------
+    template <int dim>
+    struct SetupNone
+    {
+      class BoundaryValues : public Function<dim>
+      {
+      public:
+        virtual double value(const Point<dim> & p,
+                             const unsigned int component) const override;
+      };
+
+
+      class RightHandSide : public Function<dim>
+      {
+      public:
+        RightHandSide()
+          : parser()//, expression(RHS_EXPRESSION)
+        {
+          cout<<"Expression: "<<RHS_EXPRESSION <<std::endl;
+          parser.DefineVar("x", &x);
+          parser.DefineVar("y", &y);
+          parser.DefineVar("z", &z);
+          parser.SetExpr(RHS_EXPRESSION);
+        }
+        virtual double value(const Point<dim> &p, const unsigned int component) const override
+        {
+          (void) component;
+          x = p[0];
+          y = dim > 1 ? p[1] : 0.0;
+          z = dim > 2 ? p[2] : 0.0;
+          try {
+            return parser.Eval(); // Evaluate the parsed expression
+          } catch (mu::ParserError &e) {
+            std::cerr << "Error evaluating RHS expression: " << e.GetMsg() << std::endl;
+            std::cerr << "Expression: "<< expression << std::endl;
+            return 0.0; // Return default value in case of error
+          }
+        }
+
+      private:
+        mu::Parser parser;
+        std::string expression;
+        mutable double x, y, z;
+      };
+
+      class ExactSolution : public Functions::ConstantFunction<dim> {
+      public:
+        ExactSolution()
+          : Functions::ConstantFunction<dim>(-1.e-19)  // Not available
+        {}
+      };
+
+      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+    };
 
     // ------------------------------------------------------
     // Trait: CurvedRidges

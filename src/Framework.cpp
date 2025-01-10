@@ -32,7 +32,7 @@ namespace IonPropulsion{
       {
         case ProblemDescription::dual_weighted_error_estimator:
         {
-          cout<<"Refinement strategy: dual_weighted_error_estimator"<<std::endl;
+          //cout<<"Refinement strategy: dual_weighted_error_estimator"<<std::endl;
           solver = std::make_unique<LaplaceSolver::WeightedResidual<dim>>(
             triangulation,
             primal_fe,
@@ -47,7 +47,7 @@ namespace IonPropulsion{
 
         case ProblemDescription::global_refinement:
           {
-          cout<<"Refinement strategy: global_refinement"<<std::endl;
+          //cout<<"Refinement strategy: global_refinement"<<std::endl;
             solver = std::make_unique<LaplaceSolver::RefinementGlobal<dim>>(
               triangulation,
               primal_fe,
@@ -60,7 +60,7 @@ namespace IonPropulsion{
 
         case ProblemDescription::kelly_indicator:
           {
-          cout<<"Refinement strategy: kelly_indicator"<<std::endl;
+          //cout<<"Refinement strategy: kelly_indicator"<<std::endl;
             solver = std::make_unique<LaplaceSolver::RefinementKelly<dim>>(
               triangulation,
               primal_fe,
@@ -73,7 +73,7 @@ namespace IonPropulsion{
 
         case ProblemDescription::weighted_kelly_indicator:
           {
-          cout<<"Refinement strategy: weighted_kelly_indicator"<<std::endl;
+          //cout<<"Refinement strategy: weighted_kelly_indicator"<<std::endl;
             solver =
               std::make_unique<LaplaceSolver::RefinementWeightedKelly<dim>>(
                 triangulation,

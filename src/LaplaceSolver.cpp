@@ -199,12 +199,6 @@ namespace IonPropulsion{
                                          homogeneous_solution,
                                          linear_system.rhs);
 
-      unsigned int nonzero_values = 0;
-      for (size_t i = 0; i < linear_system.rhs.size(); ++i)
-        if (abs(linear_system.rhs(i)) > 1e-6)
-          nonzero_values++;
-      cout<<"      rhs's size: "<<linear_system.rhs.size()<<std::endl
-          <<"      nonzero values:  "<<nonzero_values<<std::endl;
     }
 
     template <int dim>
@@ -348,6 +342,10 @@ namespace IonPropulsion{
         data_out.add_data_vector(this->Rg_vector, "Rg");
       }
 
+      Vector<double> rhs_function_values(this->dof_handler.n_dofs());
+      VectorTools::interpolate(this->dof_handler, *this->rhs_function, rhs_function_values);
+      data_out.add_data_vector(rhs_function_values, "rhs_function");
+
       Vector<double> boundary_ids(this->triangulation->n_active_cells());
       for (const auto &cell : this->triangulation->active_cell_iterators())
         for (unsigned int face = 0; face < GeometryInfo<dim>::faces_per_cell; ++face)
@@ -386,6 +384,7 @@ namespace IonPropulsion{
         cell_rhs = 0;
 
         fe_values.reinit(cell);
+
         rhs_function->value_list(fe_values.get_quadrature_points(),
                                  rhs_values);
         if(MANUAL_LIFTING_ON)

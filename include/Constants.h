@@ -11,12 +11,27 @@
 
 extern double eps_0;
 extern double eps_r;
-extern double EXACT_POINT_VALUE;
-extern double EXACT_FLUX;
+
+extern double Vc;
+extern double Vc;
+extern std::string RHS_EXPRESSION;
+
 extern unsigned int NUM_PRELIMINARY_GLOBAL_REF;
-extern unsigned int NUM_PRELIMINARY_REF;
+extern std::string PATH_TO_MESH;
+extern unsigned int LOAD_FROM_SETUP;
 
 extern bool MANUAL_LIFTING_ON;
+extern unsigned int REFINEMENT_CRITERION;
+extern unsigned int DUAL_FUNCTIONAL;
+
+extern double EVALUATION_POINT_X;
+extern double EVALUATION_POINT_Y;
+
+extern double EXACT_POINT_VALUE;
+extern double EXACT_FLUX;
+
+//extern unsigned int NUM_PRELIMINARY_REF;
+
 
 class ConstantsParser {
 public:
@@ -105,5 +120,8 @@ private:
     GlobalConstants(const GlobalConstants&) = delete;
     GlobalConstants& operator=(const GlobalConstants&) = delete;
 };
+
+void printParsedConstants();
+
 
 #endif // CONSTANTS_H

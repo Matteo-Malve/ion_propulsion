@@ -19,6 +19,7 @@ namespace IonPropulsion{
     template <class Traits, int dim>
     const Function<dim> &SetUp<Traits, dim>::get_right_hand_side() const
     {
+      static const typename Traits::RightHandSide rhs; // Lazy initialization
       return right_hand_side;
     }
 
@@ -34,6 +35,29 @@ namespace IonPropulsion{
       Triangulation<dim> &coarse_grid) const
     {
       Traits::create_coarse_grid(coarse_grid);
+    }
+
+    // ------------------------------------------------------
+    // SetupNone
+    // ------------------------------------------------------
+
+    template <int dim>
+    double SetupNone<dim>::BoundaryValues::value(
+      const Point<dim> &p,
+      const unsigned int /*component*/) const
+    {
+      double q = p(0);
+      for (unsigned int i = 1; i < dim; ++i)
+        q += std::sin(10 * p(i) + 5 * p(0) * p(0));
+      const double exponential = std::exp(q);
+      return exponential;
+    }
+
+    template <int dim>
+    void SetupNone<dim>::create_coarse_grid(Triangulation<dim> &coarse_grid)
+    {
+      GridGenerator::hyper_cube(coarse_grid, -1, 1);
+      coarse_grid.refine_global(2);
     }
 
     // ------------------------------------------------------
@@ -147,8 +171,8 @@ namespace IonPropulsion{
     void Rectangle_1_99<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
     {
       //const std::string path_to_mesh = "../mesh/TinyStep14_1_99.msh";
-      const std::string path_to_mesh = "../mesh/TinyStep14_deFalco.msh";
-      cout << endl << "Reading file: " << path_to_mesh << endl;
+      //const std::string path_to_mesh = "../mesh/TinyStep14_deFalco.msh";
+      const std::string path_to_mesh = PATH_TO_MESH;
       std::ifstream input_file(path_to_mesh);
       GridIn<2>       grid_in;
       grid_in.attach_triangulation(coarse_grid);
@@ -189,7 +213,6 @@ namespace IonPropulsion{
     {
          const std::string path_to_mesh = "../mesh/FullTestSquare.msh";
       //const std::string path_to_mesh = "../mesh/TinyStep14_deFalco.msh";
-      cout << std::endl << "Reading file: " << path_to_mesh << std::endl;
       std::ifstream input_file(path_to_mesh);
       GridIn<2>       grid_in;
       grid_in.attach_triangulation(coarse_grid);
@@ -205,17 +228,16 @@ namespace IonPropulsion{
     void Circular<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
     {
       const std::string path_to_mesh = "../mesh/cerchi_concentrici.msh";
-      cout << std::endl << "Reading file: " << path_to_mesh << std::endl;
       std::ifstream input_file(path_to_mesh);
       GridIn<2>       grid_in;
       grid_in.attach_triangulation(coarse_grid);
       grid_in.read_msh(input_file);
 
-      double pi = 3.14159265358979323846;
+      /*double pi = 3.14159265358979323846;
       double Ve = 20000.;
       double l = 0.0004;
       double L = 0.004;
-      cout<< "Exact flux: "<< 2 * pi * l * Ve / (L-l) <<std::endl;
+      cout<< "Exact flux: "<< 2 * pi * l * Ve / (L-l) <<std::endl;*/
 
     }
 
@@ -228,17 +250,16 @@ namespace IonPropulsion{
     {
       //const std::string path_to_mesh = "../mesh/cerchi_concentrici_1_100.msh";
       const std::string path_to_mesh = "../mesh/cerchi_concentrici.msh";
-      cout << std::endl << "Reading file: " << path_to_mesh << std::endl;
       std::ifstream input_file(path_to_mesh);
       GridIn<2>       grid_in;
       grid_in.attach_triangulation(coarse_grid);
       grid_in.read_msh(input_file);
 
-      double pi = 3.14159265358979323846;
+      /*double pi = 3.14159265358979323846;
       double Ve = 20000.;
       double l = 0.0004;
       double L = 0.004;
-      cout<< "Exact flux: "<< - (2 * pi * l) * (Ve / (log(l/L)*l)) <<std::endl;
+      cout<< "Exact flux: "<< - (2 * pi * l) * (Ve / (log(l/L)*l)) <<std::endl;*/
 
       //ExactSolution exact_solution;
       //cout<<"ExactSolution at (0.0019, 0) = "<<exact_solution.value(Point<2>(0.0019, 0.),0)<< std::endl;
@@ -271,19 +292,18 @@ namespace IonPropulsion{
     template <>
     void LogCircular_1_100<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
     {
-      const std::string path_to_mesh = "../mesh/cerchi_concentrici_1_100.msh";
-      //const std::string path_to_mesh = "../mesh/cerchi_concentrici.msh";
-      cout << std::endl << "Reading file: " << path_to_mesh << std::endl;
+      //const std::string path_to_mesh = "../mesh/cerchi_concentrici_1_100.msh";
+      const std::string path_to_mesh = PATH_TO_MESH;
       std::ifstream input_file(path_to_mesh);
       GridIn<2>       grid_in;
       grid_in.attach_triangulation(coarse_grid);
       grid_in.read_msh(input_file);
 
-      double pi = 3.14159265358979323846;
+      /*double pi = 3.14159265358979323846;
       double Ve = 20000.;
       double l = 0.0004;
       double L = 0.04;
-      cout<< "Exact flux: "<< - (2 * pi * l) * (Ve / (log(l/L)*l)) <<std::endl;
+      cout<< "Exact flux: "<< - (2 * pi * l) * (Ve / (log(l/L)*l)) <<std::endl;*/
 
       //ExactSolution exact_solution;
       //cout<<"ExactSolution at (0.0019, 0) = "<<exact_solution.value(Point<2>(0.0019, 0.),0)<< std::endl;
@@ -318,17 +338,16 @@ namespace IonPropulsion{
     {
       //const std::string path_to_mesh = "../mesh/cerchi_concentrici_1_100.msh";
       const std::string path_to_mesh = "../mesh/cerchi_concentrici.msh";
-      cout << std::endl << "Reading file: " << path_to_mesh << std::endl;
       std::ifstream input_file(path_to_mesh);
       GridIn<2>       grid_in;
       grid_in.attach_triangulation(coarse_grid);
       grid_in.read_msh(input_file);
 
-      double pi = 3.14159265358979323846;
+      /*double pi = 3.14159265358979323846;
       double l = 0.0004;
       double L = 0.004;
       std::cout << std::scientific << std::setprecision(12)
-                << "Exact flux: " << - (2 * pi * l) * (pi / (L-l)) << std::endl;
+                << "Exact flux: " << - (2 * pi * l) * (pi / (L-l)) << std::endl;*/
 
 
 
@@ -354,7 +373,12 @@ namespace IonPropulsion{
 
     // Template instantiation
     template struct SetUpBase<2>;
+
     template struct CurvedRidges<2>;
+    template struct SetUp<IonPropulsion::Data::CurvedRidges<2>, 2>;
+
+    template struct SetupNone<2>;
+    template struct SetUp<IonPropulsion::Data::SetupNone<2>, 2>;
 
     template struct Exercise_2_3<2>;
     template struct SetUp<IonPropulsion::Data::Exercise_2_3<2>, 2>;

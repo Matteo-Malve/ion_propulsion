@@ -6,10 +6,7 @@ int main()
   try
   {
     using namespace IonPropulsion;
-    if (MANUAL_LIFTING_ON)
-      cout<<"Lifting strategy:   Manual lifting"<<std::endl;
-    else
-      cout<<"Lifting strategy:   Automatic imposition of BCs"<<std::endl;
+    printParsedConstants();
 
     // Describe the problem we want to solve here by passing a descriptor
     // object to the function doing the rest of the work:
@@ -17,22 +14,48 @@ int main()
     Framework<dim>::ProblemDescription descriptor;
 
     // First set the refinement criterion we wish to use:
-    descriptor.refinement_criterion =
-      Framework<dim>::ProblemDescription::dual_weighted_error_estimator;
+    if (REFINEMENT_CRITERION==1)
+    descriptor.refinement_criterion = Framework<dim>::ProblemDescription::global_refinement;
+    else if (REFINEMENT_CRITERION==2)
+       descriptor.refinement_criterion = Framework<dim>::ProblemDescription::dual_weighted_error_estimator;
+    else
+      DEAL_II_NOT_IMPLEMENTED();
 
     descriptor.primal_fe_degree = 1;
     descriptor.dual_fe_degree   = 2;
 
-    descriptor.data = std::make_unique<Data::SetUp<Data::LogCircular_1_100<dim>, dim>>();
+    if(LOAD_FROM_SETUP == 0)
+      descriptor.data = std::make_unique<Data::SetUp<Data::SetupNone<dim>, dim>>();
+    else if(LOAD_FROM_SETUP == 1)
+      descriptor.data = std::make_unique<Data::SetUp<Data::CurvedRidges<dim>, dim>>();
+    else if(LOAD_FROM_SETUP == 2)
+      descriptor.data = std::make_unique<Data::SetUp<Data::Exercise_2_3<dim>, dim>>();
+    else if (LOAD_FROM_SETUP == 3)
+      descriptor.data = std::make_unique<Data::SetUp<Data::Rectangle_1_99<dim>, dim>>();
+    else if (LOAD_FROM_SETUP == 4)
+      descriptor.data = std::make_unique<Data::SetUp<Data::LogCircular_1_10<dim>, dim>>();
+    else if (LOAD_FROM_SETUP == 5)
+      descriptor.data = std::make_unique<Data::SetUp<Data::LogCircular_1_100<dim>, dim>>();
+    else
+      DEAL_II_NOT_IMPLEMENTED();
 
+    const Point<dim> evaluation_point(EVALUATION_POINT_X,EVALUATION_POINT_Y);
+
+    /*
     //const Point<dim> evaluation_point(0.0019, 0.);    // LogCircular 1:10
     const Point<dim> evaluation_point(0.019375, 0.);    // LogCircular 1:100
     //const Point<dim> evaluation_point(0.0039, 0.0039);      // ??
     //const Point<dim> evaluation_point(0.0006, 0.0006);      // Rectangular_1_99_DeFalco PointEvaluation is sharp. Requires vertex //TODO: Extrapolation of value
     //const Point<dim> evaluation_point(0.75, 0.75);    // original-step14
+    */
 
-    descriptor.dual_functional = std::make_unique<DualFunctional::PointValueEvaluation<dim>>(evaluation_point);
-    //descriptor.dual_functional = std::make_unique<DualFunctional::StandardFluxEvaluation<dim>>(1);
+    if (DUAL_FUNCTIONAL==1)
+      descriptor.dual_functional = std::make_unique<DualFunctional::PointValueEvaluation<dim>>(evaluation_point);
+    else if (DUAL_FUNCTIONAL==2)
+      descriptor.dual_functional = std::make_unique<DualFunctional::StandardFluxEvaluation<dim>>(1);
+    else
+      DEAL_II_NOT_IMPLEMENTED();
+
 
     Evaluation::PointValueEvaluation<dim> postprocessor1(evaluation_point);
     Evaluation::L2_error_estimate<dim> postprocessor2(descriptor.data->get_exact_solution());
