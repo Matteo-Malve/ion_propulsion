@@ -79,20 +79,32 @@ namespace IonPropulsion{
       {
       public:
         RightHandSide()
-          : parser()
+          : x(0.0), y(0.0), z(0.0), expression_initialized(false)
         {
-          std::string RHS_EXPRESSION = GlobalConstants::getInstance().getString("RHS_EXPRESSION");
           parser.DefineVar("x", &x);
           parser.DefineVar("y", &y);
           parser.DefineVar("z", &z);
-          parser.SetExpr(RHS_EXPRESSION);
         }
+
         virtual double value(const Point<dim> &p, const unsigned int component) const override
         {
           (void) component;
           x = p[0];
           y = dim > 1 ? p[1] : 0.0;
           z = dim > 2 ? p[2] : 0.0;
+
+          // Initialize the expression lazily
+          if (!expression_initialized) {
+            try {
+              std::string RHS_EXPRESSION = GlobalConstants::getInstance().getString("RHS_EXPRESSION");
+              parser.SetExpr(RHS_EXPRESSION); // Set the expression for the parser
+              expression_initialized = true;
+            } catch (std::exception &e) {
+              std::cerr << "Error initializing RHS expression: " << e.what() << std::endl;
+              return 0.0;
+            }
+          }
+
           try {
             return parser.Eval(); // Evaluate the parsed expression
           } catch (mu::ParserError &e) {
@@ -102,10 +114,11 @@ namespace IonPropulsion{
         }
 
       private:
-        mu::Parser parser;
-        std::string expression;
+        mutable mu::Parser parser; // Make the parser mutable
         mutable double x, y, z;
+        mutable bool expression_initialized; // Allow modification in const method
       };
+
 
       /*class ExactSolution : public Function<dim>
       {

@@ -1,11 +1,15 @@
 #include "Framework.h"
 
 
-int main()
+int main(int argc, char **argv)
 {
   try
   {
     using namespace IonPropulsion;
+
+    const std::string configFile = (argc > 1) ? argv[1] : "../constants.yaml";
+    GlobalConstants::initialize(configFile);
+    useGlobalConstants();
     printParsedConstants();
 
     // Describe the problem we want to solve here by passing a descriptor

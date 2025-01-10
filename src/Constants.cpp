@@ -2,36 +2,53 @@
 
 #include <deal.II/base/exceptions.h>
 
-void useGlobalConstants();
+GlobalConstants* GlobalConstants::instance = nullptr;
 
-// Physical constants
-double eps_r = GlobalConstants::getInstance().get("eps_r");
-double eps_0 = GlobalConstants::getInstance().get("eps_0");
+// Declare global variables as uninitialized
+double eps_r;
+double eps_0;
 
-// Data
-double Ve = GlobalConstants::getInstance().get("Ve");
-double Vc = GlobalConstants::getInstance().get("Vc");
-std::string RHS_EXPRESSION = GlobalConstants::getInstance().getString("RHS_EXPRESSION");
-//std::string UEX_EXPRESSION = GlobalConstants::getInstance().getString("UEX_EXPRESSION");
+double Ve;
+double Vc;
+std::string RHS_EXPRESSION;
 
-// Set-up configurations
-unsigned int NUM_PRELIMINARY_GLOBAL_REF = static_cast<unsigned int>(GlobalConstants::getInstance().get("NUM_PRELIMINARY_GLOBAL_REF"));;
-std::string PATH_TO_MESH = GlobalConstants::getInstance().getString("PATH_TO_MESH");
-unsigned int LOAD_FROM_SETUP = static_cast<unsigned int>(GlobalConstants::getInstance().get("LOAD_FROM_SETUP"));
+unsigned int NUM_PRELIMINARY_GLOBAL_REF;
+std::string PATH_TO_MESH;
+unsigned int LOAD_FROM_SETUP;
 
-// Framework configuration
-bool MANUAL_LIFTING_ON = static_cast<bool>(GlobalConstants::getInstance().get("MANUAL_LIFTING_ON"));
-unsigned int REFINEMENT_CRITERION = static_cast<unsigned int>(GlobalConstants::getInstance().get("REFINEMENT_CRITERION"));
-unsigned int DUAL_FUNCTIONAL = static_cast<unsigned int>(GlobalConstants::getInstance().get("DUAL_FUNCTIONAL"));
+bool MANUAL_LIFTING_ON;
+unsigned int REFINEMENT_CRITERION;
+unsigned int DUAL_FUNCTIONAL;
 
-// Point coordinates
-double EVALUATION_POINT_X = GlobalConstants::getInstance().get("EVALUATION_POINT_X");
-double EVALUATION_POINT_Y = GlobalConstants::getInstance().get("EVALUATION_POINT_Y");
+double EVALUATION_POINT_X;
+double EVALUATION_POINT_Y;
 
-// Reference values
-double EXACT_POINT_VALUE = GlobalConstants::getInstance().get("EXACT_POINT_VALUE");
-double EXACT_FLUX = GlobalConstants::getInstance().get("EXACT_FLUX");
+double EXACT_POINT_VALUE;
+double EXACT_FLUX;
 
+// Initialize global constants after `GlobalConstants::initialize`
+void useGlobalConstants() {
+  eps_r = GlobalConstants::getInstance().get("eps_r");
+  eps_0 = GlobalConstants::getInstance().get("eps_0");
+
+  Ve = GlobalConstants::getInstance().get("Ve");
+  Vc = GlobalConstants::getInstance().get("Vc");
+  RHS_EXPRESSION = GlobalConstants::getInstance().getString("RHS_EXPRESSION");
+
+  NUM_PRELIMINARY_GLOBAL_REF = static_cast<unsigned int>(GlobalConstants::getInstance().get("NUM_PRELIMINARY_GLOBAL_REF"));
+  PATH_TO_MESH = GlobalConstants::getInstance().getString("PATH_TO_MESH");
+  LOAD_FROM_SETUP = static_cast<unsigned int>(GlobalConstants::getInstance().get("LOAD_FROM_SETUP"));
+
+  MANUAL_LIFTING_ON = static_cast<bool>(GlobalConstants::getInstance().get("MANUAL_LIFTING_ON"));
+  REFINEMENT_CRITERION = static_cast<unsigned int>(GlobalConstants::getInstance().get("REFINEMENT_CRITERION"));
+  DUAL_FUNCTIONAL = static_cast<unsigned int>(GlobalConstants::getInstance().get("DUAL_FUNCTIONAL"));
+
+  EVALUATION_POINT_X = GlobalConstants::getInstance().get("EVALUATION_POINT_X");
+  EVALUATION_POINT_Y = GlobalConstants::getInstance().get("EVALUATION_POINT_Y");
+
+  EXACT_POINT_VALUE = GlobalConstants::getInstance().get("EXACT_POINT_VALUE");
+  EXACT_FLUX = GlobalConstants::getInstance().get("EXACT_FLUX");
+}
 
 //unsigned int NUM_PRELIMINARY_REF = GlobalConstants::getInstance().get("NUM_PRELIMINARY_REF");;
 
@@ -84,8 +101,8 @@ void printParsedConstants() {
             << std::setw(20) << (MANUAL_LIFTING_ON ? "true" : "false") << "\n";
   std::cout << std::left << std::setw(30) << "REFINEMENT_CRITERION"
             << std::setw(20) << ((REFINEMENT_CRITERION==1) ? "global_refinement" : "dual_weighted_error_estimator") << "\n";
-  std::cout << std::left << std::setw(30) << "REFINEMENT_CRITERION"
-            << std::setw(20) << ((REFINEMENT_CRITERION==1) ? "Point evaluation" : "Flux Evaluation") << "\n";
+  std::cout << std::left << std::setw(30) << "DUAL_FUNCTIONAL"
+            << std::setw(20) << ((DUAL_FUNCTIONAL==1) ? "Point evaluation" : "Flux Evaluation") << "\n";
   std::cout << "------------------------------------------------------------\n";
   std::string eval_point_alltogether = "( " + std::to_string(EVALUATION_POINT_X) + " , " + std::to_string(EVALUATION_POINT_Y) + " )";
   std::cout << std::left << std::setw(30) << "EVALUATION_POINT"

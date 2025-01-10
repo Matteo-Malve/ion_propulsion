@@ -95,12 +95,20 @@ private:
 
 };
 
-// Classe singleton per accedere globalmente alle costanti
 class GlobalConstants {
 public:
-    static GlobalConstants& getInstance(const std::string &filePath = "") {
-        static GlobalConstants instance(filePath);
-        return instance;
+    // Get the singleton instance, ensuring proper initialization
+    static GlobalConstants& getInstance() {
+        if (!instance) {
+            throw std::runtime_error("GlobalConstants must be initialized before use.");
+        }
+        return *instance;
+    }
+
+    // Explicitly initialize the singleton with a configuration file
+    static void initialize(const std::string &filePath) {
+        delete instance; // Delete existing instance if any
+        instance = new GlobalConstants(filePath);
     }
 
     // Get numeric constant
@@ -114,16 +122,19 @@ public:
     }
 
 private:
-    GlobalConstants(const std::string &filePath) : parser(filePath.empty() ? "../constants.yaml" : filePath) {}
+    explicit GlobalConstants(const std::string &filePath) : parser(filePath.empty() ? "../constants.yaml" : filePath) {}
+    static GlobalConstants* instance;
 
     ConstantsParser parser;
 
-    // Evitare la copia e l'assegnazione
+    // Prevent copying and assignment
     GlobalConstants(const GlobalConstants&) = delete;
     GlobalConstants& operator=(const GlobalConstants&) = delete;
 };
 
+void useGlobalConstants();
 void printParsedConstants();
+
 
 
 #endif // CONSTANTS_H
