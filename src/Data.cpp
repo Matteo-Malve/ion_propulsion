@@ -56,8 +56,11 @@ namespace IonPropulsion{
     template <int dim>
     void SetupNone<dim>::create_coarse_grid(Triangulation<dim> &coarse_grid)
     {
-      GridGenerator::hyper_cube(coarse_grid, -1, 1);
-      coarse_grid.refine_global(2);
+      const std::string path_to_mesh = PATH_TO_MESH;
+      std::ifstream input_file(path_to_mesh);
+      GridIn<2>       grid_in;
+      grid_in.attach_triangulation(coarse_grid);
+      grid_in.read_msh(input_file);
     }
 
     // ------------------------------------------------------

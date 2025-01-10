@@ -15,7 +15,7 @@ int main()
 
     // First set the refinement criterion we wish to use:
     if (REFINEMENT_CRITERION==1)
-    descriptor.refinement_criterion = Framework<dim>::ProblemDescription::global_refinement;
+      descriptor.refinement_criterion = Framework<dim>::ProblemDescription::global_refinement;
     else if (REFINEMENT_CRITERION==2)
        descriptor.refinement_criterion = Framework<dim>::ProblemDescription::dual_weighted_error_estimator;
     else

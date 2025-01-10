@@ -15,6 +15,8 @@ extern double eps_r;
 extern double Vc;
 extern double Vc;
 extern std::string RHS_EXPRESSION;
+//extern std::string UEX_EXPRESSION;
+
 
 extern unsigned int NUM_PRELIMINARY_GLOBAL_REF;
 extern std::string PATH_TO_MESH;

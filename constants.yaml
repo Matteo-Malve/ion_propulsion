@@ -5,7 +5,8 @@ eps_r: 1.0    # 1.0006          # Relative permittivity
 # Data
 Ve: 20000.0   # (*)             # Electric potential [V] at the emitter
 Vc: 0.0       # (*)             # Electric potential [V] at the collector
-RHS_EXPRESSION: 0*x+0*y+10000
+RHS_EXPRESSION: y
+#UEX_EXPRESSION: x
 
 # Set-up configurations
 NUM_PRELIMINARY_GLOBAL_REF: 0       # Number of preliminary global refinements

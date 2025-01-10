@@ -12,6 +12,7 @@ double eps_0 = GlobalConstants::getInstance().get("eps_0");
 double Ve = GlobalConstants::getInstance().get("Ve");
 double Vc = GlobalConstants::getInstance().get("Vc");
 std::string RHS_EXPRESSION = GlobalConstants::getInstance().getString("RHS_EXPRESSION");
+//std::string UEX_EXPRESSION = GlobalConstants::getInstance().getString("UEX_EXPRESSION");
 
 // Set-up configurations
 unsigned int NUM_PRELIMINARY_GLOBAL_REF = GlobalConstants::getInstance().get("NUM_PRELIMINARY_GLOBAL_REF");;
@@ -69,6 +70,8 @@ void printParsedConstants() {
             << std::setw(20) << Vc << "\n";
   std::cout << std::left << std::setw(30) << "RHS_EXPRESSION"
             << std::setw(20) << RHS_EXPRESSION << "\n";
+  //std::cout << std::left << std::setw(30) << "UEX_EXPRESSION"
+  //          << std::setw(20) << UEX_EXPRESSION << "\n";
   std::cout << "------------------------------------------------------------\n";
   std::cout << std::left << std::setw(30) << "NUM_PRELIMINARY_GLOBAL_REF"
             << std::setw(20) << NUM_PRELIMINARY_GLOBAL_REF << "\n";

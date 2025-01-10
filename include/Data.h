@@ -79,9 +79,9 @@ namespace IonPropulsion{
       {
       public:
         RightHandSide()
-          : parser()//, expression(RHS_EXPRESSION)
+          : parser()
         {
-          cout<<"Expression: "<<RHS_EXPRESSION <<std::endl;
+          std::string RHS_EXPRESSION = GlobalConstants::getInstance().getString("RHS_EXPRESSION");
           parser.DefineVar("x", &x);
           parser.DefineVar("y", &y);
           parser.DefineVar("z", &z);
@@ -97,7 +97,6 @@ namespace IonPropulsion{
             return parser.Eval(); // Evaluate the parsed expression
           } catch (mu::ParserError &e) {
             std::cerr << "Error evaluating RHS expression: " << e.GetMsg() << std::endl;
-            std::cerr << "Expression: "<< expression << std::endl;
             return 0.0; // Return default value in case of error
           }
         }
@@ -107,6 +106,39 @@ namespace IonPropulsion{
         std::string expression;
         mutable double x, y, z;
       };
+
+      /*class ExactSolution : public Function<dim>
+      {
+      public:
+        ExactSolution()
+          : parser()
+        {
+          std::string UEX_EXPRESSION = GlobalConstants::getInstance().getString("UEX_EXPRESSION");
+          parser.DefineVar("x", &x);
+          parser.DefineVar("y", &y);
+          parser.DefineVar("z", &z);
+          parser.SetExpr(UEX_EXPRESSION);
+        }
+        virtual double value(const Point<dim> &p, const unsigned int component) const override
+        {
+          (void) component;
+          x = p[0];
+          y = dim > 1 ? p[1] : 0.0;
+          z = dim > 2 ? p[2] : 0.0;
+          try {
+            return parser.Eval(); // Evaluate the parsed expression
+          } catch (mu::ParserError &e) {
+            std::cerr << "Error evaluating Uex expression: " << e.GetMsg() << std::endl;
+            std::cerr << "Expression: "<< expression << std::endl;
+            return 0.0; // Return default value in case of error
+          }
+        }
+
+      private:
+        mu::Parser parser;
+        std::string expression;
+        mutable double x, y, z;
+      };*/
 
       class ExactSolution : public Functions::ConstantFunction<dim> {
       public:
