@@ -15,14 +15,14 @@ std::string RHS_EXPRESSION = GlobalConstants::getInstance().getString("RHS_EXPRE
 //std::string UEX_EXPRESSION = GlobalConstants::getInstance().getString("UEX_EXPRESSION");
 
 // Set-up configurations
-unsigned int NUM_PRELIMINARY_GLOBAL_REF = GlobalConstants::getInstance().get("NUM_PRELIMINARY_GLOBAL_REF");;
+unsigned int NUM_PRELIMINARY_GLOBAL_REF = static_cast<unsigned int>(GlobalConstants::getInstance().get("NUM_PRELIMINARY_GLOBAL_REF"));;
 std::string PATH_TO_MESH = GlobalConstants::getInstance().getString("PATH_TO_MESH");
-unsigned int LOAD_FROM_SETUP = GlobalConstants::getInstance().get("LOAD_FROM_SETUP");
+unsigned int LOAD_FROM_SETUP = static_cast<unsigned int>(GlobalConstants::getInstance().get("LOAD_FROM_SETUP"));
 
 // Framework configuration
-bool MANUAL_LIFTING_ON = GlobalConstants::getInstance().get("MANUAL_LIFTING_ON");
-unsigned int REFINEMENT_CRITERION = GlobalConstants::getInstance().get("REFINEMENT_CRITERION");
-unsigned int DUAL_FUNCTIONAL = GlobalConstants::getInstance().get("DUAL_FUNCTIONAL");
+bool MANUAL_LIFTING_ON = static_cast<bool>(GlobalConstants::getInstance().get("MANUAL_LIFTING_ON"));
+unsigned int REFINEMENT_CRITERION = static_cast<unsigned int>(GlobalConstants::getInstance().get("REFINEMENT_CRITERION"));
+unsigned int DUAL_FUNCTIONAL = static_cast<unsigned int>(GlobalConstants::getInstance().get("DUAL_FUNCTIONAL"));
 
 // Point coordinates
 double EVALUATION_POINT_X = GlobalConstants::getInstance().get("EVALUATION_POINT_X");
