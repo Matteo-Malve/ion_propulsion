@@ -9,10 +9,12 @@
 #include <fstream>
 #include <regex>
 
+extern std::string OUTPUT_PATH;
+
 extern double eps_0;
 extern double eps_r;
 
-extern double Vc;
+extern double Ve;
 extern double Vc;
 extern std::string RHS_EXPRESSION;
 //extern std::string UEX_EXPRESSION;
@@ -33,7 +35,6 @@ extern double EXACT_POINT_VALUE;
 extern double EXACT_FLUX;
 
 //extern unsigned int NUM_PRELIMINARY_REF;
-
 
 class ConstantsParser {
 public:
@@ -109,6 +110,10 @@ public:
     static void initialize(const std::string &filePath) {
         delete instance; // Delete existing instance if any
         instance = new GlobalConstants(filePath);
+
+        // Extract parent path and assign to OUTPUT_PATH
+        std::filesystem::path configPath(filePath);
+        OUTPUT_PATH = configPath.parent_path().string()+"/results";
     }
 
     // Get numeric constant

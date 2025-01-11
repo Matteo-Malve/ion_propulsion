@@ -5,6 +5,9 @@
 GlobalConstants* GlobalConstants::instance = nullptr;
 
 // Declare global variables as uninitialized
+
+std::string OUTPUT_PATH;
+
 double eps_r;
 double eps_0;
 

@@ -9,6 +9,8 @@ int main(int argc, char **argv)
 
     const std::string configFile = (argc > 1) ? argv[1] : "../constants.yaml";
     GlobalConstants::initialize(configFile);
+    std::cout << "Output path: " << OUTPUT_PATH << std::endl;
+
     useGlobalConstants();
     printParsedConstants();
 

@@ -36,6 +36,7 @@
 #include <list>
 #include <memory>
 #include <numeric>
+#include <filesystem>
 
 #include "CSVLogger.h"
 

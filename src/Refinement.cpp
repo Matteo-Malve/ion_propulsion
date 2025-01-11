@@ -333,7 +333,7 @@ namespace IonPropulsion{
       data_out.attach_triangulation(triangulation);
       data_out.add_data_vector(cell_flags, "CellFlags",DataOut<dim>::type_cell_data);
       data_out.build_patches();
-      std::ofstream output(filename);
+      std::ofstream output(OUTPUT_PATH+"/"+filename);
       data_out.write_vtk(output);
       //std::cout << "   Cell flags written to " << filename << std::endl;
     }
@@ -416,7 +416,7 @@ namespace IonPropulsion{
 
       data_out.build_patches();
 
-      std::ofstream out("solution-" + std::to_string(this->refinement_cycle) +
+      std::ofstream out(OUTPUT_PATH+"/"+"solution-" + std::to_string(this->refinement_cycle) +
                         ".vtu");
       data_out.write(out, DataOutBase::vtu);
     }
@@ -810,12 +810,12 @@ namespace IonPropulsion{
       for (auto index = not_on_emitter_index_set.begin(); index != not_on_emitter_index_set.end(); ++index) {
         rhs(*index) = 0.;
       }
-      unsigned int nonzero_values = 0;
+      /*unsigned int nonzero_values = 0;
       for (size_t i = 0; i < rhs.size(); ++i)
         if (abs(rhs(i)) > 1e-6)
           nonzero_values++;
       cout<<"    dual_rhs's size: "<<rhs.size()<<std::endl
-          <<"    nonzero values:  "<<nonzero_values<<std::endl;
+          <<"    nonzero values:  "<<nonzero_values<<std::endl;*/
 
     }
 

@@ -355,7 +355,7 @@ namespace IonPropulsion{
 
       data_out.build_patches();
 
-      std::ofstream out("solution-" + std::to_string(this->refinement_cycle) +
+      std::ofstream out(OUTPUT_PATH+"/"+"solution-" + std::to_string(this->refinement_cycle) +
                         ".vtu");
 
       data_out.write(out, DataOutBase::vtu);
