@@ -15,7 +15,7 @@ double Ve;
 double Vc;
 std::string RHS_EXPRESSION;
 
-unsigned int NUM_PRELIMINARY_GLOBAL_REF;
+//unsigned int NUM_PRELIMINARY_GLOBAL_REF;
 std::string PATH_TO_MESH;
 unsigned int LOAD_FROM_SETUP;
 
@@ -31,20 +31,23 @@ double EXACT_FLUX;
 
 // Initialize global constants after `GlobalConstants::initialize`
 void useGlobalConstants() {
+  LOAD_FROM_SETUP = static_cast<unsigned int>(GlobalConstants::getInstance().get("LOAD_FROM_SETUP"));
+
   eps_r = GlobalConstants::getInstance().get("eps_r");
   eps_0 = GlobalConstants::getInstance().get("eps_0");
 
-  Ve = GlobalConstants::getInstance().get("Ve");
-  Vc = GlobalConstants::getInstance().get("Vc");
-  RHS_EXPRESSION = GlobalConstants::getInstance().getString("RHS_EXPRESSION");
+  if (LOAD_FROM_SETUP==0) {
+    Ve = GlobalConstants::getInstance().get("Ve");
+    Vc = GlobalConstants::getInstance().get("Vc");
+    RHS_EXPRESSION = GlobalConstants::getInstance().getString("RHS_EXPRESSION");
+  }
 
-  NUM_PRELIMINARY_GLOBAL_REF = static_cast<unsigned int>(GlobalConstants::getInstance().get("NUM_PRELIMINARY_GLOBAL_REF"));
   PATH_TO_MESH = GlobalConstants::getInstance().getString("PATH_TO_MESH");
-  LOAD_FROM_SETUP = static_cast<unsigned int>(GlobalConstants::getInstance().get("LOAD_FROM_SETUP"));
 
   MANUAL_LIFTING_ON = static_cast<bool>(GlobalConstants::getInstance().get("MANUAL_LIFTING_ON"));
   REFINEMENT_CRITERION = static_cast<unsigned int>(GlobalConstants::getInstance().get("REFINEMENT_CRITERION"));
-  DUAL_FUNCTIONAL = static_cast<unsigned int>(GlobalConstants::getInstance().get("DUAL_FUNCTIONAL"));
+  if (REFINEMENT_CRITERION>1)
+    DUAL_FUNCTIONAL = static_cast<unsigned int>(GlobalConstants::getInstance().get("DUAL_FUNCTIONAL"));
 
   EVALUATION_POINT_X = GlobalConstants::getInstance().get("EVALUATION_POINT_X");
   EVALUATION_POINT_Y = GlobalConstants::getInstance().get("EVALUATION_POINT_Y");
@@ -83,38 +86,47 @@ void printParsedConstants() {
             << std::setw(20) << eps_r << "\n";
   std::cout << std::left << std::setw(30) << "eps_0"
             << std::setw(20) << eps_0 << "\n";
+
   std::cout << "------------------------------------------------------------\n";
-  std::cout << std::left << std::setw(30) << "Ve"
-            << std::setw(20) << Ve << "\n";
-  std::cout << std::left << std::setw(30) << "Vc"
-            << std::setw(20) << Vc << "\n";
-  std::cout << std::left << std::setw(30) << "RHS_EXPRESSION"
-            << std::setw(20) << RHS_EXPRESSION << "\n";
-  //std::cout << std::left << std::setw(30) << "UEX_EXPRESSION"
-  //          << std::setw(20) << UEX_EXPRESSION << "\n";
-  std::cout << "------------------------------------------------------------\n";
-  std::cout << std::left << std::setw(30) << "NUM_PRELIMINARY_GLOBAL_REF"
-            << std::setw(20) << NUM_PRELIMINARY_GLOBAL_REF << "\n";
+  std::cout << std::left << std::setw(30) << "LOAD_FROM_SETUP"
+              << std::setw(20) << setup_name << "\n";
+  //std::cout << std::left << std::setw(30) << "NUM_PRELIMINARY_GLOBAL_REF"
+  //          << std::setw(20) << NUM_PRELIMINARY_GLOBAL_REF << "\n";
   std::cout << std::left << std::setw(30) << "PATH_TO_MESH"
            << std::setw(20) << PATH_TO_MESH << "\n";
-  std::cout << std::left << std::setw(30) << "LOAD_FROM_SETUP"
-            << std::setw(20) << setup_name << "\n";
+
+  if (LOAD_FROM_SETUP==0){
+    std::cout << "------------------------------------------------------------\n";
+    std::cout << std::left << std::setw(30) << "Ve"
+              << std::setw(20) << Ve << "\n";
+    std::cout << std::left << std::setw(30) << "Vc"
+              << std::setw(20) << Vc << "\n";
+    std::cout << std::left << std::setw(30) << "RHS_EXPRESSION"
+              << std::setw(20) << RHS_EXPRESSION << "\n";
+    //std::cout << std::left << std::setw(30) << "UEX_EXPRESSION"
+    //          << std::setw(20) << UEX_EXPRESSION << "\n";
+    }
+
   std::cout << "------------------------------------------------------------\n";
   std::cout << std::left << std::setw(30) << "MANUAL_LIFTING_ON"
             << std::setw(20) << (MANUAL_LIFTING_ON ? "true" : "false") << "\n";
   std::cout << std::left << std::setw(30) << "REFINEMENT_CRITERION"
             << std::setw(20) << ((REFINEMENT_CRITERION==1) ? "global_refinement" : "dual_weighted_error_estimator") << "\n";
-  std::cout << std::left << std::setw(30) << "DUAL_FUNCTIONAL"
-            << std::setw(20) << ((DUAL_FUNCTIONAL==1) ? "Point evaluation" : "Flux Evaluation") << "\n";
+  if (REFINEMENT_CRITERION>1) {
+    std::cout << std::left << std::setw(30) << "DUAL_FUNCTIONAL"
+             << std::setw(20) << ((DUAL_FUNCTIONAL==1) ? "Point evaluation" : "Flux Evaluation") << "\n";
+  }
   std::cout << "------------------------------------------------------------\n";
   std::string eval_point_alltogether = "( " + std::to_string(EVALUATION_POINT_X) + " , " + std::to_string(EVALUATION_POINT_Y) + " )";
   std::cout << std::left << std::setw(30) << "EVALUATION_POINT"
              << std::setw(20) << eval_point_alltogether << "\n";
   std::cout << "------------------------------------------------------------\n";
-  std::cout << std::left << std::setw(30) << "EXACT_POINT_VALUE"
-            << std::setw(20) << EXACT_POINT_VALUE << "\n";
-  std::cout << std::left << std::setw(30) << "EXACT_FLUX"
-            << std::setw(20) << EXACT_FLUX << "\n";
+  if (std::fabs(EXACT_POINT_VALUE)>1.e-10) {}
+    std::cout << std::left << std::setw(30) << "EXACT_POINT_VALUE"
+              << std::setw(20) << EXACT_POINT_VALUE << "\n";
+  if (std::fabs(EXACT_FLUX)>1.e-10)
+    std::cout << std::left << std::setw(30) << "EXACT_FLUX"
+              << std::setw(20) << EXACT_FLUX << "\n";
 
   std::cout << "============================================================\n\n";
 }
@@ -131,6 +143,7 @@ double EXACT_POINT_VALUE = 3148.182801 ;       // LogCircular_1_100, (0.019375,0
 //double EXACT_FLUX = -3.9252746598790566e-05;  // Rectangle_1_99 by extrapolation
 //double EXACT_FLUX = -2.193245422464e+00;   // CircularZeroDirichlet exact
 double EXACT_FLUX = 54575.1;             // LogCircular 1:10 exact
+double EXACT_FLUX = 27287.5;             // LogCircular 1:100 exact
 //double EXACT_FLUX = 13962.6;               // Circular
 
 unsigned int NUM_PRELIMINARY_GLOBAL_REF = 0;

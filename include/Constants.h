@@ -20,7 +20,7 @@ extern std::string RHS_EXPRESSION;
 //extern std::string UEX_EXPRESSION;
 
 
-extern unsigned int NUM_PRELIMINARY_GLOBAL_REF;
+//extern unsigned int NUM_PRELIMINARY_GLOBAL_REF;
 extern std::string PATH_TO_MESH;
 extern unsigned int LOAD_FROM_SETUP;
 
@@ -127,7 +127,7 @@ public:
     }
 
 private:
-    explicit GlobalConstants(const std::string &filePath) : parser(filePath.empty() ? "../constants.yaml" : filePath) {}
+    explicit GlobalConstants(const std::string &filePath) : parser(filePath.empty() ? "../config.yaml" : filePath) {}
     static GlobalConstants* instance;
 
     ConstantsParser parser;

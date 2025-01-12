@@ -1,6 +1,7 @@
 #ifndef CSVLOGGER_H
 #define CSVLOGGER_H
 
+#include <Constants.h>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -26,7 +27,7 @@ inline std::string to_string_with_precision(const double value, const int precis
 class CSVLogger {
 public:
     // Get the singleton instance
-    static CSVLogger& getInstance(const std::string& filename = "convergence_results.csv") {
+    static CSVLogger& getInstance(const std::string& filename = OUTPUT_PATH+"/"+"convergence_results.csv") {
         static CSVLogger instance(filename);
         return instance;
     }

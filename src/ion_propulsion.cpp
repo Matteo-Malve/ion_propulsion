@@ -7,7 +7,7 @@ int main(int argc, char **argv)
   {
     using namespace IonPropulsion;
 
-    const std::string configFile = (argc > 1) ? argv[1] : "../constants.yaml";
+    const std::string configFile = (argc > 1) ? argv[1] : "../config.yaml";
     GlobalConstants::initialize(configFile);
     std::cout << "Output path: " << OUTPUT_PATH << std::endl;
 
@@ -55,12 +55,14 @@ int main(int argc, char **argv)
     //const Point<dim> evaluation_point(0.75, 0.75);    // original-step14
     */
 
-    if (DUAL_FUNCTIONAL==1)
-      descriptor.dual_functional = std::make_unique<DualFunctional::PointValueEvaluation<dim>>(evaluation_point);
-    else if (DUAL_FUNCTIONAL==2)
-      descriptor.dual_functional = std::make_unique<DualFunctional::StandardFluxEvaluation<dim>>(1);
-    else
-      DEAL_II_NOT_IMPLEMENTED();
+    if (REFINEMENT_CRITERION>1) {
+      if (DUAL_FUNCTIONAL==1)
+        descriptor.dual_functional = std::make_unique<DualFunctional::PointValueEvaluation<dim>>(evaluation_point);
+      else if (DUAL_FUNCTIONAL==2)
+        descriptor.dual_functional = std::make_unique<DualFunctional::StandardFluxEvaluation<dim>>(1);
+      else
+        DEAL_II_NOT_IMPLEMENTED();
+    }
 
 
     Evaluation::PointValueEvaluation<dim> postprocessor1(evaluation_point);

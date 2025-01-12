@@ -11,7 +11,7 @@ RHS_EXPRESSION: y
 # Set-up configurations
 NUM_PRELIMINARY_GLOBAL_REF: 0       # Number of preliminary global refinements
 PATH_TO_MESH: ../mesh/cerchi_concentrici_1_10.msh
-LOAD_FROM_SETUP: 0                  # Setups: mesh, analytical solution, forcing term
+LOAD_FROM_SETUP: 4                  # Setups: mesh, analytical solution, forcing term
 # Options: 0: NONE (**)
 #          1: CurvedRidges (from step-14)
 #          2: Exercise_2_3 (from step-14)

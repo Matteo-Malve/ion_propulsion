@@ -252,7 +252,8 @@ namespace IonPropulsion{
     void LogCircular_1_10<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
     {
       //const std::string path_to_mesh = "../mesh/cerchi_concentrici_1_100.msh";
-      const std::string path_to_mesh = "../mesh/cerchi_concentrici.msh";
+      //const std::string path_to_mesh = "../mesh/cerchi_concentrici.msh";
+      const std::string path_to_mesh = PATH_TO_MESH;
       std::ifstream input_file(path_to_mesh);
       GridIn<2>       grid_in;
       grid_in.attach_triangulation(coarse_grid);
@@ -275,7 +276,7 @@ namespace IonPropulsion{
       {
         for (unsigned int face = 0; face < GeometryInfo<2>::faces_per_cell; ++face)
         {
-          if (cell->face(face)->at_boundary() && (cell->face(face)->boundary_id() == 1 || cell->face(face)->boundary_id() == 9)) // Boundary ID 1 for the emitter, 9 for collector
+          if (cell->face(face)->at_boundary() && (cell->face(face)->boundary_id() == 1 || cell->face(face)->boundary_id() == 3 ||cell->face(face)->boundary_id() == 9)) // Boundary ID 1 for the emitter, 9 for collector
           {
             cell->face(face)->set_manifold_id(1); // Assign manifold ID 1 for the emitter
           }
