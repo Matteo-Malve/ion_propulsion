@@ -419,6 +419,13 @@ namespace IonPropulsion{
       std::ofstream out(OUTPUT_PATH+"/"+"solution-" + std::to_string(this->refinement_cycle) +
                         ".vtu");
       data_out.write(out, DataOutBase::vtu);
+
+
+      GridOut grid_out;
+      GridOutFlags::Msh msh_flags(true, true);
+      grid_out.set_flags(msh_flags);
+      grid_out.write_msh(*this->triangulation, OUTPUT_PATH+"/final_mesh.msh");
+
     }
 
     template <int dim>

@@ -3,14 +3,14 @@ eps_0: 1.0    # 8.854           # Electric permittivity of free space [F/m]
 eps_r: 1.0    # 1.0006          # Relative permittivity
 
 # Data
-Ve: 20000.0   # (*)             # Electric potential [V] at the emitter
-Vc: 0.0       # (*)             # Electric potential [V] at the collector
-RHS_EXPRESSION: y
+Ve: null   # (*)             # Electric potential [V] at the emitter
+Vc: null      # (*)             # Electric potential [V] at the collector
+RHS_EXPRESSION: null
 #UEX_EXPRESSION: x
 
 # Set-up configurations
-NUM_PRELIMINARY_GLOBAL_REF: 0       # Number of preliminary global refinements
-PATH_TO_MESH: ../mesh/cerchi_concentrici_1_10.msh
+#NUM_PRELIMINARY_GLOBAL_REF: null       # Number of preliminary global refinements
+PATH_TO_MESH: ../tests/test-3_LogCircular-1-10-pointGO/results/final_mesh.msh
 LOAD_FROM_SETUP: 4                  # Setups: mesh, analytical solution, forcing term
 # Options: 0: NONE (**)
 #          1: CurvedRidges (from step-14)
@@ -21,7 +21,7 @@ LOAD_FROM_SETUP: 4                  # Setups: mesh, analytical solution, forcing
 
 # Framework configuration
 MANUAL_LIFTING_ON: 1       # 0: OFF, 1: ON,
-REFINEMENT_CRITERION: 1    # 1: global_refinement, 2: dual_weighted_error_estimator
+REFINEMENT_CRITERION: 2    # 1: global_refinement, 2: dual_weighted_error_estimator
 DUAL_FUNCTIONAL: 1         # 1: point_evaluation,  2: flux_evaluation
 
 # Point coordinates
