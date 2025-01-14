@@ -271,7 +271,6 @@ namespace IonPropulsion{
 
       // Set up the circular manifold for the emitter (inner circle)
       const Point<2> center(0.0, 0.0); // Center of the circles
-
       for (const auto &cell : coarse_grid.active_cell_iterators())
       {
         for (unsigned int face = 0; face < GeometryInfo<2>::faces_per_cell; ++face)
@@ -286,6 +285,30 @@ namespace IonPropulsion{
       // Attach a circular manifold to the emitter
       SphericalManifold<2> circular_manifold(center);
       coarse_grid.set_manifold(1, circular_manifold); // Set the manifold for the emitter
+
+      double l = 0.0004;
+
+      for (unsigned int i = 0; i < NUM_CONCENTRIC_REF; ++i) {
+        Vector<float> criteria(coarse_grid.n_active_cells());
+        //cout  << "Active cells " << triangulation.n_active_cells() << endl;
+        unsigned int ctr = 0;
+
+        // Threshold
+        const double max_thickness = 5. * l;    // 2*
+        const double min_thickness = 1.05 * l;
+        const double D = min_thickness + (max_thickness-min_thickness)/(NUM_CONCENTRIC_REF-1)*(NUM_CONCENTRIC_REF-1-i);
+
+        for (auto &cell : coarse_grid.active_cell_iterators()) {
+          const Point<2> c = cell->center();
+          if(center.distance(c) < D)
+            criteria[ctr++] = 1;
+          else
+            criteria[ctr++] = 0;
+        }
+        GridRefinement::refine(coarse_grid, criteria, 0.5);
+        coarse_grid.execute_coarsening_and_refinement();
+      }
+      cout<<"Executed preliminary coarsening and refinement"<<endl;
 
     }
 
@@ -330,7 +353,6 @@ namespace IonPropulsion{
       // Attach a circular manifold to the emitter
       SphericalManifold<2> circular_manifold(center);
       coarse_grid.set_manifold(1, circular_manifold); // Set the manifold for the emitter
-
     }
 
     // ------------------------------------------------------

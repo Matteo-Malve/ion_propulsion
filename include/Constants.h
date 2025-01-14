@@ -22,6 +22,7 @@ extern std::string RHS_EXPRESSION;
 
 //extern unsigned int NUM_PRELIMINARY_GLOBAL_REF;
 extern std::string PATH_TO_MESH;
+extern unsigned int NUM_CONCENTRIC_REF;
 extern unsigned int LOAD_FROM_SETUP;
 
 extern bool MANUAL_LIFTING_ON;
@@ -42,12 +43,15 @@ public:
         parseFile(filePath);
     }
 
-    double getConstant(const std::string &name) const {
+    double getConstant(const std::string &name, bool default_zero = false) const {
         auto it = constants.find(name);
         if (it != constants.end()) {
             return it->second;
         }
-        throw std::runtime_error("Constant not found: " + name);
+        if (default_zero)
+            return 0.0;
+        else
+            throw std::runtime_error("Constant not found: " + name);
     }
 
     std::string getStringConstant(const std::string &name) const {
@@ -117,8 +121,8 @@ public:
     }
 
     // Get numeric constant
-    double get(const std::string &name) {
-        return parser.getConstant(name);
+    double get(const std::string &name, bool default_zero = false)  {
+        return parser.getConstant(name,default_zero);
     }
 
     // Get string constant

@@ -17,6 +17,7 @@ std::string RHS_EXPRESSION;
 
 //unsigned int NUM_PRELIMINARY_GLOBAL_REF;
 std::string PATH_TO_MESH;
+unsigned int NUM_CONCENTRIC_REF;
 unsigned int LOAD_FROM_SETUP;
 
 bool MANUAL_LIFTING_ON;
@@ -43,6 +44,7 @@ void useGlobalConstants() {
   }
 
   PATH_TO_MESH = GlobalConstants::getInstance().getString("PATH_TO_MESH");
+  NUM_CONCENTRIC_REF = GlobalConstants::getInstance().get("NUM_CONCENTRIC_REF",true);
 
   MANUAL_LIFTING_ON = static_cast<bool>(GlobalConstants::getInstance().get("MANUAL_LIFTING_ON"));
   REFINEMENT_CRITERION = static_cast<unsigned int>(GlobalConstants::getInstance().get("REFINEMENT_CRITERION"));
@@ -104,6 +106,8 @@ void printParsedConstants() {
   //          << std::setw(20) << NUM_PRELIMINARY_GLOBAL_REF << "\n";
   std::cout << std::left << std::setw(30) << "PATH_TO_MESH"
            << std::setw(20) << PATH_TO_MESH << "\n";
+  std::cout << std::left << std::setw(30) << "NUM_CONCENTRIC_REF"
+            << std::setw(20) << NUM_CONCENTRIC_REF << "\n";
 
   if (LOAD_FROM_SETUP==0){
     std::cout << "------------------------------------------------------------\n";
