@@ -30,6 +30,8 @@
 #include <deal.II/numerics/error_estimator.h>
 #include <deal.II/numerics/solution_transfer.h>
 
+#include <deal.II/lac/petsc_precondition.h>
+
 #include <algorithm>
 #include <fstream>
 #include <iostream>

@@ -302,6 +302,7 @@ namespace IonPropulsion{
 
       PreconditionSSOR<SparseMatrix<double>> preconditioner;
       preconditioner.initialize(matrix, 1.2);
+
       cg.solve(matrix, solution, rhs, preconditioner);
       hanging_node_constraints.distribute(solution);
 
@@ -441,6 +442,7 @@ namespace IonPropulsion{
 
       this->conservative_flux = flux;
 
+
     }
 
     // ------------------------------------------------------
@@ -544,6 +546,11 @@ namespace IonPropulsion{
       // ------------------------------------------------------
       // Put together for conservative
       // ------------------------------------------------------
+      IndexSet complete_index_set = dof_handler.locally_owned_dofs();
+      auto e_index_set = DoFTools::extract_boundary_dofs(dof_handler,
+                                      ComponentMask(),
+                                      std::set<types::boundary_id>({1}));
+
       Vector<double> v(dof_handler.n_dofs());
       Vector<double> A_col_i(dof_handler.n_dofs());
       unsigned int nonzero_elements = 0;
@@ -553,8 +560,14 @@ namespace IonPropulsion{
         A_col_i.reinit(dof_handler.n_dofs());
         v(i)=1.;
         Umatrix.vmult(v, A_col_i);
-        A_col_i-=b;
-        rhs(i) = std::accumulate(A_col_i.begin(),A_col_i.end(), 0.);
+        //A_col_i-=b;
+
+        rhs(i)=A_col_i(i)-b(i);
+        /*for (auto index = e_index_set.begin(); index != e_index_set.end(); ++index) {
+          rhs(i) += A_col_i(*index);
+        }*/
+        //rhs(i) = std::accumulate(A_col_i.begin(),A_col_i.end(), 0.);
+
         if (std::fabs(rhs(i))>1.e-10)
           nonzero_elements++;
       }
