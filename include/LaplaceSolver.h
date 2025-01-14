@@ -174,14 +174,24 @@ namespace IonPropulsion{
         const FiniteElement<dim> &                     fe,
         const Quadrature<dim> &                        quadrature,
         const Quadrature<dim - 1> &                    face_quadrature,
-        const DualFunctional::DualFunctionalBase<dim> &dual_functional);
+        const DualFunctional::DualFunctionalBase<dim> &dual_functional,
+        const Function<dim> &                          special_rhs_function,
+        const Function<dim> &                          special_boundary_values);
 
     protected:
+      const SmartPointer<const Function<dim>>       special_rhs_function;
+      const SmartPointer<const Function<dim>>       special_boundary_values;
+
       const SmartPointer<const DualFunctional::DualFunctionalBase<dim>>
                    dual_functional;
       virtual void assemble_rhs(Vector<double> &rhs) const override;  //TODO: do it in WeightedResidual
       virtual void conservative_flux_rhs(Vector<double> & rhs) const = 0;   //TODO: New
       static const Functions::ZeroFunction<dim> boundary_values;
+
+      /*void assemble_conservative_flux_rhs(
+        Vector<double> &rhs
+        ,SparseMatrix<double> & Umatrix
+        );*/
 
     private:
       virtual void construct_Rg_vector() override {};

@@ -452,7 +452,9 @@ namespace IonPropulsion{
       const FiniteElement<dim> &                     fe,
       const Quadrature<dim> &                        quadrature,
       const Quadrature<dim - 1> &                    face_quadrature,
-      const DualFunctional::DualFunctionalBase<dim> &dual_functional)
+      const DualFunctional::DualFunctionalBase<dim> &dual_functional,
+      const Function<dim> &                          special_rhs_function,
+      const Function<dim> &                          special_boundary_values)
       : Base<dim>(triangulation)
       , Solver<dim>(triangulation,
                     fe,
@@ -460,16 +462,125 @@ namespace IonPropulsion{
                     face_quadrature,
                     boundary_values)
       , dual_functional(&dual_functional)
+      , special_rhs_function(&special_rhs_function)
+      , special_boundary_values(&special_boundary_values)
     {}
 
 
+    template <int dim>
+    void assemble_conservative_flux_rhs(
+      const DoFHandler<dim> &dof_handler,
+      Vector<double> &rhs,
+      SparseMatrix<double> & Umatrix,
+      const FiniteElement<dim> & fe,
+      const Quadrature<dim> & quadrature,
+      const Function<dim> & special_rhs_function,
+      const Function<dim> & special_boundary_values,
+      AffineConstraints<double> & hanging_node_constraints
+
+      ) {
+      // ------------------------------------------------------
+      // Primal-like Rg
+      // ------------------------------------------------------
+      Vector<double> special_Rg_vector(dof_handler.n_dofs());
+
+      std::map<types::global_dof_index, double> boundary_value_map;
+      VectorTools::interpolate_boundary_values(dof_handler, 0, special_boundary_values, boundary_value_map);
+      VectorTools::interpolate_boundary_values(dof_handler, 1, special_boundary_values, boundary_value_map);
+      VectorTools::interpolate_boundary_values(dof_handler, 9, special_boundary_values, boundary_value_map);
+      for (const auto &boundary_value : boundary_value_map)
+        special_Rg_vector(boundary_value.first) = boundary_value.second;
+      hanging_node_constraints.distribute(special_Rg_vector);
+
+      // ------------------------------------------------------
+      // Primal-like b
+      // ------------------------------------------------------
+      Vector<double> b(dof_handler.n_dofs());
+      FEValues<dim> fe_values(fe,
+                              quadrature,
+                              update_values | update_gradients | update_quadrature_points |
+                                update_JxW_values);
+      const unsigned int dofs_per_cell = fe.n_dofs_per_cell();
+      const unsigned int n_q_points    = quadrature.size();
+      Vector<double>                       cell_rhs(dofs_per_cell);
+      std::vector<double>                  rhs_values(n_q_points);
+      std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
+      std::vector<Tensor<1, dim>>          rg_gradients(n_q_points);
+
+      for (const auto &cell : dof_handler.active_cell_iterators()){
+        cell_rhs = 0;
+        fe_values.reinit(cell);
+        special_rhs_function.value_list(fe_values.get_quadrature_points(),
+                                 rhs_values);
+        if(MANUAL_LIFTING_ON)
+          fe_values.get_function_gradients(special_Rg_vector, rg_gradients);
+
+        for (unsigned int q_point = 0; q_point < n_q_points; ++q_point) {
+          for (unsigned int i = 0; i < dofs_per_cell; ++i) {
+            cell_rhs(i) += (fe_values.shape_value(i, q_point) * // phi_i(x_q)
+                            rhs_values[q_point] *               // f((x_q)
+                            fe_values.JxW(q_point));            // dx
+            if(MANUAL_LIFTING_ON) {
+              cell_rhs(i) -= eps_r * eps_0 *
+                      (fe_values.shape_grad(i, q_point) *   // grad phi_i(x_q)
+                        rg_gradients[q_point] *             // grad_Rg(x_q)
+                        fe_values.JxW(q_point));            // dx
+            }
+          }
+        }
+
+        cell->get_dof_indices(local_dof_indices);
+        for (unsigned int i = 0; i < dofs_per_cell; ++i)
+          b(local_dof_indices[i]) += cell_rhs(i);
+      }
+
+      // Check //TODO: DELETE
+      unsigned int b_nonzero_elements = 0;
+      for (size_t i = 0; i<rhs.size(); ++i)
+        if (std::fabs(b(i))>1.e-10)
+          b_nonzero_elements++;
+      cout<<"b's nonzero elements: "<<b_nonzero_elements<<std::endl;
+
+      // ------------------------------------------------------
+      // Put together for conservative
+      // ------------------------------------------------------
+      Vector<double> v(dof_handler.n_dofs());
+      Vector<double> A_col_i(dof_handler.n_dofs());
+      unsigned int nonzero_elements = 0;
+
+      for (size_t i=0; i<b.size(); ++i) {
+        v.reinit(dof_handler.n_dofs());
+        A_col_i.reinit(dof_handler.n_dofs());
+        v(i)=1.;
+        Umatrix.vmult(v, A_col_i);
+        A_col_i-=b;
+        rhs(i) = std::accumulate(A_col_i.begin(),A_col_i.end(), 0.);
+        if (std::fabs(rhs(i))>1.e-10)
+          nonzero_elements++;
+      }
+      cout<<"Nonzero elements (rhs perspective): "<<nonzero_elements<<std::endl;
+
+    }
 
     template <int dim>
     void DualSolver<dim>::assemble_rhs(Vector<double> &rhs) const
     {
-      dual_functional->assemble_rhs(this->dof_handler, rhs);   //TODO: do it in WeightedResidual
+      if (DUAL_FUNCTIONAL==3)
+        assemble_conservative_flux_rhs(
+          this->dof_handler,
+          rhs,
+          this->linear_system_ptr->Umatrix,
+          *this->fe,
+          *this->quadrature,
+          *special_rhs_function,
+          *special_boundary_values,
+           this->linear_system_ptr->hanging_node_constraints);
+      else
+        dual_functional->assemble_rhs(this->dof_handler, rhs);
       //this->conservative_flux_rhs(rhs);
     }
+
+
 
     // Template instantiation
     template class Base<2>;

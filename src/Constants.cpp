@@ -76,6 +76,16 @@ void printParsedConstants() {
   else
     DEAL_II_NOT_IMPLEMENTED();
 
+  std::string functional_name;
+  if(DUAL_FUNCTIONAL == 1)
+    setup_name="Point evaluation";
+  else if(DUAL_FUNCTIONAL == 2)
+    setup_name="std. Flux Evaluation";
+  else if (DUAL_FUNCTIONAL == 3)
+    setup_name="cons. Flux Evaluation";
+  else
+    DEAL_II_NOT_IMPLEMENTED();
+
   std::cout << "\n===================== Parsed Constants =====================\n";
   std::cout << std::left << std::setw(30) << "Variable Name"
             << std::setw(20) << "Value" << "\n";
@@ -113,8 +123,7 @@ void printParsedConstants() {
   std::cout << std::left << std::setw(30) << "REFINEMENT_CRITERION"
             << std::setw(20) << ((REFINEMENT_CRITERION==1) ? "global_refinement" : "dual_weighted_error_estimator") << "\n";
   if (REFINEMENT_CRITERION>1) {
-    std::cout << std::left << std::setw(30) << "DUAL_FUNCTIONAL"
-             << std::setw(20) << ((DUAL_FUNCTIONAL==1) ? "Point evaluation" : "Flux Evaluation") << "\n";
+    std::cout << std::left << std::setw(30) << "DUAL_FUNCTIONAL" << std::setw(20) << functional_name << "\n";
   }
   std::cout << "------------------------------------------------------------\n";
   std::string eval_point_alltogether = "( " + std::to_string(EVALUATION_POINT_X) + " , " + std::to_string(EVALUATION_POINT_Y) + " )";

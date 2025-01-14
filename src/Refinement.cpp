@@ -270,7 +270,9 @@ namespace IonPropulsion{
                         dual_fe,
                         quadrature,
                         face_quadrature,
-                        dual_functional)
+                        dual_functional,
+                        rhs_function,
+                        bv)
     {}
 
     template <int dim>
