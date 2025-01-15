@@ -352,10 +352,28 @@ namespace IonPropulsion{
 
       // GRID REFINEMENT
 
+      if (true) {
+        if (MANUAL_LIFTING_ON) {
+          Vector<double> old_Rg_values = PrimalSolver<dim>::Rg_vector;
+          SolutionTransfer<dim> solution_transfer(PrimalSolver<dim>::dof_handler);
+          solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_values);
+          this->triangulation->refine_global(1);
+          PrimalSolver<dim>::dof_handler.distribute_dofs(*(PrimalSolver<dim>::fe));
+          PrimalSolver<dim>::Rg_vector.reinit(PrimalSolver<dim>::dof_handler.n_dofs());
+          solution_transfer.interpolate(old_Rg_values, PrimalSolver<dim>::Rg_vector);
+          PrimalSolver<dim>::construct_Rg_vector();
+          DualSolver<dim>::Rg_vector.reinit(DualSolver<dim>::dof_handler.n_dofs());
+        } else {
+          this->triangulation->refine_global(1);
+        }
+        return;
+      }
+
       GridRefinement::refine_and_coarsen_fixed_fraction(*this->triangulation,
                                                         error_indicators,
                                                         0.8,
                                                         0.02);
+
       if (MANUAL_LIFTING_ON) {
         this->triangulation->prepare_coarsening_and_refinement();
         SolutionTransfer<dim> solution_transfer(PrimalSolver<dim>::dof_handler);

@@ -78,6 +78,16 @@ void printParsedConstants() {
   else
     DEAL_II_NOT_IMPLEMENTED();
 
+  std::string refinement_criterion;
+  if(REFINEMENT_CRITERION == 1)
+    refinement_criterion="global_refinement";
+  else if(REFINEMENT_CRITERION == 2)
+    refinement_criterion="dual_weighted_error_estimator";
+  else if (REFINEMENT_CRITERION == 3)
+    refinement_criterion="global* (also evaluate dual-weighted residual)";
+  else
+    DEAL_II_NOT_IMPLEMENTED();
+
   std::string functional_name;
   if(DUAL_FUNCTIONAL == 1)
     functional_name="Point evaluation";
@@ -125,7 +135,7 @@ void printParsedConstants() {
   std::cout << std::left << std::setw(30) << "MANUAL_LIFTING_ON"
             << std::setw(20) << (MANUAL_LIFTING_ON ? "true" : "false") << "\n";
   std::cout << std::left << std::setw(30) << "REFINEMENT_CRITERION"
-            << std::setw(20) << ((REFINEMENT_CRITERION==1) ? "global_refinement" : "dual_weighted_error_estimator") << "\n";
+            << std::setw(20) << refinement_criterion << "\n";
   if (REFINEMENT_CRITERION>1) {
     std::cout << std::left << std::setw(30) << "DUAL_FUNCTIONAL" << std::setw(20) << functional_name << "\n";
   }

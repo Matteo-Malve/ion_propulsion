@@ -22,7 +22,7 @@ int main(int argc, char **argv)
     // First set the refinement criterion we wish to use:
     if (REFINEMENT_CRITERION==1)
       descriptor.refinement_criterion = Framework<dim>::ProblemDescription::global_refinement;
-    else if (REFINEMENT_CRITERION==2)
+    else if (REFINEMENT_CRITERION==2 || REFINEMENT_CRITERION==3)
        descriptor.refinement_criterion = Framework<dim>::ProblemDescription::dual_weighted_error_estimator;
     else
       DEAL_II_NOT_IMPLEMENTED();
