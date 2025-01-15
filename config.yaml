@@ -33,6 +33,12 @@ EVALUATION_POINT_Y: 0.
 EXACT_POINT_VALUE: 6466.13
 EXACT_FLUX: 54575.1
 
+# Mesh refinement options:
+REFINEMENT_STRATEGY: 3      # 1. fixed_fraction(default), 2. fixed_number, 3. optimize
+TOP_FRACTION: null          # default: 0.8
+BOTTOM_FRACTION: null       # default: 0.02
+OPTIMIZE_ORDER: 2           # default: 2
+
 
 
 # NOTES:

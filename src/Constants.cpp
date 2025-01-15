@@ -30,6 +30,12 @@ double EVALUATION_POINT_Y;
 double EXACT_POINT_VALUE;
 double EXACT_FLUX;
 
+unsigned int REFINEMENT_STRATEGY;
+double TOP_FRACTION;
+double BOTTOM_FRACTION;
+unsigned int OPTIMIZE_ORDER;
+
+
 // Initialize global constants after `GlobalConstants::initialize`
 void useGlobalConstants() {
   LOAD_FROM_SETUP = static_cast<unsigned int>(GlobalConstants::getInstance().get("LOAD_FROM_SETUP"));
@@ -44,7 +50,7 @@ void useGlobalConstants() {
   }
 
   PATH_TO_MESH = GlobalConstants::getInstance().getString("PATH_TO_MESH");
-  NUM_CONCENTRIC_REF = GlobalConstants::getInstance().get("NUM_CONCENTRIC_REF",true);
+  NUM_CONCENTRIC_REF = static_cast<unsigned int>(GlobalConstants::getInstance().get("NUM_CONCENTRIC_REF",0.0));
 
   MANUAL_LIFTING_ON = static_cast<bool>(GlobalConstants::getInstance().get("MANUAL_LIFTING_ON"));
   REFINEMENT_CRITERION = static_cast<unsigned int>(GlobalConstants::getInstance().get("REFINEMENT_CRITERION"));
@@ -56,6 +62,15 @@ void useGlobalConstants() {
 
   EXACT_POINT_VALUE = GlobalConstants::getInstance().get("EXACT_POINT_VALUE");
   EXACT_FLUX = GlobalConstants::getInstance().get("EXACT_FLUX");
+
+  REFINEMENT_STRATEGY = static_cast<unsigned int>(GlobalConstants::getInstance().get("REFINEMENT_STRATEGY", 1));
+  if (REFINEMENT_STRATEGY == 1 || REFINEMENT_STRATEGY==2) {
+    TOP_FRACTION = GlobalConstants::getInstance().get("TOP_FRACTION", 0.8);
+    BOTTOM_FRACTION = GlobalConstants::getInstance().get("BOTTOM_FRACTION", 0.02);
+  }
+  if (REFINEMENT_STRATEGY==3) {
+    OPTIMIZE_ORDER= static_cast<unsigned int>(GlobalConstants::getInstance().get("BOTTOM_FRACTION", 2));
+  }
 }
 
 //unsigned int NUM_PRELIMINARY_REF = GlobalConstants::getInstance().get("NUM_PRELIMINARY_REF");;
@@ -95,6 +110,16 @@ void printParsedConstants() {
     functional_name="std. Flux Evaluation";
   else if (DUAL_FUNCTIONAL == 3)
     functional_name="cons. Flux Evaluation";
+  else
+    DEAL_II_NOT_IMPLEMENTED();
+
+  std::string refinement_strategy;
+  if(REFINEMENT_STRATEGY == 1)
+    refinement_strategy="fixed_fraction (default)";
+  else if(REFINEMENT_STRATEGY == 2)
+    refinement_strategy="fixed_number";
+  else if (REFINEMENT_STRATEGY == 3)
+    refinement_strategy="optimize";
   else
     DEAL_II_NOT_IMPLEMENTED();
 
@@ -150,7 +175,19 @@ void printParsedConstants() {
   if (std::fabs(EXACT_FLUX)>1.e-10)
     std::cout << std::left << std::setw(30) << "EXACT_FLUX"
               << std::setw(20) << EXACT_FLUX << "\n";
-
+  std::cout << "------------------------------------------------------------\n";
+  std::cout << std::left << std::setw(30) << "REFINEMENT_STRATEGY"
+             << std::setw(20) << refinement_strategy << "\n";
+  if (REFINEMENT_STRATEGY == 1 || REFINEMENT_STRATEGY==2) {
+    std::cout << std::left << std::setw(30) << "TOP_FRACTION"
+             << std::setw(20) << TOP_FRACTION << "\n";
+    std::cout << std::left << std::setw(30) << "BOTTOM_FRACTION"
+             << std::setw(20) << BOTTOM_FRACTION << "\n";
+  }
+  if (REFINEMENT_STRATEGY==3) {
+    std::cout << std::left << std::setw(30) << "OPTIMIZE_ORDER"
+            << std::setw(20) << OPTIMIZE_ORDER << "\n";
+  }
   std::cout << "============================================================\n\n";
 }
 /*

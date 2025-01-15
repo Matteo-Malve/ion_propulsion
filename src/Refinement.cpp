@@ -369,10 +369,22 @@ namespace IonPropulsion{
         return;
       }
 
-      GridRefinement::refine_and_coarsen_fixed_fraction(*this->triangulation,
-                                                        error_indicators,
-                                                        0.8,
-                                                        0.02);
+      if (REFINEMENT_STRATEGY==1)
+        GridRefinement::refine_and_coarsen_fixed_fraction(*this->triangulation,
+                                                          error_indicators,
+                                                          TOP_FRACTION,
+                                                          BOTTOM_FRACTION);
+      else if (REFINEMENT_STRATEGY==2)
+        GridRefinement::refine_and_coarsen_fixed_number(*this->triangulation,
+                                                          error_indicators,
+                                                          TOP_FRACTION,
+                                                          BOTTOM_FRACTION);
+      else if (REFINEMENT_STRATEGY==3)
+        GridRefinement::refine_and_coarsen_optimize(*this->triangulation,
+                                                          error_indicators,
+                                                          OPTIMIZE_ORDER);
+      else
+        DEAL_II_NOT_IMPLEMENTED();
 
       if (MANUAL_LIFTING_ON) {
         this->triangulation->prepare_coarsening_and_refinement();

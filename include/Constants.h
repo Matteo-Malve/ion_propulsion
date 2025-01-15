@@ -35,6 +35,12 @@ extern double EVALUATION_POINT_Y;
 extern double EXACT_POINT_VALUE;
 extern double EXACT_FLUX;
 
+extern unsigned int REFINEMENT_STRATEGY;
+extern double TOP_FRACTION;
+extern double BOTTOM_FRACTION;
+extern unsigned int OPTIMIZE_ORDER;
+
+
 //extern unsigned int NUM_PRELIMINARY_REF;
 
 class ConstantsParser {
@@ -43,13 +49,13 @@ public:
         parseFile(filePath);
     }
 
-    double getConstant(const std::string &name, bool default_zero = false) const {
+    double getConstant(const std::string &name, double default_value = std::numeric_limits<double>::lowest()) const {
         auto it = constants.find(name);
         if (it != constants.end()) {
             return it->second;
         }
-        if (default_zero)
-            return 0.0;
+        if (default_value > std::numeric_limits<double>::lowest() + 1e-10)  // Give some tolerance here
+            return default_value;
         else
             throw std::runtime_error("Constant not found: " + name);
     }
@@ -121,8 +127,8 @@ public:
     }
 
     // Get numeric constant
-    double get(const std::string &name, bool default_zero = false)  {
-        return parser.getConstant(name,default_zero);
+    double get(const std::string &name, double default_value = std::numeric_limits<double>::lowest())  {
+        return parser.getConstant(name,default_value);
     }
 
     // Get string constant
