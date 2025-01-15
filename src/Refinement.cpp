@@ -352,7 +352,7 @@ namespace IonPropulsion{
 
       // GRID REFINEMENT
 
-      if (true) {
+      if (REFINEMENT_CRITERION == 3) {
         if (MANUAL_LIFTING_ON) {
           Vector<double> old_Rg_values = PrimalSolver<dim>::Rg_vector;
           SolutionTransfer<dim> solution_transfer(PrimalSolver<dim>::dof_handler);
