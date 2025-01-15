@@ -60,28 +60,6 @@ namespace IonPropulsion{
     }
 
     template <int dim>
-    void PrimalSolver<dim>::construct_Rg_vector() {
-      AffineConstraints<double> hanging_node_constraints;
-      hanging_node_constraints.clear();
-      void (*mhnc_p)(const DoFHandler<dim> &, AffineConstraints<double> &) =
-          &DoFTools::make_hanging_node_constraints;
-      // Start a side task then continue on the main thread
-      Threads::Task<void> side_task =
-        Threads::new_task(mhnc_p, this->dof_handler, hanging_node_constraints);
-
-      std::map<types::global_dof_index, double> boundary_value_map;
-      VectorTools::interpolate_boundary_values(this->dof_handler, 0, *(this->boundary_values), boundary_value_map);
-      VectorTools::interpolate_boundary_values(this->dof_handler, 1, *(this->boundary_values), boundary_value_map);
-      VectorTools::interpolate_boundary_values(this->dof_handler, 9, *(this->boundary_values), boundary_value_map);
-      for (const auto &boundary_value : boundary_value_map)
-        this->Rg_vector(boundary_value.first) = boundary_value.second;
-
-      side_task.join();
-      hanging_node_constraints.close();
-      hanging_node_constraints.distribute(this->Rg_vector);
-    }
-
-    template <int dim>
     void Solver<dim>::solve_problem()
     {
       dof_handler.distribute_dofs(*fe);
@@ -202,23 +180,6 @@ namespace IonPropulsion{
     }
 
     template <int dim>
-    Solver<dim>::AssemblyScratchData::AssemblyScratchData(
-      const FiniteElement<dim> &fe,
-      const Quadrature<dim> &   quadrature)
-      : fe_values(fe, quadrature, update_gradients | update_JxW_values)
-    {}
-
-
-    template <int dim>
-    Solver<dim>::AssemblyScratchData::AssemblyScratchData(
-      const AssemblyScratchData &scratch_data)
-      : fe_values(scratch_data.fe_values.get_fe(),
-                  scratch_data.fe_values.get_quadrature(),
-                  update_gradients | update_JxW_values)
-    {}
-
-
-    template <int dim>
     void Solver<dim>::local_assemble_matrix(
       const typename DoFHandler<dim>::active_cell_iterator &cell,
       AssemblyScratchData &                                 scratch_data,
@@ -261,6 +222,22 @@ namespace IonPropulsion{
         }
 
     }
+
+    template <int dim>
+    Solver<dim>::AssemblyScratchData::AssemblyScratchData(
+      const FiniteElement<dim> &fe,
+      const Quadrature<dim> &   quadrature)
+      : fe_values(fe, quadrature, update_gradients | update_JxW_values)
+    {}
+
+
+    template <int dim>
+    Solver<dim>::AssemblyScratchData::AssemblyScratchData(
+      const AssemblyScratchData &scratch_data)
+      : fe_values(scratch_data.fe_values.get_fe(),
+                  scratch_data.fe_values.get_quadrature(),
+                  update_gradients | update_JxW_values)
+    {}
 
 
     template <int dim>
@@ -445,29 +422,31 @@ namespace IonPropulsion{
 
     }
 
+    template <int dim>
+    void PrimalSolver<dim>::construct_Rg_vector() {
+      AffineConstraints<double> hanging_node_constraints;
+      hanging_node_constraints.clear();
+      void (*mhnc_p)(const DoFHandler<dim> &, AffineConstraints<double> &) =
+          &DoFTools::make_hanging_node_constraints;
+      // Start a side task then continue on the main thread
+      Threads::Task<void> side_task =
+        Threads::new_task(mhnc_p, this->dof_handler, hanging_node_constraints);
+
+      std::map<types::global_dof_index, double> boundary_value_map;
+      VectorTools::interpolate_boundary_values(this->dof_handler, 0, *(this->boundary_values), boundary_value_map);
+      VectorTools::interpolate_boundary_values(this->dof_handler, 1, *(this->boundary_values), boundary_value_map);
+      VectorTools::interpolate_boundary_values(this->dof_handler, 9, *(this->boundary_values), boundary_value_map);
+      for (const auto &boundary_value : boundary_value_map)
+        this->Rg_vector(boundary_value.first) = boundary_value.second;
+
+      side_task.join();
+      hanging_node_constraints.close();
+      hanging_node_constraints.distribute(this->Rg_vector);
+    }
+
     // ------------------------------------------------------
     // DualSolver
     // ------------------------------------------------------
-    template <int dim>
-    DualSolver<dim>::DualSolver(
-      Triangulation<dim> &                           triangulation,
-      const FiniteElement<dim> &                     fe,
-      const Quadrature<dim> &                        quadrature,
-      const Quadrature<dim - 1> &                    face_quadrature,
-      const DualFunctional::DualFunctionalBase<dim> &dual_functional,
-      const Function<dim> &                          special_rhs_function,
-      const Function<dim> &                          special_boundary_values)
-      : Base<dim>(triangulation)
-      , Solver<dim>(triangulation,
-                    fe,
-                    quadrature,
-                    face_quadrature,
-                    boundary_values)
-      , dual_functional(&dual_functional)
-      , special_rhs_function(&special_rhs_function)
-      , special_boundary_values(&special_boundary_values)
-    {}
-
 
     template <int dim>
     void assemble_conservative_flux_rhs(
@@ -543,6 +522,7 @@ namespace IonPropulsion{
           b_nonzero_elements++;
       cout<<"b's nonzero elements: "<<b_nonzero_elements<<std::endl;
 
+
       // ------------------------------------------------------
       // Put together for conservative
       // ------------------------------------------------------
@@ -560,12 +540,17 @@ namespace IonPropulsion{
         A_col_i.reinit(dof_handler.n_dofs());
         v(i)=1.;
         Umatrix.vmult(v, A_col_i);
+
+        Vector<double> ARg(dof_handler.n_dofs());// JUST ADDED
+        Umatrix.vmult(ARg, special_Rg_vector);
+        A_col_i+=ARg;
+
         //A_col_i-=b;
 
-        rhs(i)=A_col_i(i)-b(i);
-        /*for (auto index = e_index_set.begin(); index != e_index_set.end(); ++index) {
+        //rhs(i)=A_col_i(i)-b(i);
+        for (auto index = e_index_set.begin(); index != e_index_set.end(); ++index) {
           rhs(i) += A_col_i(*index);
-        }*/
+        }
         //rhs(i) = std::accumulate(A_col_i.begin(),A_col_i.end(), 0.);
 
         if (std::fabs(rhs(i))>1.e-10)
@@ -574,6 +559,26 @@ namespace IonPropulsion{
       cout<<"Nonzero elements (rhs perspective): "<<nonzero_elements<<std::endl;
 
     }
+
+    template <int dim>
+    DualSolver<dim>::DualSolver(
+      Triangulation<dim> &                           triangulation,
+      const FiniteElement<dim> &                     fe,
+      const Quadrature<dim> &                        quadrature,
+      const Quadrature<dim - 1> &                    face_quadrature,
+      const DualFunctional::DualFunctionalBase<dim> &dual_functional,
+      const Function<dim> &                          special_rhs_function,
+      const Function<dim> &                          special_boundary_values)
+      : Base<dim>(triangulation)
+      , Solver<dim>(triangulation,
+                    fe,
+                    quadrature,
+                    face_quadrature,
+                    boundary_values)
+      , dual_functional(&dual_functional)
+      , special_rhs_function(&special_rhs_function)
+      , special_boundary_values(&special_boundary_values)
+    {}
 
     template <int dim>
     void DualSolver<dim>::assemble_rhs(Vector<double> &rhs) const

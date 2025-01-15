@@ -133,7 +133,7 @@ namespace IonPropulsion{
       auto & fe_face = dof_handler.get_fe();
 
       // Quadrature
-      const QGauss<dim-1> face_quadrature(fe_face.degree + 1);
+      const QGauss<dim-1> face_quadrature(7);  // fe_face.degree + 1
 
       // Finite elements
       FEFaceValues<dim> fe_face_values(fe_face,

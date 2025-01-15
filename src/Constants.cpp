@@ -80,11 +80,11 @@ void printParsedConstants() {
 
   std::string functional_name;
   if(DUAL_FUNCTIONAL == 1)
-    setup_name="Point evaluation";
+    functional_name="Point evaluation";
   else if(DUAL_FUNCTIONAL == 2)
-    setup_name="std. Flux Evaluation";
+    functional_name="std. Flux Evaluation";
   else if (DUAL_FUNCTIONAL == 3)
-    setup_name="cons. Flux Evaluation";
+    functional_name="cons. Flux Evaluation";
   else
     DEAL_II_NOT_IMPLEMENTED();
 

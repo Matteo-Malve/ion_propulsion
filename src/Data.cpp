@@ -294,9 +294,14 @@ namespace IonPropulsion{
         unsigned int ctr = 0;
 
         // Threshold
-        const double max_thickness = 5. * l;    // 2*
-        const double min_thickness = 1.05 * l;
-        const double D = min_thickness + (max_thickness-min_thickness)/(NUM_CONCENTRIC_REF-1)*(NUM_CONCENTRIC_REF-1-i);
+        const double max_thickness = 1.5 * l;    // 2*
+        const double min_thickness = 1.05 * l;    // 1.05
+        double D = 0.;
+        if (NUM_CONCENTRIC_REF==1)
+          D = max_thickness;
+        else
+          D = min_thickness + (max_thickness-min_thickness)/(NUM_CONCENTRIC_REF-1)*(NUM_CONCENTRIC_REF-1-i);
+
 
         for (auto &cell : coarse_grid.active_cell_iterators()) {
           const Point<2> c = cell->center();
@@ -307,8 +312,9 @@ namespace IonPropulsion{
         }
         GridRefinement::refine(coarse_grid, criteria, 0.5);
         coarse_grid.execute_coarsening_and_refinement();
+        cout<<"Executed one concentric refinement"<<endl;
       }
-      cout<<"Executed preliminary coarsening and refinement"<<endl;
+
 
     }
 

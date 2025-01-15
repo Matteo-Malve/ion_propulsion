@@ -80,7 +80,7 @@ namespace IonPropulsion{
 		{
 			(void)triangulation;
 			double flux = 0;
-			const QGauss<dim-1> face_quadrature(dof_handler.get_fe().degree + 1);
+			const QGauss<dim-1> face_quadrature(7);			// dof_handler.get_fe().degree + 1
 			FEFaceValues<dim> fe_face_values(dof_handler.get_fe(),
 																			 face_quadrature,
 																			 update_gradients | update_normal_vectors | update_JxW_values);
