@@ -22,6 +22,7 @@ LOAD_FROM_SETUP: 6                  # Setups: mesh, analytical solution, forcing
 #          6: Rectangle_1_99_manifold
 
 
+
 # Framework configuration
 MANUAL_LIFTING_ON: 1       # 0: OFF, 1: ON,
 REFINEMENT_CRITERION: 2    # 1: global_refinement, 2: dual_weighted_error_estimator

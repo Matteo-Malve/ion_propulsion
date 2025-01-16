@@ -181,6 +181,38 @@ namespace IonPropulsion{
       grid_in.attach_triangulation(coarse_grid);
       grid_in.read_msh(input_file);
 
+      double l = 0.0001;
+
+      const Point<2> center(0.0, 0.0);
+      double D = 4*l;
+      for (unsigned int i = 0; i < NUM_CONCENTRIC_REF; ++i) {
+        Vector<float> criteria(coarse_grid.n_active_cells());
+        unsigned int ctr = 0;
+
+        D *= 0.999;
+
+        for (auto &cell : coarse_grid.active_cell_iterators()) {
+          Point<2> closest_vertex_p = cell->center();
+          double min_distance = closest_vertex_p.distance(center);
+          for (const auto vertex : cell->vertex_indices()) {
+            auto & vertex_p = cell->vertex(vertex);
+            if (vertex_p.distance(center)<min_distance) {
+              min_distance = vertex_p.distance(center);
+              closest_vertex_p = vertex_p;
+            }
+          }
+
+          if(std::abs(closest_vertex_p[1])<D && std::abs(closest_vertex_p[0])<D)
+            criteria[ctr++] = 1;
+          else
+            criteria[ctr++] = 0;
+        }
+        GridRefinement::refine(coarse_grid, criteria, 0.5);
+        coarse_grid.execute_coarsening_and_refinement();
+
+        D /= 2.;
+      }
+
       /*coarse_grid.refine_global(NUM_PRELIMINARY_GLOBAL_REF);
 
       for (unsigned int i = 0; i < NUM_PRELIMINARY_REF; ++i) {
@@ -319,6 +351,8 @@ namespace IonPropulsion{
       GridIn<2>       grid_in;
       grid_in.attach_triangulation(coarse_grid);
       grid_in.read_msh(input_file);
+
+
 
     }
 
