@@ -90,6 +90,8 @@ void printParsedConstants() {
     setup_name="LogCircular_1_10";
   else if (LOAD_FROM_SETUP == 5)
     setup_name="LogCircular_1_100";
+  else if (LOAD_FROM_SETUP == 6)
+    setup_name="Rectangle_1_99_manifold";
   else
     DEAL_II_NOT_IMPLEMENTED();
 

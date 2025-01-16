@@ -274,6 +274,41 @@ namespace IonPropulsion{
     };
 
     // ------------------------------------------------------
+    // Trait: Rectangle_1_99_manifold
+    // ------------------------------------------------------
+
+    template <int dim>
+    struct Rectangle_1_99_manifold
+    {
+      // We need a class to denote the boundary values of the problem. In this
+      // case, this is simple: it's the zero function, so don't even declare a
+      // class, just an alias:
+      using BoundaryValues = Functions::ZeroFunction<dim>;
+
+      // Second, a class that denotes the right hand side. Since they are
+      // constant, just subclass the corresponding class of the library and be
+      // done:
+      class RightHandSide : public Functions::ConstantFunction<dim>
+      {
+      public:
+        RightHandSide()
+          : Functions::ConstantFunction<dim>(1.)
+        {}
+      };
+
+      class ExactSolution : public Functions::ConstantFunction<dim> {
+      public:
+        ExactSolution()
+          : Functions::ConstantFunction<dim>(-1.e-19)   // Not available
+        {}
+      };
+
+      // Finally a function to generate the coarse grid. This is somewhat more
+      // complicated here, see immediately below.
+      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+    };
+
+    // ------------------------------------------------------
     // FullTestSqruareComparison
     // ------------------------------------------------------
     constexpr double pi = 3.14159265358979323846;

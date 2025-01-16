@@ -42,6 +42,8 @@ int main(int argc, char **argv)
       descriptor.data = std::make_unique<Data::SetUp<Data::LogCircular_1_10<dim>, dim>>();
     else if (LOAD_FROM_SETUP == 5)
       descriptor.data = std::make_unique<Data::SetUp<Data::LogCircular_1_100<dim>, dim>>();
+    else if (LOAD_FROM_SETUP == 6)
+      descriptor.data = std::make_unique<Data::SetUp<Data::Rectangle_1_99_manifold<dim>, dim>>();
     else
       DEAL_II_NOT_IMPLEMENTED();
 

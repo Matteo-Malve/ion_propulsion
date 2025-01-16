@@ -116,6 +116,7 @@ namespace IonPropulsion{
       if (DoFs_before_refinement > descriptor.max_degrees_of_freedom)
         break;
 
+
     }
 
   // Clean up the screen after the loop has run:

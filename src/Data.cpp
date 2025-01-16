@@ -208,6 +208,105 @@ namespace IonPropulsion{
     }
 
     // ------------------------------------------------------
+    // Rectangle_1_99_manifold
+    // ------------------------------------------------------
+
+    class SquareManifold : public ChartManifold<2, 2>
+    {
+    public:
+      SquareManifold(const Point<2> &center, const double half_length)
+        : center(center), half_length(half_length) {}
+
+      std::unique_ptr<Manifold<2>> clone() const override
+      {
+        return std::make_unique<SquareManifold>(center,half_length);
+      }
+
+      virtual Point<2> pull_back(const Point<2> &space_point) const override
+      {
+        // Map points to local coordinates within the square
+        return Point<2>(space_point[0] - center[0], space_point[1] - center[1]);
+      }
+
+      virtual Point<2> push_forward(const Point<2> &chart_point) const override
+      {
+        // Ensure points are snapped to the square's boundary
+        Point<2> result = center;
+
+        result[0] += std::max(std::min(chart_point[0], half_length), -half_length);
+        result[1] += std::max(std::min(chart_point[1], half_length), -half_length);
+        return result;
+      }
+
+    private:
+      const Point<2> center;
+      const double half_length;
+    };
+
+    template <>
+    void Rectangle_1_99_manifold<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    {
+      const std::string path_to_mesh = PATH_TO_MESH;
+      std::ifstream input_file(path_to_mesh);
+      GridIn<2>       grid_in;
+      grid_in.attach_triangulation(coarse_grid);
+      grid_in.read_msh(input_file);
+
+      for (const auto &cell : coarse_grid.active_cell_iterators())
+      {
+        for (unsigned int face = 0; face < GeometryInfo<2>::faces_per_cell; ++face)
+        {
+          if (cell->face(face)->at_boundary() && (cell->face(face)->boundary_id() == 1)) // Boundary ID 1 for the emitter, 9 for collector
+          {
+            cell->face(face)->set_manifold_id(1); // Assign manifold ID 1 for the emitter
+          }
+        }
+      }
+
+      const double l = 0.0001; // Square edge length
+      const Point<2> center(0.0, 0.0); // Center of the square
+
+      // Attach a square manifold to the emitter
+      SquareManifold square_manifold(center, l );
+
+      coarse_grid.set_manifold(1, square_manifold); // Set the manifold for the emitter
+      coarse_grid.refine_global(3);
+
+      /*const unsigned int NUM_PRELIMINARY_REF = 1;
+      double D = 0.0033;
+      for (unsigned int i = 0; i < NUM_PRELIMINARY_REF; ++i) {
+        Vector<float> criteria(coarse_grid.n_active_cells());
+        unsigned int ctr = 0;
+
+        cout<<"D: "<<D<<endl;
+        // Add some tolerance
+        D *= 0.999;
+
+        for (auto &cell : coarse_grid.active_cell_iterators()) {
+          Point<2> closest_vertex_p = cell->center();
+          double min_distance = closest_vertex_p.distance(center);
+          for (const auto vertex : cell->vertex_indices()) {
+            auto & vertex_p = cell->vertex(vertex);
+            if (vertex_p.distance(center)<min_distance) {
+              min_distance = vertex_p.distance(center);
+              closest_vertex_p = vertex_p;
+            }
+          }
+
+          if(std::abs(closest_vertex_p[1])<D && std::abs(closest_vertex_p[0])<D)
+            criteria[ctr++] = 1;
+          else
+            criteria[ctr++] = 0;
+        }
+        GridRefinement::refine(coarse_grid, criteria, 0.5);
+        coarse_grid.execute_coarsening_and_refinement();
+
+        D /= 2.;
+      }*/
+    }
+
+
+    // ------------------------------------------------------
     // FullTestSqruareComparison
     // ------------------------------------------------------
 
@@ -417,6 +516,9 @@ namespace IonPropulsion{
 
     template struct Rectangle_1_99<2>;
     template struct SetUp<IonPropulsion::Data::Rectangle_1_99<2>, 2>;
+
+    template struct Rectangle_1_99_manifold<2>;
+    template struct SetUp<IonPropulsion::Data::Rectangle_1_99_manifold<2>, 2>;
 
     template struct FullTestSqruareComparison<2>;
     template struct SetUp<IonPropulsion::Data::FullTestSqruareComparison<2>, 2>;
