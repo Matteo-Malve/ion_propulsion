@@ -54,8 +54,7 @@ void useGlobalConstants() {
 
   MANUAL_LIFTING_ON = static_cast<bool>(GlobalConstants::getInstance().get("MANUAL_LIFTING_ON"));
   REFINEMENT_CRITERION = static_cast<unsigned int>(GlobalConstants::getInstance().get("REFINEMENT_CRITERION"));
-  if (REFINEMENT_CRITERION>1)
-    DUAL_FUNCTIONAL = static_cast<unsigned int>(GlobalConstants::getInstance().get("DUAL_FUNCTIONAL"));
+  DUAL_FUNCTIONAL = static_cast<unsigned int>(GlobalConstants::getInstance().get("DUAL_FUNCTIONAL",1));
 
   EVALUATION_POINT_X = GlobalConstants::getInstance().get("EVALUATION_POINT_X");
   EVALUATION_POINT_Y = GlobalConstants::getInstance().get("EVALUATION_POINT_Y");
@@ -92,6 +91,8 @@ void printParsedConstants() {
     setup_name="LogCircular_1_100";
   else if (LOAD_FROM_SETUP == 6)
     setup_name="Rectangle_1_99_manifold";
+  else if (LOAD_FROM_SETUP == 7)
+    setup_name="Rectangle_step14_forced";
   else
     DEAL_II_NOT_IMPLEMENTED();
 

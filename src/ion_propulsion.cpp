@@ -45,7 +45,7 @@ int main(int argc, char **argv)
     else if (LOAD_FROM_SETUP == 6)
       descriptor.data = std::make_unique<Data::SetUp<Data::Rectangle_1_99_manifold<dim>, dim>>();
     else if (LOAD_FROM_SETUP == 7)
-      descriptor.data = std::make_unique<Data::SetUp<Data::FullTestSqruareComparison<dim>, dim>>();
+      descriptor.data = std::make_unique<Data::SetUp<Data::Rectangle_step14_forced<dim>, dim>>();
     else
       DEAL_II_NOT_IMPLEMENTED();
 
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 
     descriptor.evaluator_list.push_back(&postprocessor1);
     descriptor.evaluator_list.push_back(&postprocessor2);
-    descriptor.evaluator_list.push_back(&postprocessor3);
+   // descriptor.evaluator_list.push_back(&postprocessor3);
     descriptor.evaluator_list.push_back(&postprocessor4);
 
     // Set the maximal number of degrees of freedom after which we want the

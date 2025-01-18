@@ -314,7 +314,7 @@ namespace IonPropulsion{
     constexpr double pi = 3.14159265358979323846;
 
     template <int dim>
-    struct FullTestSqruareComparison
+    struct Rectangle_step14_forced
     {
       // We need a class to denote the boundary values of the problem. In this
       // case, this is simple: it's the zero function, so don't even declare a
@@ -329,7 +329,7 @@ namespace IonPropulsion{
 
           double sigma2 = 0.0000005;
           double Ve = 20000.;
-          double l = 0.0004;
+          double l = 0.5;
 
 
           const auto x = p[0];
@@ -354,7 +354,7 @@ namespace IonPropulsion{
 
           double sigma2 = 0.0000005;
           double Ve = 20000.;
-          double l = 0.0004;
+          double l = 0.5;
 
 
           const auto x = p[0];
@@ -378,7 +378,7 @@ namespace IonPropulsion{
           (void)component;
           double sigma2 = 0.0000005;
           double freq = 0.5;
-          double l = 0.0004;
+          double l = 0.5;
           double Ve = 20000.;
 
           const auto x = p[0];
