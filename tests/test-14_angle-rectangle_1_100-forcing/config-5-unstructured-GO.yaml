@@ -1,0 +1,48 @@
+# Physical constants
+eps_0: 1.0    # 8.854           # Electric permittivity of free space [F/m]
+eps_r: 1.0    # 1.0006          # Relative permittivity
+
+# Data
+Ve: null   # (*)             # Electric potential [V] at the emitter
+Vc: null      # (*)             # Electric potential [V] at the collector
+RHS_EXPRESSION: null
+#UEX_EXPRESSION: x
+
+# Set-up configurations
+#NUM_PRELIMINARY_GLOBAL_REF: null       # Number of preliminary global refinements
+PATH_TO_MESH: ../mesh/AngleSquare_Rectangle_1_100_unstructured.msh
+LOAD_FROM_SETUP: 8                  # Setups: mesh, analytical solution, forcing term
+# Options: 0: NONE (**)
+#          1: CurvedRidges (from step-14)
+#          2: Exercise_2_3 (from step-14)
+#          3: Rectangle_1_99 (**) (modified step-14 with 1:99 ratio)
+#          4: LogCircular_1_10
+#          5: LogCircular_1_100
+#          7: angle of step-14 with f and BCs conforming to a chosen uex
+#          7: angle of Rectangle_1_99 with f and BCs conforming to a chosen uex
+
+
+# Framework configuration
+MANUAL_LIFTING_ON: 1       # 0: OFF, 1: ON,
+REFINEMENT_CRITERION: 2    # 1: global_refinement, 2: dual_weighted_error_estimator
+DUAL_FUNCTIONAL: 1         # 1: point_evaluation,  2: flux_evaluation
+
+# Point coordinates
+EVALUATION_POINT_X: 0.005
+EVALUATION_POINT_Y: 0.005
+
+# Reference values
+EXACT_POINT_VALUE:  -1.500625000000e-08
+EXACT_FLUX: 0
+
+# Mesh refinement options:
+REFINEMENT_STRATEGY: 1      # 1. fixed_fraction(default), 2. fixed_number, 3. optimize
+TOP_FRACTION: null          # default: 0.8
+BOTTOM_FRACTION: null       # default: 0.02
+OPTIMIZE_ORDER: null        # default: 2
+
+
+# NOTES:
+# (*): Will be overridden by the choice of a predefined Setup
+# (**): PATH_TO_MESH must be specified.
+#       If there isn't (**), PATH_TO_MESH is predetermined by setup

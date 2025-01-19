@@ -565,10 +565,7 @@ namespace IonPropulsion{
     template <int dim>
     struct LogCircular_1_10
     {
-      // We need a class to denote the boundary values of the problem. In this
-      // case, this is simple: it's the zero function, so don't even declare a
-      // class, just an alias:
-      //using BoundaryValues = ExactSolution5b<dim>;
+
       class BoundaryValues : public Function<dim> {
       public:
         virtual double value(const Point<dim> & p,
@@ -618,8 +615,6 @@ namespace IonPropulsion{
 
       using RightHandSide = Functions::ZeroFunction<dim>;
 
-      // Finally a function to generate the coarse grid. This is somewhat more
-      // complicated here, see immediately below.
       static void create_coarse_grid(Triangulation<dim> &coarse_grid);
     };
 
@@ -696,22 +691,13 @@ namespace IonPropulsion{
     struct CircularZeroDirichlet
     {
 
-      class BoundaryValues : public Function<dim> {
+      class BoundaryValues : public Functions::ConstantFunction<dim>
+      {
       public:
-        virtual double value(const Point<dim> & p,
-                             const unsigned int component) const override {
-          (void)component;
+        BoundaryValues()
+          : Functions::ConstantFunction<dim>(0.)
+        {}
 
-          double l = 0.0004;
-          double L = 0.004;
-
-          const auto x = p[0];
-          const auto y = p[1];
-          const double r = std::sqrt(x*x + y*y);
-          double arg = pi*(r-l)/(L-l);
-
-          return sin(arg);
-        }
       };
 
       class ExactSolution : public Function<dim> {
@@ -772,6 +758,72 @@ namespace IonPropulsion{
 
       // Finally a function to generate the coarse grid. This is somewhat more
       // complicated here, see immediately below.
+      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+    };
+
+    // ------------------------------------------------------
+    // CircularStep14
+    // ------------------------------------------------------
+
+    template <int dim>
+    struct CircularStep14
+    {
+
+      class BoundaryValues : public Functions::ConstantFunction<dim>
+      {
+      public:
+        BoundaryValues()
+          : Functions::ConstantFunction<dim>(0.)
+        {}
+
+      };
+
+      class ExactSolution : public Function<dim> {
+      public:
+        virtual double value(const Point<dim> & p,
+                             const unsigned int component) const override {
+          (void)component;
+          double l = 0.5;
+          double L = 1.0;
+
+          const auto x = p[0];
+          const auto y = p[1];
+          const double r2 = (x*x + y*y);
+          const double r = std::sqrt(r2);
+
+          double C1 = - (L*L - l*l) / (4*log(l/L));
+          double C2 = L*L/4 + log(L) * (L*L - l*l) / (4*log(l/L));
+
+          return -r2/4. + C1 * log(r) + C2;
+        }
+        virtual Tensor<1, dim> gradient(const Point<dim> &p, const unsigned int component = 0) const override {
+          (void)component;
+
+          double l = 0.5;
+          double L = 1.0;
+          const auto x = p[0];
+          const auto y = p[1];
+          const double r = std::sqrt(x*x + y*y);
+
+          double C1 = - (L*L - l*l) / (4*log(l/L));
+
+          double u_r = - r / 2. + C1 / r;
+
+          Tensor<1, dim> grad;
+          grad[0] = u_r * x / r;
+          grad[1] = u_r * y / r;
+          return grad;
+        };
+      };
+
+      class RightHandSide : public Functions::ConstantFunction<dim>
+      {
+      public:
+        RightHandSide()
+          : Functions::ConstantFunction<dim>(1.)
+        {}
+      };
+
       static void create_coarse_grid(Triangulation<dim> &coarse_grid);
     };
 

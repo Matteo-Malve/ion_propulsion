@@ -95,6 +95,8 @@ void printParsedConstants() {
     setup_name="angle_step14_forced";
   else if (LOAD_FROM_SETUP == 8)
     setup_name="angle_Rectangle_1_100_forced";
+  else if (LOAD_FROM_SETUP == 9)
+    setup_name="CircularStep14";
   else
     DEAL_II_NOT_IMPLEMENTED();
 

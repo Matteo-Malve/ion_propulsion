@@ -1,11 +1,10 @@
 #include "Data.h"
 #include <deal.II/grid/grid_in.h>
 
-namespace IonPropulsion{
+namespace IonPropulsion {
   using namespace dealii;
   using std::endl;
-  namespace Data{
-
+  namespace Data {
     // ------------------------------------------------------
     // SetUp
     // ------------------------------------------------------
@@ -148,11 +147,11 @@ namespace IonPropulsion{
       // the material indicator to zero for all the cells:
       std::vector<CellData<dim>> cells(n_cells, CellData<dim>());
       for (unsigned int i = 0; i < n_cells; ++i)
-        {
-          for (unsigned int j = 0; j < cell_vertices[i].size(); ++j)
-            cells[i].vertices[j] = cell_vertices[i][j];
-          cells[i].material_id = 0;
-        }
+      {
+        for (unsigned int j = 0; j < cell_vertices[i].size(); ++j)
+          cells[i].vertices[j] = cell_vertices[i][j];
+        cells[i].material_id = 0;
+      }
 
       // Finally pass all this information to the library to generate a
       // triangulation. The last parameter may be used to pass information
@@ -548,6 +547,39 @@ namespace IonPropulsion{
 
     }
 
+    // ------------------------------------------------------
+    // CircularStep14
+    // ------------------------------------------------------
+
+    template <>
+    void CircularStep14<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    {
+      const std::string path_to_mesh = PATH_TO_MESH;
+      std::ifstream input_file(path_to_mesh);
+      GridIn<2>       grid_in;
+      grid_in.attach_triangulation(coarse_grid);
+      grid_in.read_msh(input_file);
+
+      // Set up the circular manifold for the emitter (inner circle)
+      const Point<2> center(0.0, 0.0); // Center of the circles
+      for (const auto &cell : coarse_grid.active_cell_iterators())
+      {
+        for (unsigned int face = 0; face < GeometryInfo<2>::faces_per_cell; ++face)
+        {
+          if (cell->face(face)->at_boundary() && (cell->face(face)->boundary_id() == 1 || cell->face(face)->boundary_id() == 2 ||cell->face(face)->boundary_id() == 9)) // Boundary ID 1 for the emitter, 9 for collector
+          {
+            cell->face(face)->set_manifold_id(1); // Assign manifold ID 1 for the emitter
+          }
+        }
+      }
+
+      // Attach a circular manifold to the emitter
+      SphericalManifold<2> circular_manifold(center);
+      coarse_grid.set_manifold(1, circular_manifold); // Set the manifold for the emitter
+
+    }
+
+
     // Template instantiation
     template struct SetUpBase<2>;
 
@@ -583,6 +615,9 @@ namespace IonPropulsion{
 
     template struct CircularZeroDirichlet<2>;
     template struct SetUp<IonPropulsion::Data::CircularZeroDirichlet<2>, 2>;
+
+    template struct CircularStep14<2>;
+    template struct SetUp<IonPropulsion::Data::CircularStep14<2>, 2>;
 
   } // namespace Data
 } // namespace IonPropulsion
