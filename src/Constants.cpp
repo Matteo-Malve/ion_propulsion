@@ -93,6 +93,8 @@ void printParsedConstants() {
     setup_name="Rectangle_1_99_manifold";
   else if (LOAD_FROM_SETUP == 7)
     setup_name="angle_step14_forced";
+  else if (LOAD_FROM_SETUP == 8)
+    setup_name="angle_Rectangle_1_100_forced";
   else
     DEAL_II_NOT_IMPLEMENTED();
 

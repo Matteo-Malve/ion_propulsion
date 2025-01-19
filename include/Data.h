@@ -402,25 +402,20 @@ namespace IonPropulsion{
     };
 
     // ------------------------------------------------------
-    // angle_Rectangle_1_99_forced
+    // angle_Rectangle_1_100_forced
     // ------------------------------------------------------
-    constexpr double pi = 3.14159265358979323846;
-
     template <int dim>
-    struct angle_Rectangle_1_99_forced
+    struct angle_Rectangle_1_100_forced
     {
-      // We need a class to denote the boundary values of the problem. In this
-      // case, this is simple: it's the zero function, so don't even declare a
-      // class, just an alias:
-      //using BoundaryValues = ExactSolution5b<dim>;
+
       class BoundaryValues : public Function<dim>
       {
       public:
         virtual double value(const Point<dim> & p,
                              const unsigned int component) const override {
           (void)component;
-          double l = 0.5;
-          double L = 1.0;
+          double l = 0.0001;
+          double L = 0.01;
 
           const auto x = p[0];
           const auto y = p[1];
@@ -437,8 +432,8 @@ namespace IonPropulsion{
                              const unsigned int component) const override {
           (void)component;
 
-          double l = 0.5;
-          double L = 1.0;
+          double l = 0.0001;
+          double L = 0.01;
 
           const auto x = p[0];
           const auto y = p[1];
@@ -449,8 +444,8 @@ namespace IonPropulsion{
         virtual Tensor<1, dim> gradient(const Point<dim> &p, const unsigned int component = 0) const override {
           (void)component;
 
-          double l = 0.5;
-          double L = 1.0;
+          double l = 0.0001;
+          double L = 0.01;
           const auto x = p[0];
           const auto y = p[1];
 
@@ -471,8 +466,8 @@ namespace IonPropulsion{
         virtual double value(const Point<dim> & p,
                              const unsigned int component) const override {
           (void)component;
-          double l = 0.5;
-          double L = 1.0;
+          double l = 0.0001;
+          double L = 0.01;
           const auto x = p[0];
           const auto y = p[1];
           double r2 = x*x+y*y;

@@ -443,7 +443,7 @@ namespace IonPropulsion{
       for (const auto &boundary_value : boundary_value_map)
         this->Rg_vector(boundary_value.first) = boundary_value.second;
 
-      cout<<"Exact point value at (0.75,0.75) : "<<this->boundary_values->value(Point<dim>(0.75,0.75));
+      cout<<"Exact point value at EVALUATION POINT : "<<this->boundary_values->value(Point<dim>(EVALUATION_POINT_X,EVALUATION_POINT_Y))<<std::endl;
 
       side_task.join();
       hanging_node_constraints.close();

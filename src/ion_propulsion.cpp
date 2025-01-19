@@ -46,6 +46,8 @@ int main(int argc, char **argv)
       descriptor.data = std::make_unique<Data::SetUp<Data::Rectangle_1_99_manifold<dim>, dim>>();
     else if (LOAD_FROM_SETUP == 7)
       descriptor.data = std::make_unique<Data::SetUp<Data::angle_step14_forced<dim>, dim>>();
+    else if (LOAD_FROM_SETUP == 8)
+      descriptor.data = std::make_unique<Data::SetUp<Data::angle_Rectangle_1_100_forced<dim>, dim>>();
     else
       DEAL_II_NOT_IMPLEMENTED();
 
