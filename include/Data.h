@@ -326,22 +326,13 @@ namespace IonPropulsion{
         virtual double value(const Point<dim> & p,
                              const unsigned int component) const override {
           (void)component;
-
-          double sigma2 = 0.0000005;
-          double Ve = 20000.;
           double l = 0.5;
-
+          double L = 1.0;
 
           const auto x = p[0];
           const auto y = p[1];
-          double r = sqrt(x*x + y*y);
-          double expTerm = std::exp(- std::pow(r-l, 2) / (2 * sigma2));
-          double freq = 0.5;
-          double argX = (std::abs(x)-l) * pi / l * freq;
-          double argY = (std::abs(y)-l) * pi / l * freq;
 
-          return expTerm * Ve * (1 - sin(argX) * sin(argY));
-
+          return -(std::abs(x)-l)*(std::abs(x)-L);
         }
       };
 
@@ -352,21 +343,13 @@ namespace IonPropulsion{
                              const unsigned int component) const override {
           (void)component;
 
-          double sigma2 = 0.0000005;
-          double Ve = 20000.;
           double l = 0.5;
-
+          double L = 1.0;
 
           const auto x = p[0];
           const auto y = p[1];
-          double r = sqrt(x*x + y*y);
-          double expTerm = std::exp(- std::pow(r-l, 2) / (2 * sigma2));
-          double freq = 0.5;
-          double argX = (std::abs(x)-l) * pi / l * freq;
-          double argY = (std::abs(y)-l) * pi / l * freq;
 
-          return expTerm * Ve * (1 - sin(argX) * sin(argY));
-
+          return -(std::abs(x)-l)*(std::abs(x)-L);
         }
       };
 
@@ -376,28 +359,18 @@ namespace IonPropulsion{
         virtual double value(const Point<dim> & p,
                              const unsigned int component) const override {
           (void)component;
-          double sigma2 = 0.0000005;
-          double freq = 0.5;
           double l = 0.5;
-          double Ve = 20000.;
+          double L = 1.0;
 
           const auto x = p[0];
           const auto y = p[1];
-          double r = sqrt(x*x + y*y);
-          double expTerm = std::exp(- std::pow(r-l, 2) / (2 * sigma2));
-          double argX = (std::abs(x)-l) * pi / l * freq;
-          double argY = (std::abs(y)-l) * pi / l * freq;
+
           double signX = x>=0 ? +1. : -1.;
           double signY = y>=0 ? +1. : -1.;
 
-          return - eps_0 * eps_r *
-                  (1 / ( l*l * sigma2*sigma2 * r)) * expTerm * Ve *
-                  (   2 * freq * l * pi * sigma2 * x * (r-l) * cos(argX) * sin(argY) * signX +
-                      freq*freq * pi*pi * sigma2*sigma2 * r * sin(argX) * sin(argY) +
-                      2 * freq * l * pi * sigma2 * y * (r-l) * cos(argY) * sin(argX) * signY +
-                      freq*freq * pi*pi * sigma2*sigma2 * r * sin(argX) * sin(argY) -
-                      l * ( l * ( l*l * r + r * (r*r - 2*sigma2) +l * (sigma2 - 2*r*r) ) *  (- 1 + sin(argX) * sin(argY) ))
-                  );
+          return - eps_0 * eps_r * (-2);
+
+
         }
       };
 
