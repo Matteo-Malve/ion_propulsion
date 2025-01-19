@@ -142,11 +142,11 @@ namespace IonPropulsion{
       std::map<types::global_dof_index, double> boundary_value_map;
       if(MANUAL_LIFTING_ON) {
         VectorTools::interpolate_boundary_values(dof_handler,
-                                               0,
+                                               1,
                                                Functions::ZeroFunction<dim>(),
                                                boundary_value_map);
         VectorTools::interpolate_boundary_values(dof_handler,
-                                                 1,
+                                                 2,
                                                  Functions::ZeroFunction<dim>(),
                                                  boundary_value_map);
         VectorTools::interpolate_boundary_values(dof_handler,
@@ -155,11 +155,11 @@ namespace IonPropulsion{
                                                  boundary_value_map);
       } else {
         VectorTools::interpolate_boundary_values(dof_handler,
-                                               0,
+                                               1,
                                                *boundary_values,
                                                boundary_value_map);
         VectorTools::interpolate_boundary_values(dof_handler,
-                                                 1,
+                                                 2,
                                                  *boundary_values,
                                                  boundary_value_map);
         VectorTools::interpolate_boundary_values(dof_handler,
@@ -324,6 +324,10 @@ namespace IonPropulsion{
       VectorTools::interpolate(this->dof_handler, *this->rhs_function, rhs_function_values);
       data_out.add_data_vector(rhs_function_values, "rhs_function");
 
+      Vector<double> uex_function_values(this->dof_handler.n_dofs());
+      VectorTools::interpolate(this->dof_handler, *this->boundary_values, uex_function_values);
+      data_out.add_data_vector(uex_function_values, "u_ex");
+
       Vector<double> boundary_ids(this->triangulation->n_active_cells());
       for (const auto &cell : this->triangulation->active_cell_iterators())
         for (unsigned int face = 0; face < GeometryInfo<dim>::faces_per_cell; ++face)
@@ -433,11 +437,13 @@ namespace IonPropulsion{
         Threads::new_task(mhnc_p, this->dof_handler, hanging_node_constraints);
 
       std::map<types::global_dof_index, double> boundary_value_map;
-      VectorTools::interpolate_boundary_values(this->dof_handler, 0, *(this->boundary_values), boundary_value_map);
       VectorTools::interpolate_boundary_values(this->dof_handler, 1, *(this->boundary_values), boundary_value_map);
+      VectorTools::interpolate_boundary_values(this->dof_handler, 2, *(this->boundary_values), boundary_value_map);
       VectorTools::interpolate_boundary_values(this->dof_handler, 9, *(this->boundary_values), boundary_value_map);
       for (const auto &boundary_value : boundary_value_map)
         this->Rg_vector(boundary_value.first) = boundary_value.second;
+
+      cout<<"Exact point value at (0.75,0.75) : "<<this->boundary_values->value(Point<dim>(0.75,0.75));
 
       side_task.join();
       hanging_node_constraints.close();
@@ -466,8 +472,8 @@ namespace IonPropulsion{
       Vector<double> special_Rg_vector(dof_handler.n_dofs());
 
       std::map<types::global_dof_index, double> boundary_value_map;
-      VectorTools::interpolate_boundary_values(dof_handler, 0, special_boundary_values, boundary_value_map);
       VectorTools::interpolate_boundary_values(dof_handler, 1, special_boundary_values, boundary_value_map);
+      VectorTools::interpolate_boundary_values(dof_handler, 2, special_boundary_values, boundary_value_map);
       VectorTools::interpolate_boundary_values(dof_handler, 9, special_boundary_values, boundary_value_map);
       for (const auto &boundary_value : boundary_value_map)
         special_Rg_vector(boundary_value.first) = boundary_value.second;
@@ -575,9 +581,9 @@ namespace IonPropulsion{
                     quadrature,
                     face_quadrature,
                     boundary_values)
-      , dual_functional(&dual_functional)
       , special_rhs_function(&special_rhs_function)
       , special_boundary_values(&special_boundary_values)
+      , dual_functional(&dual_functional)
     {}
 
     template <int dim>

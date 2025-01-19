@@ -309,12 +309,12 @@ namespace IonPropulsion{
     };
 
     // ------------------------------------------------------
-    // FullTestSqruareComparison
+    // angle_step14_forced
     // ------------------------------------------------------
     constexpr double pi = 3.14159265358979323846;
 
     template <int dim>
-    struct Rectangle_step14_forced
+    struct angle_step14_forced
     {
       // We need a class to denote the boundary values of the problem. In this
       // case, this is simple: it's the zero function, so don't even declare a
@@ -332,7 +332,8 @@ namespace IonPropulsion{
           const auto x = p[0];
           const auto y = p[1];
 
-          return -(std::abs(x)-l)*(std::abs(x)-L);
+          return -(x-l)*(x-L)*(y-l)*(y-L)/(l*L)*x*y;
+          //return -(x*y-l)*(x*y-L);
         }
       };
 
@@ -349,11 +350,70 @@ namespace IonPropulsion{
           const auto x = p[0];
           const auto y = p[1];
 
-          return -(std::abs(x)-l)*(std::abs(x)-L);
+          return -(x-l)*(x-L)*(y-l)*(y-L)/(l*L)*x*y;
         }
+
+        virtual Tensor<1, dim> gradient(const Point<dim> &p, const unsigned int component = 0) const override {
+          (void)component;
+
+          double l = 0.5;
+          double L = 1.0;
+          const auto x = p[0];
+          const auto y = p[1];
+
+          Tensor<1, dim> grad;
+          grad[0] = -1./(l*L) *
+            ( l*(L-2.*x) + x*(3.*x-2.*L) )
+            * (l-y) *(L-y) * y;
+          grad[1] = 1./(l*L)*
+            ( l*(L-2.*y) + y*(3.*y-2.*L) )
+            * (l-x) *(x-L) * x;
+          return grad;
+        };
       };
 
       class RightHandSide : public Function<dim>
+      {
+      public:
+        virtual double value(const Point<dim> & p,
+                             const unsigned int component) const override {
+          (void)component;
+          double l = 0.5;
+          double L = 1.0;
+          const auto x = p[0];
+          const auto y = p[1];
+          double r2 = x*x+y*y;
+          /*double signX = x>=0 ? +1. : -1.;
+          double signY = y>=0 ? +1. : -1.;*/
+
+          return - eps_0 * eps_r * 2./(l*L)*(
+            L*(x+y)*(x+y)*(x+y) - L*L*r2 -3*x*y*r2
+            + l*l * (L*(x+y)-r2)
+            + l * ( L*L*(x+y) + (x+y)*(x+y)*(x+y) - 2*L*(x*x + 3*x*y + y*y ) )
+          );
+
+
+        }
+      };
+
+      // Finally a function to generate the coarse grid. This is somewhat more
+      // complicated here, see immediately below.
+      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+    };
+
+    // ------------------------------------------------------
+    // angle_Rectangle_1_99_forced
+    // ------------------------------------------------------
+    constexpr double pi = 3.14159265358979323846;
+
+    template <int dim>
+    struct angle_Rectangle_1_99_forced
+    {
+      // We need a class to denote the boundary values of the problem. In this
+      // case, this is simple: it's the zero function, so don't even declare a
+      // class, just an alias:
+      //using BoundaryValues = ExactSolution5b<dim>;
+      class BoundaryValues : public Function<dim>
       {
       public:
         virtual double value(const Point<dim> & p,
@@ -365,10 +425,65 @@ namespace IonPropulsion{
           const auto x = p[0];
           const auto y = p[1];
 
-          double signX = x>=0 ? +1. : -1.;
-          double signY = y>=0 ? +1. : -1.;
+          return -(x-l)*(x-L)*(y-l)*(y-L)/(l*L)*x*y;
+          //return -(x*y-l)*(x*y-L);
+        }
+      };
 
-          return - eps_0 * eps_r * (-2);
+      class ExactSolution : public Function<dim>
+      {
+      public:
+        virtual double value(const Point<dim> & p,
+                             const unsigned int component) const override {
+          (void)component;
+
+          double l = 0.5;
+          double L = 1.0;
+
+          const auto x = p[0];
+          const auto y = p[1];
+
+          return -(x-l)*(x-L)*(y-l)*(y-L)/(l*L)*x*y;
+        }
+
+        virtual Tensor<1, dim> gradient(const Point<dim> &p, const unsigned int component = 0) const override {
+          (void)component;
+
+          double l = 0.5;
+          double L = 1.0;
+          const auto x = p[0];
+          const auto y = p[1];
+
+          Tensor<1, dim> grad;
+          grad[0] = -1./(l*L) *
+            ( l*(L-2.*x) + x*(3.*x-2.*L) )
+            * (l-y) *(L-y) * y;
+          grad[1] = 1./(l*L)*
+            ( l*(L-2.*y) + y*(3.*y-2.*L) )
+            * (l-x) *(x-L) * x;
+          return grad;
+        };
+      };
+
+      class RightHandSide : public Function<dim>
+      {
+      public:
+        virtual double value(const Point<dim> & p,
+                             const unsigned int component) const override {
+          (void)component;
+          double l = 0.5;
+          double L = 1.0;
+          const auto x = p[0];
+          const auto y = p[1];
+          double r2 = x*x+y*y;
+          /*double signX = x>=0 ? +1. : -1.;
+          double signY = y>=0 ? +1. : -1.;*/
+
+          return - eps_0 * eps_r * 2./(l*L)*(
+            L*(x+y)*(x+y)*(x+y) - L*L*r2 -3*x*y*r2
+            + l*l * (L*(x+y)-r2)
+            + l * ( L*L*(x+y) + (x+y)*(x+y)*(x+y) - 2*L*(x*x + 3*x*y + y*y ) )
+          );
 
 
         }

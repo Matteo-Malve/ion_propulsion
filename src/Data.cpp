@@ -339,19 +339,20 @@ namespace IonPropulsion{
 
 
     // ------------------------------------------------------
-    // Rectangle_step14_forced
+    // angle_step14_forced
     // ------------------------------------------------------
 
     template <>
-    void Rectangle_step14_forced<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    void angle_step14_forced<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
     {
-      /*const std::string path_to_mesh = PATH_TO_MESH;
+      const std::string path_to_mesh = PATH_TO_MESH;
       std::ifstream input_file(path_to_mesh);
       GridIn<2>       grid_in;
       grid_in.attach_triangulation(coarse_grid);
-      grid_in.read_msh(input_file);*/
+      grid_in.read_msh(input_file);
 
-      const unsigned int dim = 2;
+      coarse_grid.refine_global(1);
+      /*const unsigned int dim = 2;
 
       const std::vector<Point<2>> vertices = {
         {-1.0, -1.0}, {-0.5, -1.0}, {+0.0, -1.0}, {+0.5, -1.0}, {+1.0, -1.0}, //
@@ -387,7 +388,7 @@ namespace IonPropulsion{
 
       coarse_grid.create_triangulation(vertices, cells, SubCellData());
 
-      coarse_grid.refine_global(1);
+      coarse_grid.refine_global(1);*/
     }
 
     // ------------------------------------------------------
@@ -588,8 +589,8 @@ namespace IonPropulsion{
     template struct Rectangle_1_99_manifold<2>;
     template struct SetUp<IonPropulsion::Data::Rectangle_1_99_manifold<2>, 2>;
 
-    template struct Rectangle_step14_forced<2>;
-    template struct SetUp<IonPropulsion::Data::Rectangle_step14_forced<2>, 2>;
+    template struct angle_step14_forced<2>;
+    template struct SetUp<IonPropulsion::Data::angle_step14_forced<2>, 2>;
 
     template struct Circular<2>;
     template struct SetUp<IonPropulsion::Data::Circular<2>, 2>;
