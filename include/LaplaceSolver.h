@@ -49,7 +49,9 @@ namespace IonPropulsion{
              const FiniteElement<dim> & fe,
              const Quadrature<dim> &    quadrature,
              const Quadrature<dim - 1> &face_quadrature,
-             const Function<dim> &      boundary_values);
+             const Function<dim> &      boundary_values,
+             const unsigned degree
+             );
       virtual ~Solver() override;
 
       virtual void solve_problem() override;
@@ -71,6 +73,7 @@ namespace IonPropulsion{
       Vector<double>                                Rg_vector;
       const SmartPointer<const Function<dim>>       boundary_values;
       double                                        conservative_flux;
+      MappingQ<dim>      mapping;
 
       virtual void assemble_rhs(Vector<double> &rhs) const = 0;
 
@@ -101,9 +104,11 @@ namespace IonPropulsion{
       struct AssemblyScratchData
       {
         AssemblyScratchData(const FiniteElement<dim> &fe,
-                            const Quadrature<dim> &   quadrature);
+                            const Quadrature<dim> &   quadrature,
+                            MappingQ<dim> & mapping);
         AssemblyScratchData(const AssemblyScratchData &scratch_data);
 
+        MappingQ<dim>  mapping;
         FEValues<dim> fe_values;
       };
 
@@ -141,7 +146,8 @@ namespace IonPropulsion{
                    const Quadrature<dim> &    quadrature,
                    const Quadrature<dim - 1> &face_quadrature,
                    const Function<dim> &      rhs_function,
-                   const Function<dim> &      boundary_values);
+                   const Function<dim> &      boundary_values,
+                   const unsigned degree);
 
       virtual void output_solution() const override;
 
@@ -176,7 +182,8 @@ namespace IonPropulsion{
         const Quadrature<dim - 1> &                    face_quadrature,
         const DualFunctional::DualFunctionalBase<dim> &dual_functional,
         const Function<dim> &                          special_rhs_function,
-        const Function<dim> &                          special_boundary_values);
+        const Function<dim> &                          special_boundary_values,
+        const unsigned degree);
 
     protected:
       const SmartPointer<const Function<dim>>       special_rhs_function;

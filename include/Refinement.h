@@ -18,7 +18,8 @@ namespace IonPropulsion{
                        const Quadrature<dim> &    quadrature,
                        const Quadrature<dim - 1> &face_quadrature,
                        const Function<dim> &      rhs_function,
-                       const Function<dim> &      boundary_values);
+                       const Function<dim> &      boundary_values,
+                       const unsigned degree);
 
       virtual void refine_grid() override;
       void print_convergence_table() const override;
@@ -36,7 +37,8 @@ namespace IonPropulsion{
                       const Quadrature<dim> &    quadrature,
                       const Quadrature<dim - 1> &face_quadrature,
                       const Function<dim> &      rhs_function,
-                      const Function<dim> &      boundary_values);
+                      const Function<dim> &      boundary_values,
+                      const unsigned degree);
 
       virtual void refine_grid() override;
     };
@@ -54,7 +56,8 @@ namespace IonPropulsion{
                               const Quadrature<dim - 1> &face_quadrature,
                               const Function<dim> &      rhs_function,
                               const Function<dim> &      boundary_values,
-                              const Function<dim> &      weighting_function);
+                              const Function<dim> &      weighting_function,
+                              const unsigned degree);
 
       virtual void refine_grid() override;
 
@@ -78,7 +81,8 @@ namespace IonPropulsion{
         const Quadrature<dim - 1> &                    face_quadrature,
         const Function<dim> &                          rhs_function,
         const Function<dim> &                          boundary_values,
-        const DualFunctional::DualFunctionalBase<dim> &dual_functional);
+        const DualFunctional::DualFunctionalBase<dim> &dual_functional,
+        const unsigned degree);
 
       virtual void solve_problem() override;
 

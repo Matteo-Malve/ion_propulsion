@@ -25,6 +25,7 @@ namespace IonPropulsion{
     const QGauss<dim>     quadrature(descriptor.dual_fe_degree + 1);
     const QGauss<dim - 1> face_quadrature(descriptor.dual_fe_degree + 1);
 
+    const unsigned mapping_degree = 2;
     // Next, select one of the classes implementing different refinement
     // criteria.
     std::unique_ptr<LaplaceSolver::Base<dim>> solver;
@@ -41,7 +42,8 @@ namespace IonPropulsion{
             face_quadrature,
             descriptor.data->get_right_hand_side(),
             descriptor.data->get_boundary_values(),
-            *descriptor.dual_functional);
+            *descriptor.dual_functional,
+            mapping_degree);
           break;
           }
 
@@ -54,7 +56,8 @@ namespace IonPropulsion{
               quadrature,
               face_quadrature,
               descriptor.data->get_right_hand_side(),
-              descriptor.data->get_boundary_values());
+              descriptor.data->get_boundary_values(),
+              mapping_degree);
             break;
           }
 
@@ -67,7 +70,8 @@ namespace IonPropulsion{
               quadrature,
               face_quadrature,
               descriptor.data->get_right_hand_side(),
-              descriptor.data->get_boundary_values());
+              descriptor.data->get_boundary_values(),
+              mapping_degree);
             break;
           }
 
@@ -82,7 +86,8 @@ namespace IonPropulsion{
                 face_quadrature,
                 descriptor.data->get_right_hand_side(),
                 descriptor.data->get_boundary_values(),
-                *descriptor.kelly_weight);
+                *descriptor.kelly_weight,
+                mapping_degree);
             break;
           }
 

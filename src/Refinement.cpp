@@ -15,14 +15,16 @@ namespace IonPropulsion{
       const Quadrature<dim> &    quadrature,
       const Quadrature<dim - 1> &face_quadrature,
       const Function<dim> &      rhs_function,
-      const Function<dim> &      boundary_values)
+      const Function<dim> &      boundary_values,
+      const unsigned degree)
       : Base<dim>(coarse_grid)
       , PrimalSolver<dim>(coarse_grid,
                           fe,
                           quadrature,
                           face_quadrature,
                           rhs_function,
-                          boundary_values)
+                          boundary_values,
+                          degree)
       {}
 
     template <int dim>
@@ -77,14 +79,16 @@ namespace IonPropulsion{
       const Quadrature<dim> &    quadrature,
       const Quadrature<dim - 1> &face_quadrature,
       const Function<dim> &      rhs_function,
-      const Function<dim> &      boundary_values)
+      const Function<dim> &      boundary_values,
+      const unsigned degree)
       : Base<dim>(coarse_grid)
       , PrimalSolver<dim>(coarse_grid,
                           fe,
                           quadrature,
                           face_quadrature,
                           rhs_function,
-                          boundary_values)
+                          boundary_values,
+                          degree)
     {}
 
 
@@ -118,14 +122,16 @@ namespace IonPropulsion{
       const Quadrature<dim - 1> &face_quadrature,
       const Function<dim> &      rhs_function,
       const Function<dim> &      boundary_values,
-      const Function<dim> &      weighting_function)
+      const Function<dim> &      weighting_function,
+      const unsigned degree)
       : Base<dim>(coarse_grid)
       , PrimalSolver<dim>(coarse_grid,
                           fe,
                           quadrature,
                           face_quadrature,
                           rhs_function,
-                          boundary_values)
+                          boundary_values,
+                          degree)
       , weighting_function(&weighting_function)
     {}
 
@@ -258,21 +264,24 @@ namespace IonPropulsion{
       const Quadrature<dim - 1> &                    face_quadrature,
       const Function<dim> &                          rhs_function,
       const Function<dim> &                          bv,
-      const DualFunctional::DualFunctionalBase<dim> &dual_functional)
+      const DualFunctional::DualFunctionalBase<dim> &dual_functional,
+      const unsigned degree)
       : Base<dim>(coarse_grid)
       , PrimalSolver<dim>(coarse_grid,
                           primal_fe,
                           quadrature,
                           face_quadrature,
                           rhs_function,
-                          bv)
+                          bv,
+                          degree)
       , DualSolver<dim>(coarse_grid,
                         dual_fe,
                         quadrature,
                         face_quadrature,
                         dual_functional,
                         rhs_function,
-                        bv)
+                        bv,
+                        degree)
     {}
 
     template <int dim>

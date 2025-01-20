@@ -31,13 +31,15 @@ namespace IonPropulsion{
                         const FiniteElement<dim> & fe,
                         const Quadrature<dim> &    quadrature,
                         const Quadrature<dim - 1> &face_quadrature,
-                        const Function<dim> &      boundary_values)
+                        const Function<dim> &      boundary_values,
+                        const unsigned degree)
       : Base<dim>(triangulation)
       , fe(&fe)
       , quadrature(&quadrature)
       , face_quadrature(&face_quadrature)
       , dof_handler(triangulation)
       , boundary_values(&boundary_values)
+      , mapping(degree)
     {}
 
 
@@ -135,34 +137,34 @@ namespace IonPropulsion{
                       dof_handler.end(),
                       worker,
                       copier,
-                      AssemblyScratchData(*fe, *quadrature),
+                      AssemblyScratchData(*fe, *quadrature,mapping),
                       AssemblyCopyData());
       linear_system.hanging_node_constraints.condense(linear_system.matrix);
 
       std::map<types::global_dof_index, double> boundary_value_map;
       if(MANUAL_LIFTING_ON) {
-        VectorTools::interpolate_boundary_values(dof_handler,
+        VectorTools::interpolate_boundary_values(mapping,dof_handler,
                                                1,
                                                Functions::ZeroFunction<dim>(),
                                                boundary_value_map);
-        VectorTools::interpolate_boundary_values(dof_handler,
+        VectorTools::interpolate_boundary_values(mapping,dof_handler,
                                                  2,
                                                  Functions::ZeroFunction<dim>(),
                                                  boundary_value_map);
-        VectorTools::interpolate_boundary_values(dof_handler,
+        VectorTools::interpolate_boundary_values(mapping,dof_handler,
                                                  9,
                                                  Functions::ZeroFunction<dim>(),
                                                  boundary_value_map);
       } else {
-        VectorTools::interpolate_boundary_values(dof_handler,
+        VectorTools::interpolate_boundary_values(mapping,dof_handler,
                                                1,
                                                *boundary_values,
                                                boundary_value_map);
-        VectorTools::interpolate_boundary_values(dof_handler,
+        VectorTools::interpolate_boundary_values(mapping,dof_handler,
                                                  2,
                                                  *boundary_values,
                                                  boundary_value_map);
-        VectorTools::interpolate_boundary_values(dof_handler,
+        VectorTools::interpolate_boundary_values(mapping,dof_handler,
                                                  9,
                                                  *boundary_values,
                                                  boundary_value_map);
@@ -226,15 +228,19 @@ namespace IonPropulsion{
     template <int dim>
     Solver<dim>::AssemblyScratchData::AssemblyScratchData(
       const FiniteElement<dim> &fe,
-      const Quadrature<dim> &   quadrature)
-      : fe_values(fe, quadrature, update_gradients | update_JxW_values)
+      const Quadrature<dim> &   quadrature,
+      MappingQ<dim> & mapping)
+      : mapping(mapping),
+        fe_values(mapping, fe, quadrature, update_gradients | update_JxW_values)
     {}
 
 
     template <int dim>
     Solver<dim>::AssemblyScratchData::AssemblyScratchData(
       const AssemblyScratchData &scratch_data)
-      : fe_values(scratch_data.fe_values.get_fe(),
+      : mapping(scratch_data.mapping),
+        fe_values(scratch_data.mapping,
+                  scratch_data.fe_values.get_fe(),
                   scratch_data.fe_values.get_quadrature(),
                   update_gradients | update_JxW_values)
     {}
@@ -297,13 +303,15 @@ namespace IonPropulsion{
                                     const Quadrature<dim> &    quadrature,
                                     const Quadrature<dim - 1> &face_quadrature,
                                     const Function<dim> &      rhs_function,
-                                    const Function<dim> &      boundary_values)
+                                    const Function<dim> &      boundary_values,
+                                    const unsigned degree)
       : Base<dim>(triangulation)
       , Solver<dim>(triangulation,
                     fe,
                     quadrature,
                     face_quadrature,
-                    boundary_values)
+                    boundary_values,
+                    degree)
       , rhs_function(&rhs_function)
     {}
 
@@ -314,29 +322,29 @@ namespace IonPropulsion{
     {
       DataOut<dim> data_out;
       data_out.attach_dof_handler(this->dof_handler);
-      data_out.add_data_vector(this->solution, "uh");
+      data_out.add_data_vector(this->solution, "uh",DataOut<dim, dim>::type_dof_data);
 
       if(MANUAL_LIFTING_ON) {
-        data_out.add_data_vector(this->homogeneous_solution, "uh0");
-        data_out.add_data_vector(this->Rg_vector, "Rg");
+        data_out.add_data_vector(this->homogeneous_solution, "uh0",DataOut<dim, dim>::type_dof_data);
+        data_out.add_data_vector(this->Rg_vector, "Rg",DataOut<dim, dim>::type_dof_data);
       }
 
       Vector<double> rhs_function_values(this->dof_handler.n_dofs());
       VectorTools::interpolate(this->dof_handler, *this->rhs_function, rhs_function_values);
-      data_out.add_data_vector(rhs_function_values, "rhs_function");
+      data_out.add_data_vector(rhs_function_values, "rhs_function",DataOut<dim, dim>::type_dof_data);
 
       Vector<double> uex_function_values(this->dof_handler.n_dofs());
       VectorTools::interpolate(this->dof_handler, *this->boundary_values, uex_function_values);
-      data_out.add_data_vector(uex_function_values, "u_ex");
+      data_out.add_data_vector(uex_function_values, "u_ex",DataOut<dim, dim>::type_dof_data);
 
       Vector<double> boundary_ids(this->triangulation->n_active_cells());
       for (const auto &cell : this->triangulation->active_cell_iterators())
         for (unsigned int face = 0; face < GeometryInfo<dim>::faces_per_cell; ++face)
           if (cell->face(face)->at_boundary())
             boundary_ids[cell->active_cell_index()] = cell->face(face)->boundary_id();
-      data_out.add_data_vector(boundary_ids, "boundary_ids");
+      data_out.add_data_vector(boundary_ids, "boundary_ids",DataOut<dim, dim>::type_cell_data);
 
-      data_out.build_patches();
+      data_out.build_patches(this->mapping, this->mapping.get_degree()+3);
 
       std::ofstream out(OUTPUT_PATH+"/"+"solution-" + std::to_string(this->refinement_cycle) +
                         ".vtu");
@@ -350,7 +358,8 @@ namespace IonPropulsion{
     template <int dim>
     void PrimalSolver<dim>::assemble_rhs(Vector<double> &rhs) const
     {
-      FEValues<dim> fe_values(*this->fe,
+      FEValues<dim> fe_values(this->mapping,
+                              *this->fe,
                               *this->quadrature,
                               update_values | update_gradients | update_quadrature_points |
                                 update_JxW_values);
@@ -438,9 +447,9 @@ namespace IonPropulsion{
         Threads::new_task(mhnc_p, this->dof_handler, hanging_node_constraints);
 
       std::map<types::global_dof_index, double> boundary_value_map;
-      VectorTools::interpolate_boundary_values(this->dof_handler, 1, *(this->boundary_values), boundary_value_map);
-      VectorTools::interpolate_boundary_values(this->dof_handler, 2, *(this->boundary_values), boundary_value_map);
-      VectorTools::interpolate_boundary_values(this->dof_handler, 9, *(this->boundary_values), boundary_value_map);
+      VectorTools::interpolate_boundary_values(this->mapping,this->dof_handler, 1, *(this->boundary_values), boundary_value_map);
+      VectorTools::interpolate_boundary_values(this->mapping,this->dof_handler, 2, *(this->boundary_values), boundary_value_map);
+      VectorTools::interpolate_boundary_values(this->mapping,this->dof_handler, 9, *(this->boundary_values), boundary_value_map);
       for (const auto &boundary_value : boundary_value_map)
         this->Rg_vector(boundary_value.first) = boundary_value.second;
 
@@ -575,13 +584,15 @@ namespace IonPropulsion{
       const Quadrature<dim - 1> &                    face_quadrature,
       const DualFunctional::DualFunctionalBase<dim> &dual_functional,
       const Function<dim> &                          special_rhs_function,
-      const Function<dim> &                          special_boundary_values)
+      const Function<dim> &                          special_boundary_values,
+      const unsigned degree)
       : Base<dim>(triangulation)
       , Solver<dim>(triangulation,
                     fe,
                     quadrature,
                     face_quadrature,
-                    boundary_values)
+                    boundary_values,
+                    degree)
       , special_rhs_function(&special_rhs_function)
       , special_boundary_values(&special_boundary_values)
       , dual_functional(&dual_functional)
