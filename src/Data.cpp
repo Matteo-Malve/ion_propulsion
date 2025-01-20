@@ -160,6 +160,10 @@ namespace IonPropulsion {
       // an empty object:
       coarse_grid.create_triangulation(vertices, cells, SubCellData());
 
+      for(auto cell : coarse_grid.active_cell_iterators())
+        for (unsigned int face = 0; face < GeometryInfo<2>::faces_per_cell; ++face)
+          if (cell->face(face)->at_boundary())
+            cell->face(face)->set_boundary_id(9);
       // And since we want that the evaluation point (3/4,3/4) in this example
       // is a grid point, we refine once globally:
       coarse_grid.refine_global(1);
