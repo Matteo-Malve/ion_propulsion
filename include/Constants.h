@@ -123,7 +123,37 @@ public:
 
         // Extract parent path and assign to OUTPUT_PATH
         std::filesystem::path configPath(filePath);
-        OUTPUT_PATH = configPath.parent_path().string()+"/results";
+
+        // Extract CONFIG_NAME
+        std::string filename = configPath.filename().string(); // Get the file name: "config-4.yaml" or "config.yaml"
+        size_t first_dash = filename.find('-');
+        size_t second_dash = filename.find('-', first_dash + 1);
+
+        std::string configName;
+        if (first_dash != std::string::npos) {
+            if (second_dash != std::string::npos) {
+                configName = filename.substr(0, second_dash); // Extract up to the second dash
+            } else {
+                configName = filename.substr(0, filename.find('.')); // Extract up to the file extension
+            }
+        } else {
+            configName = filename.substr(0, filename.find('.')); // Handle cases without dashes
+        }
+
+        // Create OUTPUT_PATH with configName
+        OUTPUT_PATH = configPath.parent_path().string()+"/results/"+configName;
+
+        // Check if the directory exists, and create it if not
+        std::filesystem::path outputPath(OUTPUT_PATH);
+        if (!std::filesystem::exists(outputPath)) {
+            if (std::filesystem::create_directories(outputPath)) {
+                std::cout << "Directory created: " << OUTPUT_PATH << std::endl;
+            } else {
+                std::cerr << "Failed to create directory: " << OUTPUT_PATH << std::endl;
+            }
+        } else {
+            std::cout << "Directory already exists: " << OUTPUT_PATH << std::endl;
+        }
     }
 
     // Get numeric constant

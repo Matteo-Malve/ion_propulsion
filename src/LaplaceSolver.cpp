@@ -281,6 +281,7 @@ namespace IonPropulsion{
       preconditioner.initialize(matrix, 1.2);
 
       cg.solve(matrix, solution, rhs, preconditioner);
+      cout<<"Checkpoint"<<std::endl;
       hanging_node_constraints.distribute(solution);
 
       cout<<"Solved system: "<<solver_control.last_step()  <<" CG iterations needed to obtain convergence." <<std::endl;
@@ -443,7 +444,7 @@ namespace IonPropulsion{
       for (const auto &boundary_value : boundary_value_map)
         this->Rg_vector(boundary_value.first) = boundary_value.second;
 
-      cout<<"Exact point value at EVALUATION POINT : "<<this->boundary_values->value(Point<dim>(EVALUATION_POINT_X,EVALUATION_POINT_Y))<<std::endl;
+      //cout<<"Exact point value at EVALUATION POINT : "<<this->boundary_values->value(Point<dim>(EVALUATION_POINT_X,EVALUATION_POINT_Y))<<std::endl;
 
       side_task.join();
       hanging_node_constraints.close();

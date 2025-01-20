@@ -183,17 +183,19 @@ void printParsedConstants() {
     std::cout << std::left << std::setw(30) << "EXACT_FLUX"
               << std::setw(20) << EXACT_FLUX << "\n";
   std::cout << "------------------------------------------------------------\n";
-  std::cout << std::left << std::setw(30) << "REFINEMENT_STRATEGY"
-             << std::setw(20) << refinement_strategy << "\n";
-  if (REFINEMENT_STRATEGY == 1 || REFINEMENT_STRATEGY==2) {
-    std::cout << std::left << std::setw(30) << "TOP_FRACTION"
-             << std::setw(20) << TOP_FRACTION << "\n";
-    std::cout << std::left << std::setw(30) << "BOTTOM_FRACTION"
-             << std::setw(20) << BOTTOM_FRACTION << "\n";
-  }
-  if (REFINEMENT_STRATEGY==3) {
-    std::cout << std::left << std::setw(30) << "OPTIMIZE_ORDER"
-            << std::setw(20) << OPTIMIZE_ORDER << "\n";
+  if (REFINEMENT_CRITERION==2) {
+    std::cout << std::left << std::setw(30) << "REFINEMENT_STRATEGY"
+              << std::setw(20) << refinement_strategy << "\n";
+    if (REFINEMENT_STRATEGY == 1 || REFINEMENT_STRATEGY==2) {
+      std::cout << std::left << std::setw(30) << "TOP_FRACTION"
+               << std::setw(20) << TOP_FRACTION << "\n";
+      std::cout << std::left << std::setw(30) << "BOTTOM_FRACTION"
+               << std::setw(20) << BOTTOM_FRACTION << "\n";
+    }
+    if (REFINEMENT_STRATEGY==3) {
+      std::cout << std::left << std::setw(30) << "OPTIMIZE_ORDER"
+              << std::setw(20) << OPTIMIZE_ORDER << "\n";
+    }
   }
   std::cout << "============================================================\n\n";
 }

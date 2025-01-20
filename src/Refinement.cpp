@@ -59,7 +59,7 @@ namespace IonPropulsion{
       this->convergence_table->write_text(std::cout);
       cout<<std::endl;
 
-      std::ofstream tex_file("convergence_table.tex");
+      std::ofstream tex_file(OUTPUT_PATH+"/convergence_table.tex");
       if (!tex_file.is_open()) {
         throw std::runtime_error("Failed to open convergence_table.tex for writing");
       }
