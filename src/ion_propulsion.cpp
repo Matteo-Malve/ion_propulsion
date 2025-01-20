@@ -30,6 +30,8 @@ int main(int argc, char **argv)
     descriptor.primal_fe_degree = 1;
     descriptor.dual_fe_degree   = 2;
 
+    descriptor.mapping_degree = 1;
+
     if(LOAD_FROM_SETUP == 0)
       descriptor.data = std::make_unique<Data::SetUp<Data::SetupNone<dim>, dim>>();
     else if(LOAD_FROM_SETUP == 1)
@@ -73,10 +75,10 @@ int main(int argc, char **argv)
     }
 
 
-    Evaluation::PointValueEvaluation<dim> postprocessor1(evaluation_point);
-    Evaluation::L2_error_estimate<dim> postprocessor2(descriptor.data->get_exact_solution());
-    Evaluation::H1_error_estimate<dim> postprocessor3(descriptor.data->get_exact_solution());
-    Evaluation::FluxEvaluation<dim> postprocessor4;
+    Evaluation::PointValueEvaluation<dim> postprocessor1(descriptor.mapping_degree,evaluation_point);
+    Evaluation::L2_error_estimate<dim> postprocessor2(descriptor.mapping_degree,descriptor.data->get_exact_solution());
+    Evaluation::H1_error_estimate<dim> postprocessor3(descriptor.mapping_degree,descriptor.data->get_exact_solution());
+    Evaluation::FluxEvaluation<dim> postprocessor4(descriptor.mapping_degree);
     //Evaluation::GridOutput<dim>           postprocessor2("grid");
 
     descriptor.evaluator_list.push_back(&postprocessor1);

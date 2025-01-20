@@ -9,6 +9,10 @@ namespace IonPropulsion{
 		// EvaluationBase
 		// ------------------------------------------------------
 		template <int dim>
+		EvaluationBase<dim>::EvaluationBase(const unsigned degree):
+			mapping(degree){};
+
+		template <int dim>
 		void EvaluationBase<dim>::set_refinement_cycle(const unsigned int step)
 		{
 			refinement_cycle = step;
@@ -20,8 +24,9 @@ namespace IonPropulsion{
 
 		template <int dim>
 		PointValueEvaluation<dim>::PointValueEvaluation(
-			const Point<dim> &evaluation_point)
-			: evaluation_point(evaluation_point)
+		const unsigned degree,
+		const Point<dim> &evaluation_point)
+			: EvaluationBase<dim>(degree), evaluation_point(evaluation_point)
 		{}
 
 		template <int dim>
@@ -68,7 +73,8 @@ namespace IonPropulsion{
 		// ------------------------------------------------------
 
 		template <int dim>
-		FluxEvaluation<dim>::FluxEvaluation()
+		FluxEvaluation<dim>::FluxEvaluation(const unsigned degree):
+		EvaluationBase<dim>(degree)
 		{}
 
 		template <int dim>
@@ -81,7 +87,7 @@ namespace IonPropulsion{
 			(void)triangulation;
 			double flux = 0;
 			const QGauss<dim-1> face_quadrature(dof_handler.get_fe().degree + 1);
-			FEFaceValues<dim> fe_face_values(dof_handler.get_fe(),
+			FEFaceValues<dim> fe_face_values(this->mapping, dof_handler.get_fe(),
 																			 face_quadrature,
 																			 update_gradients | update_normal_vectors | update_JxW_values);
 			const unsigned int n_face_q_points = face_quadrature.size();
@@ -113,8 +119,8 @@ namespace IonPropulsion{
 		// ------------------------------------------------------
 
 		template <int dim>
-		GridOutput<dim>::GridOutput(const std::string &output_name_base)
-			: output_name_base(output_name_base)
+		GridOutput<dim>::GridOutput(const unsigned degree, const std::string &output_name_base)
+			: EvaluationBase<dim>(degree), output_name_base(output_name_base)
 		{}
 
 
@@ -137,8 +143,8 @@ namespace IonPropulsion{
 		// ------------------------------------------------------
 
 		template <int dim>
-		L2_error_estimate<dim>::L2_error_estimate(const Function<dim> & analytical_solution)
-			: analytical_solution(&analytical_solution)
+		L2_error_estimate<dim>::L2_error_estimate(const unsigned degree, const Function<dim> & analytical_solution)
+			: EvaluationBase<dim>(degree), analytical_solution(&analytical_solution)
 		{}
 
 
@@ -155,6 +161,7 @@ namespace IonPropulsion{
 			// Compute the difference between the finite element solution and the exact solution
 			const QGauss<dim> quadrature_formula(2*dof_handler.get_fe().degree + 1);
 			VectorTools::integrate_difference(
+					this->mapping,
 					dof_handler,
 					solution,
 					*analytical_solution,
@@ -173,8 +180,8 @@ namespace IonPropulsion{
 		// ------------------------------------------------------
 
 		template <int dim>
-		H1_error_estimate<dim>::H1_error_estimate(const Function<dim> & analytical_solution)
-			: analytical_solution(&analytical_solution)
+		H1_error_estimate<dim>::H1_error_estimate(const unsigned degree, const Function<dim> & analytical_solution)
+			: EvaluationBase<dim>(degree), analytical_solution(&analytical_solution)
 		{}
 
 
@@ -191,6 +198,7 @@ namespace IonPropulsion{
 			// Compute the difference between the finite element solution and the exact solution
 			const QGauss<dim> quadrature_formula(2*dof_handler.get_fe().degree + 1);
 			VectorTools::integrate_difference(
+					this->mapping,
 					dof_handler,
 					solution,
 					*analytical_solution,

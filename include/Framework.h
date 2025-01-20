@@ -41,6 +41,8 @@ namespace IonPropulsion{
 
       unsigned int max_degrees_of_freedom;
 
+      unsigned int mapping_degree;
+
       ProblemDescription();
     };
 

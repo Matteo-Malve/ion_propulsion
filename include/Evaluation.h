@@ -16,9 +16,8 @@ namespace IonPropulsion{
     template <int dim>
     class EvaluationBase
     {
-    protected:
-
     public:
+      EvaluationBase(const unsigned degree);
       virtual ~EvaluationBase() = default;
 
       void set_refinement_cycle(const unsigned int refinement_cycle);
@@ -29,6 +28,8 @@ namespace IonPropulsion{
 
     protected:
       unsigned int refinement_cycle;
+      MappingQ<dim>      mapping;
+
     };
 
     // ------------------------------------------------------
@@ -39,7 +40,7 @@ namespace IonPropulsion{
     class PointValueEvaluation : public EvaluationBase<dim>
     {
     public:
-      PointValueEvaluation(const Point<dim> &evaluation_point);
+      PointValueEvaluation(const unsigned degree, const Point<dim> &evaluation_point);
 
       virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
                                                         const Vector<double> & solution,
@@ -63,7 +64,7 @@ namespace IonPropulsion{
     class FluxEvaluation : public EvaluationBase<dim>
     {
     public:
-      FluxEvaluation();   // TODO: Construct with std::set Boundary iDs
+      FluxEvaluation(const unsigned degree);   // TODO: Construct with std::set Boundary iDs
 
       virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
                                                         const Vector<double> & solution,
@@ -82,7 +83,7 @@ namespace IonPropulsion{
     class GridOutput : public EvaluationBase<dim>
     {
     public:
-      GridOutput(const std::string &output_name_base);
+      GridOutput(const unsigned degree, const std::string &output_name_base);
 
       virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
                                                         const Vector<double> & solution,
@@ -101,7 +102,7 @@ namespace IonPropulsion{
     class L2_error_estimate : public EvaluationBase<dim>
     {
     public:
-      L2_error_estimate(const Function<dim> & analytical_solution);
+      L2_error_estimate(const unsigned degree, const Function<dim> & analytical_solution);
 
       virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
                                                         const Vector<double> & solution,
@@ -120,7 +121,7 @@ namespace IonPropulsion{
     class H1_error_estimate : public EvaluationBase<dim>
     {
     public:
-      H1_error_estimate(const Function<dim> & analytical_solution);
+      H1_error_estimate(const unsigned degree, const Function<dim> & analytical_solution);
 
       virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
                                                         const Vector<double> & solution,
