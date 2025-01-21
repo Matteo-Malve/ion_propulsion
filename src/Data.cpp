@@ -553,8 +553,7 @@ namespace IonPropulsion {
     // ------------------------------------------------------
 
     template <>
-    void LogCircular_1_100<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
-    {
+    void LogCircular_1_100<2>::create_coarse_grid(Triangulation<2> &coarse_grid) {
       //const std::string path_to_mesh = "../mesh/cerchi_concentrici_1_100.msh";
       const std::string path_to_mesh = PATH_TO_MESH;
       std::ifstream input_file(path_to_mesh);
@@ -572,23 +571,30 @@ namespace IonPropulsion {
       //cout<<"ExactSolution at (0.0019, 0) = "<<exact_solution.value(Point<2>(0.0019, 0.),0)<< std::endl;
 
 
-      // Set up the circular manifold for the emitter (inner circle)
+
       const Point<2> center(0.0, 0.0); // Center of the circles
 
-      for (const auto &cell : coarse_grid.active_cell_iterators())
-      {
-        for (unsigned int face = 0; face < GeometryInfo<2>::faces_per_cell; ++face)
+      if (MANIFOLD_IS_APPLIED>0){
+        for (const auto &cell : coarse_grid.active_cell_iterators())
         {
-          if (cell->face(face)->at_boundary() && (cell->face(face)->boundary_id() == 1 || cell->face(face)->boundary_id() == 9)) // Boundary ID 1 for the emitter, 9 for collector
+          for (unsigned int face = 0; face < GeometryInfo<2>::faces_per_cell; ++face)
           {
-            cell->face(face)->set_manifold_id(1); // Assign manifold ID 1 for the emitter
+            if (MANIFOLD_IS_APPLIED==2) {
+              if (cell->face(face)->at_boundary() && (cell->face(face)->boundary_id() == 1 || cell->face(face)->boundary_id() == 9)) // Boundary ID 1 for the emitter, 9 for collector
+              {
+                cell->face(face)->set_manifold_id(1); // Assign manifold ID 1 for the emitter
+              }
+            } else if (MANIFOLD_IS_APPLIED==1) {
+              cell->face(face)->set_manifold_id(1);
+            }
           }
         }
-      }
 
-      // Attach a circular manifold to the emitter
-      SphericalManifold<2> circular_manifold(center);
-      coarse_grid.set_manifold(1, circular_manifold); // Set the manifold for the emitter
+          // Attach a circular manifold to the emitter
+          SphericalManifold<2> circular_manifold(center);
+          coarse_grid.set_manifold(1, circular_manifold); // Set the manifold for the emitter
+        }
+
     }
 
     // ------------------------------------------------------

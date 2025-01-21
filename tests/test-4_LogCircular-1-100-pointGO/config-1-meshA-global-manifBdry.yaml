@@ -21,7 +21,7 @@ LOAD_FROM_SETUP: 5                  # Setups: mesh, analytical solution, forcing
 
 # Framework configuration
 MANUAL_LIFTING_ON: 1       # 0: OFF, 1: ON,
-REFINEMENT_CRITERION: 2    # 1: global_refinement, 2: dual_weighted_error_estimator
+REFINEMENT_CRITERION: 1    # 1: global_refinement, 2: dual_weighted_error_estimator
 DUAL_FUNCTIONAL: 1         # 1: point_evaluation,  2: flux_evaluation
 
 # Point coordinates
@@ -32,6 +32,7 @@ EVALUATION_POINT_Y: 0.
 EXACT_POINT_VALUE: 3148.182801
 EXACT_FLUX: 27287.5
 
+MANIFOLD_IS_APPLIED: 2      # 0: no, 1: yes, 2: only on boundary
 
 
 # NOTES:
