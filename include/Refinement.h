@@ -113,6 +113,7 @@ namespace IonPropulsion{
 
       struct CellData
       {
+        MappingQ<dim>  mapping;
         FEValues<dim>                           fe_values;
         const SmartPointer<const Function<dim>> right_hand_side;
 
@@ -122,12 +123,14 @@ namespace IonPropulsion{
         std::vector<double> cell_laplacians;
         CellData(const FiniteElement<dim> &fe,
                  const Quadrature<dim> &   quadrature,
-                 const Function<dim> &     right_hand_side);
+                 const Function<dim> &     right_hand_side,
+                 const MappingQ<dim> & mapping);
         CellData(const CellData &cell_data);
       };
 
       struct FaceData
       {
+        MappingQ<dim>  mapping;
         FEFaceValues<dim>    fe_face_values_cell;
         FEFaceValues<dim>    fe_face_values_neighbor;
         FESubfaceValues<dim> fe_subface_values_cell;
@@ -137,23 +140,27 @@ namespace IonPropulsion{
         typename std::vector<Tensor<1, dim>> cell_grads;
         typename std::vector<Tensor<1, dim>> neighbor_grads;
         FaceData(const FiniteElement<dim> & fe,
-                 const Quadrature<dim - 1> &face_quadrature);
+                 const Quadrature<dim - 1> &face_quadrature,
+                 const MappingQ<dim> & mapping);
         FaceData(const FaceData &face_data);
       };
 
       struct WeightedResidualScratchData
       {
+
         WeightedResidualScratchData(
           const FiniteElement<dim> & primal_fe,
           const Quadrature<dim> &    primal_quadrature,
           const Quadrature<dim - 1> &primal_face_quadrature,
           const Function<dim> &      rhs_function,
           const Vector<double> &     primal_solution,
-          const Vector<double> &     dual_weights);
+          const Vector<double> &     dual_weights,
+          const MappingQ<dim> & mapping);
 
         WeightedResidualScratchData(
           const WeightedResidualScratchData &scratch_data);
 
+        MappingQ<dim>  mapping;
         CellData       cell_data;
         FaceData       face_data;
         Vector<double> primal_solution;

@@ -162,8 +162,11 @@ namespace IonPropulsion{
     WeightedResidual<dim>::CellData::CellData(
       const FiniteElement<dim> &fe,
       const Quadrature<dim> &   quadrature,
-      const Function<dim> &     right_hand_side)
-      : fe_values(fe,
+      const Function<dim> &     right_hand_side,
+      const MappingQ<dim> & mapping)
+      : mapping(mapping),
+        fe_values(mapping,
+                  fe,
                   quadrature,
                   update_values | update_hessians | update_quadrature_points |
                     update_JxW_values)
@@ -176,7 +179,9 @@ namespace IonPropulsion{
 
     template <int dim>
     WeightedResidual<dim>::CellData::CellData(const CellData &cell_data)
-      : fe_values(cell_data.fe_values.get_fe(),
+      : mapping(cell_data.mapping),
+        fe_values(cell_data.mapping,
+                  cell_data.fe_values.get_fe(),
                   cell_data.fe_values.get_quadrature(),
                   update_values | update_hessians | update_quadrature_points |
                     update_JxW_values)
@@ -190,16 +195,20 @@ namespace IonPropulsion{
     template <int dim>
     WeightedResidual<dim>::FaceData::FaceData(
       const FiniteElement<dim> & fe,
-      const Quadrature<dim - 1> &face_quadrature)
-      : fe_face_values_cell(fe,
+      const Quadrature<dim - 1> &face_quadrature,
+      const MappingQ<dim> & mapping)
+      : mapping(mapping),
+        fe_face_values_cell(mapping,
+                            fe,
                             face_quadrature,
                             update_values | update_gradients |
                               update_JxW_values | update_normal_vectors)
-      , fe_face_values_neighbor(fe,
+      , fe_face_values_neighbor(mapping,
+                                fe,
                                 face_quadrature,
                                 update_values | update_gradients |
                                   update_JxW_values | update_normal_vectors)
-      , fe_subface_values_cell(fe, face_quadrature, update_gradients)
+      , fe_subface_values_cell(mapping, fe, face_quadrature, update_gradients)
     {
       const unsigned int n_face_q_points = face_quadrature.size();
 
@@ -211,16 +220,20 @@ namespace IonPropulsion{
 
     template <int dim>
     WeightedResidual<dim>::FaceData::FaceData(const FaceData &face_data)
-      : fe_face_values_cell(face_data.fe_face_values_cell.get_fe(),
+      : mapping(face_data.mapping)
+      , fe_face_values_cell(face_data.mapping,
+                            face_data.fe_face_values_cell.get_fe(),
                             face_data.fe_face_values_cell.get_quadrature(),
                             update_values | update_gradients |
                               update_JxW_values | update_normal_vectors)
       , fe_face_values_neighbor(
+          face_data.mapping,
           face_data.fe_face_values_neighbor.get_fe(),
           face_data.fe_face_values_neighbor.get_quadrature(),
           update_values | update_gradients | update_JxW_values |
             update_normal_vectors)
       , fe_subface_values_cell(
+          face_data.mapping,
           face_data.fe_subface_values_cell.get_fe(),
           face_data.fe_subface_values_cell.get_quadrature(),
           update_gradients)
@@ -238,9 +251,11 @@ namespace IonPropulsion{
         const Quadrature<dim - 1> &primal_face_quadrature,
         const Function<dim> &      rhs_function,
         const Vector<double> &     primal_solution,
-        const Vector<double> &     dual_weights)
-      : cell_data(primal_fe, primal_quadrature, rhs_function)
-      , face_data(primal_fe, primal_face_quadrature)
+        const Vector<double> &     dual_weights,
+        const MappingQ<dim> & mapping)
+      : mapping(mapping),
+        cell_data(primal_fe, primal_quadrature, rhs_function, mapping)
+      , face_data(primal_fe, primal_face_quadrature, mapping)
       , primal_solution(primal_solution)
       , dual_weights(dual_weights)
     {}
@@ -249,7 +264,8 @@ namespace IonPropulsion{
     WeightedResidual<dim>::WeightedResidualScratchData::
       WeightedResidualScratchData(
         const WeightedResidualScratchData &scratch_data)
-      : cell_data(scratch_data.cell_data)
+      : mapping(scratch_data.mapping)
+      , cell_data(scratch_data.cell_data)
       , face_data(scratch_data.face_data)
       , primal_solution(scratch_data.primal_solution)
       , dual_weights(scratch_data.dual_weights)
@@ -441,21 +457,21 @@ namespace IonPropulsion{
       // Add the data vectors for which we want output. Add them both, the
       // <code>DataOut</code> functions can handle as many data vectors as you
       // wish to write to output:
-      data_out.add_data_vector(PrimalSolver<dim>::solution, "uh");
+      data_out.add_data_vector(PrimalSolver<dim>::solution, "uh",DataOut<dim, dim>::type_dof_data);
       if (MANUAL_LIFTING_ON) {
-        data_out.add_data_vector(PrimalSolver<dim>::homogeneous_solution, "uh0");
-        data_out.add_data_vector(PrimalSolver<dim>::Rg_vector, "Rg");
+        data_out.add_data_vector(PrimalSolver<dim>::homogeneous_solution, "uh0",DataOut<dim, dim>::type_dof_data);
+        data_out.add_data_vector(PrimalSolver<dim>::Rg_vector, "Rg",DataOut<dim, dim>::type_dof_data);
       }
-      data_out.add_data_vector(dual_solution, "zh");
+      data_out.add_data_vector(dual_solution, "zh",DataOut<dim, dim>::type_dof_data);
 
       Vector<double> boundary_ids(this->triangulation->n_active_cells());
       for (const auto &cell : this->triangulation->active_cell_iterators())
         for (unsigned int face = 0; face < GeometryInfo<dim>::faces_per_cell; ++face)
           if (cell->face(face)->at_boundary())
             boundary_ids[cell->active_cell_index()] = cell->face(face)->boundary_id();
-      data_out.add_data_vector(boundary_ids, "boundary_ids");
+      data_out.add_data_vector(boundary_ids, "boundary_ids",DataOut<dim, dim>::type_cell_data);
 
-      data_out.build_patches();
+      data_out.build_patches(PrimalSolver<dim>::mapping, PrimalSolver<dim>::mapping.get_degree());
 
       std::ofstream out(OUTPUT_PATH+"/"+"solution-" + std::to_string(this->refinement_cycle) +
                         ".vtu");
@@ -528,7 +544,8 @@ namespace IonPropulsion{
                                     *DualSolver<dim>::face_quadrature,
                                     *this->rhs_function,
                                     primal_solution,
-                                    dual_weights),
+                                    dual_weights,
+                                    DualSolver<dim>::mapping),
         WeightedResidualCopyData());
 
       unsigned int present_cell = 0;

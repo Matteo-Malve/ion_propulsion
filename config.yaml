@@ -10,29 +10,34 @@ RHS_EXPRESSION: null
 
 # Set-up configurations
 #NUM_PRELIMINARY_GLOBAL_REF: null       # Number of preliminary global refinements
-PATH_TO_MESH: null
-LOAD_FROM_SETUP: 2                  # Setups: mesh, analytical solution, forcing term
+PATH_TO_MESH: ../mesh/Circular-step-14.msh
+LOAD_FROM_SETUP: 9                  # Setups: mesh, analytical solution, forcing term
 # Options: 0: NONE (**)
 #          1: CurvedRidges (from step-14)
 #          2: Exercise_2_3 (from step-14)
 #          3: Rectangle_1_99 (**) (modified step-14 with 1:99 ratio)
 #          4: LogCircular_1_10
 #          5: LogCircular_1_100
+#          7: angle of step-14 with f and BCs conforming to a chosen uex
+#          8: angle of Rectangle_1_99 with f and BCs conforming to a chosen uex
+#          9: cicular step-14
+
 
 # Framework configuration
+MAPPING_DEGREE: 1
 MANUAL_LIFTING_ON: 1       # 0: OFF, 1: ON,
-REFINEMENT_CRITERION: 3    # 1: global_refinement, 2: dual_weighted_error_estimator
+REFINEMENT_CRITERION: 2    # 1: global_refinement, 2: dual_weighted_error_estimator
 DUAL_FUNCTIONAL: 1         # 1: point_evaluation,  2: flux_evaluation
 
 # Point coordinates
 EVALUATION_POINT_X: 0.75
-EVALUATION_POINT_Y: 0.75
+EVALUATION_POINT_Y: 0.
 
 # Reference values
-EXACT_POINT_VALUE: 0.0334473
+EXACT_POINT_VALUE: 0.03155546889
 EXACT_FLUX: 0
 
-
+MANIFOLD_IS_APPLIED: 2      # 0: no, 1: yes, 2: only on boundary
 
 # NOTES:
 # (*): Will be overridden by the choice of a predefined Setup
