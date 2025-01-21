@@ -559,6 +559,75 @@ namespace IonPropulsion{
     };
 
     // ------------------------------------------------------
+    // LogCircular_1_2
+    // ------------------------------------------------------
+
+    template <int dim>
+    struct LogCircular_1_2
+    {
+
+      class BoundaryValues : public Function<dim> {
+      public:
+        virtual double value(const Point<dim> & p,
+                             const unsigned int component) const override {
+          (void)component;
+          /*double Ve = 20000.;
+          double l = 0.5;
+
+          const auto x = p[0];
+          const auto y = p[1];
+          const double r = std::sqrt(x*x + y*y);
+
+          return r < 1.1 * l ? Ve : 0.;*/
+
+          double Ve = 20000.;
+          double l = 0.5;
+          double L = 1.0;
+
+          const auto x = p[0];
+          const auto y = p[1];
+          const double r = std::sqrt(x*x + y*y);
+
+          return Ve / log(l/L) * log(r) - Ve * log(L) / log(l/L);
+        }
+      };
+      class ExactSolution : public Function<dim> {
+      public:
+        virtual double value(const Point<dim> & p,
+                             const unsigned int component) const override {
+          (void)component;
+          double Ve = 20000.;
+          double l = 0.5;
+          double L = 1.0;
+
+          const auto x = p[0];
+          const auto y = p[1];
+          const double r = std::sqrt(x*x + y*y);
+
+          return Ve / log(l/L) * log(r) - Ve * log(L) / log(l/L);
+        }
+        virtual Tensor<1, dim> gradient(const Point<dim> &p, const unsigned int component = 0) const override {
+          (void)component;
+          double Ve = 20000.;
+          double l = 0.5;
+          double L = 1.0;
+          const auto x = p[0];
+          const auto y = p[1];
+          const double r2 = x*x + y*y;
+
+          Tensor<1, dim> grad;
+          grad[0] = Ve * x /(r2 * log(l/L));
+          grad[1] = Ve * y /(r2 * log(l/L));
+          return grad;
+        };
+      };
+
+      using RightHandSide = Functions::ZeroFunction<dim>;
+
+      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+    };
+
+    // ------------------------------------------------------
     // LogCircular_1_10
     // ------------------------------------------------------
 

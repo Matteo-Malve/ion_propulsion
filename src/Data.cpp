@@ -393,6 +393,82 @@ namespace IonPropulsion {
     }
 
     // ------------------------------------------------------
+    // LogCircular_1_2
+    // ------------------------------------------------------
+
+    template <>
+    void LogCircular_1_2<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    {
+
+      const std::string path_to_mesh = PATH_TO_MESH;
+      std::ifstream input_file(path_to_mesh);
+      GridIn<2>       grid_in;
+      grid_in.attach_triangulation(coarse_grid);
+      grid_in.read_msh(input_file);
+
+      const Point<2> center(0.0, 0.0); // Center of the circles
+
+      if (MANIFOLD_IS_APPLIED>0){
+        for (const auto &cell : coarse_grid.active_cell_iterators())
+        {
+          for (unsigned int face = 0; face < GeometryInfo<2>::faces_per_cell; ++face)
+          {
+            if (MANIFOLD_IS_APPLIED==2) {
+              if (cell->face(face)->at_boundary() && (cell->face(face)->boundary_id() == 1 || cell->face(face)->boundary_id() == 3 ||cell->face(face)->boundary_id() == 9)) // Boundary ID 1 for the emitter, 9 for collector
+              {
+                cell->face(face)->set_manifold_id(1); // Assign manifold ID 1 for the emitter
+              }
+            } else if (MANIFOLD_IS_APPLIED == 1) {
+              cell->face(face)->set_manifold_id(1);
+            } else {
+              DEAL_II_NOT_IMPLEMENTED();
+            }
+          }
+        }
+
+        // Attach a circular manifold to the emitter
+        SphericalManifold<2> circular_manifold(center);
+        coarse_grid.set_manifold(1, circular_manifold); // Set the manifold for the emitter
+        }
+
+      double l = 0.5;
+
+      for (unsigned int i = 0; i < NUM_CONCENTRIC_REF; ++i) {
+        /*Vector<float> criteria(coarse_grid.n_active_cells());
+        //cout  << "Active cells " << triangulation.n_active_cells() << endl;
+        unsigned int ctr = 0;
+
+        // Threshold
+        const double max_thickness = 1.5 * l;    // 2*
+        const double min_thickness = 1.05 * l;    // 1.05
+        double D = 0.;
+        if (NUM_CONCENTRIC_REF==1)
+          D = max_thickness;
+        else
+          D = min_thickness + (max_thickness-min_thickness)/(NUM_CONCENTRIC_REF-1)*(NUM_CONCENTRIC_REF-1-i);
+
+
+        for (auto &cell : coarse_grid.active_cell_iterators()) {
+          const Point<2> c = cell->center();
+          if(center.distance(c) < D)
+            criteria[ctr++] = 1;
+          else
+            criteria[ctr++] = 0;
+        }
+        GridRefinement::refine(coarse_grid, criteria, 0.5);
+        coarse_grid.execute_coarsening_and_refinement();
+        cout<<"Executed one concentric refinement"<<endl;*/
+        coarse_grid.refine_global(1);
+      }
+
+      /*double pi = 3.14159265358979323846;
+        double Ve = 20000.;
+        double l = 0.5;
+        double L = 1.0;
+        cout<< std::scientific << std::setprecision(12)<< "Exact flux: "<< - (2 * pi * l) * (Ve / (log(l/L)*l)) <<std::endl;*/
+    }
+
+    // ------------------------------------------------------
     // LogCircular_1_10
     // ------------------------------------------------------
 
@@ -416,23 +492,30 @@ namespace IonPropulsion {
       //ExactSolution exact_solution;
       //cout<<"ExactSolution at (0.0019, 0) = "<<exact_solution.value(Point<2>(0.0019, 0.),0)<< std::endl;
 
-
-      // Set up the circular manifold for the emitter (inner circle)
       const Point<2> center(0.0, 0.0); // Center of the circles
-      for (const auto &cell : coarse_grid.active_cell_iterators())
-      {
-        for (unsigned int face = 0; face < GeometryInfo<2>::faces_per_cell; ++face)
+
+      if (MANIFOLD_IS_APPLIED>0){
+        for (const auto &cell : coarse_grid.active_cell_iterators())
         {
-          if (cell->face(face)->at_boundary() && (cell->face(face)->boundary_id() == 1 || cell->face(face)->boundary_id() == 3 ||cell->face(face)->boundary_id() == 9)) // Boundary ID 1 for the emitter, 9 for collector
+          for (unsigned int face = 0; face < GeometryInfo<2>::faces_per_cell; ++face)
           {
-            cell->face(face)->set_manifold_id(1); // Assign manifold ID 1 for the emitter
+            if (MANIFOLD_IS_APPLIED==2) {
+              if (cell->face(face)->at_boundary() && (cell->face(face)->boundary_id() == 1 || cell->face(face)->boundary_id() == 3 ||cell->face(face)->boundary_id() == 9)) // Boundary ID 1 for the emitter, 9 for collector
+              {
+                cell->face(face)->set_manifold_id(1); // Assign manifold ID 1 for the emitter
+              }
+            } else if (MANIFOLD_IS_APPLIED == 1) {
+              cell->face(face)->set_manifold_id(1);
+            } else {
+              DEAL_II_NOT_IMPLEMENTED();
+            }
           }
         }
-      }
 
-      // Attach a circular manifold to the emitter
-      SphericalManifold<2> circular_manifold(center);
-      coarse_grid.set_manifold(1, circular_manifold); // Set the manifold for the emitter
+        // Attach a circular manifold to the emitter
+        SphericalManifold<2> circular_manifold(center);
+        coarse_grid.set_manifold(1, circular_manifold); // Set the manifold for the emitter
+        }
 
       double l = 0.0004;
 
@@ -613,6 +696,9 @@ namespace IonPropulsion {
 
     template struct Circular<2>;
     template struct SetUp<IonPropulsion::Data::Circular<2>, 2>;
+
+    template struct LogCircular_1_2<2>;
+    template struct SetUp<IonPropulsion::Data::LogCircular_1_2<2>, 2>;
 
     template struct LogCircular_1_10<2>;
     template struct SetUp<IonPropulsion::Data::LogCircular_1_10<2>, 2>;

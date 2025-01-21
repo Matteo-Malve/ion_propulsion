@@ -52,6 +52,8 @@ int main(int argc, char **argv)
       descriptor.data = std::make_unique<Data::SetUp<Data::angle_Rectangle_1_100_forced<dim>, dim>>();
     else if (LOAD_FROM_SETUP == 9)
       descriptor.data = std::make_unique<Data::SetUp<Data::CircularStep14<dim>, dim>>();
+    else if (LOAD_FROM_SETUP == 10)
+      descriptor.data = std::make_unique<Data::SetUp<Data::LogCircular_1_2<dim>, dim>>();
     else
       DEAL_II_NOT_IMPLEMENTED();
 
