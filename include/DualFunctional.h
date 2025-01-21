@@ -16,7 +16,10 @@ namespace IonPropulsion{
     template <int dim>
     class DualFunctionalBase : public Subscriptor
     {
+    protected:
+      MappingQ<dim>      mapping;
     public:
+      DualFunctionalBase(const unsigned mapping_degree);
       virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
                                 Vector<double> &       rhs) const = 0;
       /*virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
@@ -30,7 +33,9 @@ namespace IonPropulsion{
     class PointValueEvaluation : public DualFunctionalBase<dim>
     {
     public:
-      PointValueEvaluation(const Point<dim> &evaluation_point);
+      PointValueEvaluation(
+        const unsigned mapping_degree,
+        const Point<dim> &evaluation_point);
 
       virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
                                 Vector<double> &       rhs) const override;
@@ -52,7 +57,9 @@ namespace IonPropulsion{
     class PointXDerivativeEvaluation : public DualFunctionalBase<dim>
     {
     public:
-      PointXDerivativeEvaluation(const Point<dim> &evaluation_point);
+      PointXDerivativeEvaluation(
+        const unsigned mapping_degree,
+        const Point<dim> &evaluation_point);
 
       virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
                                 Vector<double> &       rhs) const override;
@@ -74,7 +81,9 @@ namespace IonPropulsion{
     class StandardFluxEvaluation : public DualFunctionalBase<dim>
     {
     public:
-      StandardFluxEvaluation(const unsigned int boundary_id);
+      StandardFluxEvaluation(
+        const unsigned mapping_degree,
+        const unsigned int boundary_id);
 
       virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
                                 Vector<double> &       rhs) const override;

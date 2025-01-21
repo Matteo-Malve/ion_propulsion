@@ -24,9 +24,9 @@ LOAD_FROM_SETUP: 9                  # Setups: mesh, analytical solution, forcing
 
 
 # Framework configuration
-HDBSBBWU: 27
+MAPPING_DEGREE: 1
 MANUAL_LIFTING_ON: 1       # 0: OFF, 1: ON,
-REFINEMENT_CRITERION: 1    # 1: global_refinement, 2: dual_weighted_error_estimator
+REFINEMENT_CRITERION: 2    # 1: global_refinement, 2: dual_weighted_error_estimator
 DUAL_FUNCTIONAL: 1         # 1: point_evaluation,  2: flux_evaluation
 
 # Point coordinates
@@ -36,6 +36,12 @@ EVALUATION_POINT_Y: 0.
 # Reference values
 EXACT_POINT_VALUE: 0.03155546889
 EXACT_FLUX: 0
+
+# Mesh refinement options:
+REFINEMENT_STRATEGY: 3      # 1. fixed_fraction(default), 2. fixed_number, 3. optimize
+TOP_FRACTION: null          # default: 0.8
+BOTTOM_FRACTION: null       # default: 0.02
+OPTIMIZE_ORDER: null        # default: 2
 
 MANIFOLD_IS_APPLIED: 1      # 0: no, 1: yes, 2: only on boundary
 

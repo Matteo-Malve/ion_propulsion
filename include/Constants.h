@@ -58,9 +58,12 @@ public:
         if (it != constants.end()) {
             return it->second;
         }
-        if (default_value > std::numeric_limits<double>::lowest() + 1e-10)  // Give some tolerance here
+        if (default_value > std::numeric_limits<double>::lowest() + 1e-10) {
+            // Give some tolerance here
+            std::cout<<"Parameter "<<name<<" not found. Use default value: "<<default_value<<std::endl;
             return default_value;
-        else
+
+        } else
             throw std::runtime_error("Constant not found: " + name);
     }
 

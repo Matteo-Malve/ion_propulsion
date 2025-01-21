@@ -55,7 +55,7 @@ void useGlobalConstants() {
   PATH_TO_MESH = GlobalConstants::getInstance().getString("PATH_TO_MESH");
   NUM_CONCENTRIC_REF = static_cast<unsigned int>(GlobalConstants::getInstance().get("NUM_CONCENTRIC_REF",0.0));
 
-  MAPPING_DEGREE = static_cast<bool>(GlobalConstants::getInstance().get("MAPPING_DEGREE",1));
+  MAPPING_DEGREE = static_cast<unsigned int>(GlobalConstants::getInstance().get("MAPPING_DEGREE",1));
   MANUAL_LIFTING_ON = static_cast<bool>(GlobalConstants::getInstance().get("MANUAL_LIFTING_ON"));
   REFINEMENT_CRITERION = static_cast<unsigned int>(GlobalConstants::getInstance().get("REFINEMENT_CRITERION"));
   DUAL_FUNCTIONAL = static_cast<unsigned int>(GlobalConstants::getInstance().get("DUAL_FUNCTIONAL",1));

@@ -5,12 +5,21 @@ namespace IonPropulsion{
   using namespace dealii;
   namespace DualFunctional{
     // ------------------------------------------------------
+    // DualFunctionalBase
+    // ------------------------------------------------------
+    template <int dim>
+    DualFunctionalBase<dim>::DualFunctionalBase(const unsigned mapping_degree):
+      mapping(mapping_degree)
+    {}
+
+    // ------------------------------------------------------
     // PointValueEvaluation
     // ------------------------------------------------------
     template <int dim>
       PointValueEvaluation<dim>::PointValueEvaluation(
+        const unsigned mapping_degree,
         const Point<dim> &evaluation_point)
-        : evaluation_point(evaluation_point)
+        : DualFunctionalBase<dim>(mapping_degree), evaluation_point(evaluation_point)
     {}
 
     template <int dim>
@@ -60,8 +69,9 @@ namespace IonPropulsion{
     // ------------------------------------------------------
     template <int dim>
     PointXDerivativeEvaluation<dim>::PointXDerivativeEvaluation(
+      const unsigned mapping_degree,
       const Point<dim> &evaluation_point)
-      : evaluation_point(evaluation_point)
+      : DualFunctionalBase<dim>(mapping_degree), evaluation_point(evaluation_point)
     {}
 
     template <int dim>
@@ -71,7 +81,7 @@ namespace IonPropulsion{
     {
       rhs.reinit(dof_handler.n_dofs());
       QGauss<dim>        quadrature(dof_handler.get_fe().degree + 1);
-      FEValues<dim>      fe_values(dof_handler.get_fe(),
+      FEValues<dim>      fe_values(this->mapping, dof_handler.get_fe(),
                               quadrature,
                               update_gradients | update_quadrature_points |
                                 update_JxW_values);
@@ -118,8 +128,9 @@ namespace IonPropulsion{
     // ------------------------------------------------------
     template <int dim>
       StandardFluxEvaluation<dim>::StandardFluxEvaluation(
+        const unsigned mapping_degree,
         const unsigned int boundary_id)
-        : boundary_id(boundary_id)
+        : DualFunctionalBase<dim>(mapping_degree), boundary_id(boundary_id)
     {}
 
     template <int dim>
@@ -136,7 +147,8 @@ namespace IonPropulsion{
       const QGauss<dim-1> face_quadrature(fe_face.degree + 1);
 
       // Finite elements
-      FEFaceValues<dim> fe_face_values(fe_face,
+      FEFaceValues<dim> fe_face_values(this->mapping,
+                                        fe_face,
                                        face_quadrature,
                                        update_gradients |
                                        update_normal_vectors |

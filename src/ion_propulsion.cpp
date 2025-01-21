@@ -67,9 +67,9 @@ int main(int argc, char **argv)
 
     if (REFINEMENT_CRITERION>1) {
       if (DUAL_FUNCTIONAL==1)
-        descriptor.dual_functional = std::make_unique<DualFunctional::PointValueEvaluation<dim>>(evaluation_point);
+        descriptor.dual_functional = std::make_unique<DualFunctional::PointValueEvaluation<dim>>(MAPPING_DEGREE,evaluation_point);
       else if (DUAL_FUNCTIONAL==2 || DUAL_FUNCTIONAL==3)
-        descriptor.dual_functional = std::make_unique<DualFunctional::StandardFluxEvaluation<dim>>(1);
+        descriptor.dual_functional = std::make_unique<DualFunctional::StandardFluxEvaluation<dim>>(MAPPING_DEGREE,1);
       else
         DEAL_II_NOT_IMPLEMENTED();
     }
