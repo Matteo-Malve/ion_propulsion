@@ -272,6 +272,29 @@ namespace IonPropulsion{
     {}
 
     template <int dim>
+    void output_cell_flags_to_vtk(const Triangulation<dim> &triangulation, const std::string &filename="cell_flags.vtk") {
+      Vector<float> cell_flags(triangulation.n_active_cells());
+      unsigned int cell_index = 0;
+      for (const auto &cell : triangulation.active_cell_iterators())
+      {
+        if (cell->refine_flag_set())
+          cell_flags[cell_index] = 1.0; // Refinement flag
+        else if (cell->coarsen_flag_set())
+          cell_flags[cell_index] = -1.0; // Coarsening flag
+        else
+          cell_flags[cell_index] = 0.0; // No flag
+        ++cell_index;
+      }
+      DataOut<dim> data_out;
+      data_out.attach_triangulation(triangulation);
+      data_out.add_data_vector(cell_flags, "CellFlags",DataOut<dim>::type_cell_data);
+      data_out.build_patches();
+      std::ofstream output(OUTPUT_PATH+"/"+filename);
+      data_out.write_vtk(output);
+      //std::cout << "   Cell flags written to " << filename << std::endl;
+    }
+
+    template <int dim>
     WeightedResidual<dim>::WeightedResidual(
       Triangulation<dim> &                           coarse_grid,
       const FiniteElement<dim> &                     primal_fe,
@@ -342,28 +365,6 @@ namespace IonPropulsion{
       return PrimalSolver<dim>::n_dofs();
     }
 
-    template <int dim>
-    void output_cell_flags_to_vtk(const Triangulation<dim> &triangulation, const std::string &filename="cell_flags.vtk") {
-      Vector<float> cell_flags(triangulation.n_active_cells());
-      unsigned int cell_index = 0;
-      for (const auto &cell : triangulation.active_cell_iterators())
-      {
-        if (cell->refine_flag_set())
-          cell_flags[cell_index] = 1.0; // Refinement flag
-        else if (cell->coarsen_flag_set())
-          cell_flags[cell_index] = -1.0; // Coarsening flag
-        else
-          cell_flags[cell_index] = 0.0; // No flag
-        ++cell_index;
-      }
-      DataOut<dim> data_out;
-      data_out.attach_triangulation(triangulation);
-      data_out.add_data_vector(cell_flags, "CellFlags",DataOut<dim>::type_cell_data);
-      data_out.build_patches();
-      std::ofstream output(OUTPUT_PATH+"/"+filename);
-      data_out.write_vtk(output);
-      //std::cout << "   Cell flags written to " << filename << std::endl;
-    }
 
     template <int dim>
     void WeightedResidual<dim>::refine_grid()

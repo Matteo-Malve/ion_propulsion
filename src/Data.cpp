@@ -434,7 +434,7 @@ namespace IonPropulsion {
       double l = 0.5;
 
       for (unsigned int i = 0; i < NUM_CONCENTRIC_REF; ++i) {
-        /*Vector<float> criteria(coarse_grid.n_active_cells());
+        Vector<float> criteria(coarse_grid.n_active_cells());
         //cout  << "Active cells " << triangulation.n_active_cells() << endl;
         unsigned int ctr = 0;
 
@@ -457,8 +457,7 @@ namespace IonPropulsion {
         }
         GridRefinement::refine(coarse_grid, criteria, 0.5);
         coarse_grid.execute_coarsening_and_refinement();
-        cout<<"Executed one concentric refinement"<<endl;*/
-        coarse_grid.refine_global(1);
+        cout<<"Executed one concentric refinement"<<endl;
       }
 
       /*double pi = 3.14159265358979323846;
