@@ -30,7 +30,7 @@ int main(int argc, char **argv)
     descriptor.primal_fe_degree = 1;
     descriptor.dual_fe_degree   = 2;
 
-    descriptor.mapping_degree = 1;
+    descriptor.mapping_degree = MAPPING_DEGREE;
 
     if(LOAD_FROM_SETUP == 0)
       descriptor.data = std::make_unique<Data::SetUp<Data::SetupNone<dim>, dim>>();

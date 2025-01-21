@@ -25,6 +25,7 @@ extern std::string PATH_TO_MESH;
 extern unsigned int NUM_CONCENTRIC_REF;
 extern unsigned int LOAD_FROM_SETUP;
 
+extern unsigned int MAPPING_DEGREE;
 extern bool MANUAL_LIFTING_ON;
 extern unsigned int REFINEMENT_CRITERION;
 extern unsigned int DUAL_FUNCTIONAL;
@@ -39,6 +40,9 @@ extern unsigned int REFINEMENT_STRATEGY;
 extern double TOP_FRACTION;
 extern double BOTTOM_FRACTION;
 extern unsigned int OPTIMIZE_ORDER;
+
+// Special ones:   (only to generate specific setups that were wrong, on purpose)
+extern unsigned int MANIFOLD_IS_APPLIED;        // 0: no, 1: yes, 2: only on boundary
 
 
 //extern unsigned int NUM_PRELIMINARY_REF;

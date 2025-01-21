@@ -20,6 +20,7 @@ std::string PATH_TO_MESH;
 unsigned int NUM_CONCENTRIC_REF;
 unsigned int LOAD_FROM_SETUP;
 
+unsigned int MAPPING_DEGREE;
 bool MANUAL_LIFTING_ON;
 unsigned int REFINEMENT_CRITERION;
 unsigned int DUAL_FUNCTIONAL;
@@ -35,6 +36,8 @@ double TOP_FRACTION;
 double BOTTOM_FRACTION;
 unsigned int OPTIMIZE_ORDER;
 
+// Special ones:   (only to generate specific setups that were wrong, on purpose)
+unsigned int MANIFOLD_IS_APPLIED;        // 0: no, 1: yes, 2: only on boundary
 
 // Initialize global constants after `GlobalConstants::initialize`
 void useGlobalConstants() {
@@ -52,6 +55,7 @@ void useGlobalConstants() {
   PATH_TO_MESH = GlobalConstants::getInstance().getString("PATH_TO_MESH");
   NUM_CONCENTRIC_REF = static_cast<unsigned int>(GlobalConstants::getInstance().get("NUM_CONCENTRIC_REF",0.0));
 
+  MAPPING_DEGREE = static_cast<bool>(GlobalConstants::getInstance().get("MAPPING_DEGREE",1));
   MANUAL_LIFTING_ON = static_cast<bool>(GlobalConstants::getInstance().get("MANUAL_LIFTING_ON"));
   REFINEMENT_CRITERION = static_cast<unsigned int>(GlobalConstants::getInstance().get("REFINEMENT_CRITERION"));
   DUAL_FUNCTIONAL = static_cast<unsigned int>(GlobalConstants::getInstance().get("DUAL_FUNCTIONAL",1));
@@ -70,7 +74,10 @@ void useGlobalConstants() {
   if (REFINEMENT_STRATEGY==3) {
     OPTIMIZE_ORDER= static_cast<unsigned int>(GlobalConstants::getInstance().get("BOTTOM_FRACTION", 2));
   }
+
+  MANIFOLD_IS_APPLIED = static_cast<unsigned int>(GlobalConstants::getInstance().get("MANIFOLD_IS_APPLIED",1));
 }
+
 
 //unsigned int NUM_PRELIMINARY_REF = GlobalConstants::getInstance().get("NUM_PRELIMINARY_REF");;
 
@@ -164,6 +171,8 @@ void printParsedConstants() {
     }
 
   std::cout << "------------------------------------------------------------\n";
+  std::cout << std::left << std::setw(30) << "MAPPING_DEGREE"
+            << std::setw(20) << MAPPING_DEGREE << "\n";
   std::cout << std::left << std::setw(30) << "MANUAL_LIFTING_ON"
             << std::setw(20) << (MANUAL_LIFTING_ON ? "true" : "false") << "\n";
   std::cout << std::left << std::setw(30) << "REFINEMENT_CRITERION"
@@ -196,6 +205,10 @@ void printParsedConstants() {
       std::cout << std::left << std::setw(30) << "OPTIMIZE_ORDER"
               << std::setw(20) << OPTIMIZE_ORDER << "\n";
     }
+  }
+  if (MANIFOLD_IS_APPLIED!=1) {
+    std::cout << std::left << std::setw(30) << "MANIFOLD"
+              << std::setw(20) << ((MANIFOLD_IS_APPLIED==0) ? "not applied" : "partially applied (only boundary)") << "\n";
   }
   std::cout << "============================================================\n\n";
 }

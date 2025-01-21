@@ -564,23 +564,25 @@ namespace IonPropulsion {
       grid_in.attach_triangulation(coarse_grid);
       grid_in.read_msh(input_file);
 
-      // Set up the circular manifold for the emitter (inner circle)
-      const Point<2> center(0.0, 0.0); // Center of the circles
-      for (const auto &cell : coarse_grid.active_cell_iterators())
-      {
-        for (unsigned int face = 0; face < GeometryInfo<2>::faces_per_cell; ++face)
+      if (MANIFOLD_IS_APPLIED > 0){
+        const Point<2> center(0.0, 0.0); // Center of the circles
+        for (const auto &cell : coarse_grid.active_cell_iterators())
         {
-          if (cell->face(face)->at_boundary() && (cell->face(face)->boundary_id() == 1 || cell->face(face)->boundary_id() == 2 ||cell->face(face)->boundary_id() == 9)) // Boundary ID 1 for the emitter, 9 for collector
+          for (unsigned int face = 0; face < GeometryInfo<2>::faces_per_cell; ++face)
           {
-            cell->face(face)->set_manifold_id(1);
+            if (MANIFOLD_IS_APPLIED == 2) {
+              if (cell->face(face)->at_boundary() && (cell->face(face)->boundary_id() == 1 || cell->face(face)->boundary_id() == 2 ||cell->face(face)->boundary_id() == 9)) // Boundary ID 1 for the emitter, 9 for collector
+                cell->face(face)->set_manifold_id(1);
+            }
+            else if (MANIFOLD_IS_APPLIED == 1)
+              cell->face(face)->set_manifold_id(1);
           }
-          //cell->face(face)->set_manifold_id(1);
         }
-      }
 
-      // Attach a circular manifold to the emitter
-      SphericalManifold<2> circular_manifold(center);
-      coarse_grid.set_manifold(1, circular_manifold); // Set the manifold for the emitter
+        // Attach a circular manifold to the emitter
+        SphericalManifold<2> circular_manifold(center);
+        coarse_grid.set_manifold(1, circular_manifold); // Set the manifold for the emitter
+        }
 
     }
 

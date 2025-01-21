@@ -24,6 +24,7 @@ LOAD_FROM_SETUP: 9                  # Setups: mesh, analytical solution, forcing
 
 
 # Framework configuration
+MAPPING_DEGREE: 1
 MANUAL_LIFTING_ON: 1       # 0: OFF, 1: ON,
 REFINEMENT_CRITERION: 2    # 1: global_refinement, 2: dual_weighted_error_estimator
 DUAL_FUNCTIONAL: 1         # 1: point_evaluation,  2: flux_evaluation
@@ -41,6 +42,8 @@ REFINEMENT_STRATEGY: 3      # 1. fixed_fraction(default), 2. fixed_number, 3. op
 TOP_FRACTION: null          # default: 0.8
 BOTTOM_FRACTION: null       # default: 0.02
 OPTIMIZE_ORDER: null        # default: 2
+
+MANIFOLD_IS_APPLIED: 2      # 0: no, 1: yes, 2: only on boundary
 
 # NOTES:
 # (*): Will be overridden by the choice of a predefined Setup
