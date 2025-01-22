@@ -8,8 +8,8 @@ src/build/
 .vscode/
 .DS_Store
 src/.DS_Store
-*/*.vtu
-*/*.vtk
+*.vtu
+*.vtk
 */results/*/*.msh
 tests/old-tests/
-*/*.png
+*.png
