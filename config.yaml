@@ -33,7 +33,7 @@ DUAL_FUNCTIONAL: 1         # 1: point_evaluation,  2: flux_evaluation
 EVALUATION_POINT_X: 0.75
 EVALUATION_POINT_Y: 0.
 
-# Reference values
+# Reference valuesclear
 EXACT_POINT_VALUE: 0.03155546889
 EXACT_FLUX: 0
 

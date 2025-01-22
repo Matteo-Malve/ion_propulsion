@@ -565,7 +565,7 @@ namespace IonPropulsion {
       double Ve = 20000.;
       double l = 0.0004;
       double L = 0.04;
-      cout<< "Exact flux: "<< - (2 * pi * l) * (Ve / (log(l/L)*l)) <<std::endl;*/
+      cout << std::scientific << std::setprecision(12)<< "Exact flux: "<< - (2 * pi * l) * (Ve / (log(l/L)*l)) <<std::endl;*/
 
       //ExactSolution exact_solution;
       //cout<<"ExactSolution at (0.0019, 0) = "<<exact_solution.value(Point<2>(0.0019, 0.),0)<< std::endl;

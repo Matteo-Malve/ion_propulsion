@@ -72,7 +72,7 @@ void useGlobalConstants() {
     BOTTOM_FRACTION = GlobalConstants::getInstance().get("BOTTOM_FRACTION", 0.02);
   }
   if (REFINEMENT_STRATEGY==3) {
-    OPTIMIZE_ORDER= static_cast<unsigned int>(GlobalConstants::getInstance().get("BOTTOM_FRACTION", 2));
+    OPTIMIZE_ORDER= static_cast<unsigned int>(GlobalConstants::getInstance().get("OPTIMIZE_ORDER", 2));
   }
 
   MANIFOLD_IS_APPLIED = static_cast<unsigned int>(GlobalConstants::getInstance().get("MANIFOLD_IS_APPLIED",2));
