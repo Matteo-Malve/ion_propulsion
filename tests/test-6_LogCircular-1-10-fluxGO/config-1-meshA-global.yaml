@@ -1,0 +1,40 @@
+# Physical constants
+eps_0: 1.0    # 8.854           # Electric permittivity of free space [F/m]
+eps_r: 1.0    # 1.0006          # Relative permittivity
+
+# Data
+Ve: null   # (*)             # Electric potential [V] at the emitter
+Vc: null      # (*)             # Electric potential [V] at the collector
+RHS_EXPRESSION: null
+#UEX_EXPRESSION: x
+
+# Set-up configurations
+#NUM_PRELIMINARY_GLOBAL_REF: null       # Number of preliminary global refinements
+PATH_TO_MESH: ../mesh/LogCircular_1_10.msh
+LOAD_FROM_SETUP: 4                  # Setups: mesh, analytical solution, forcing term
+# Options: 0: NONE (**)
+#          1: CurvedRidges (from step-14)
+#          2: Exercise_2_3 (from step-14)
+#          3: Rectangle_1_99 (**) (modified step-14 with 1:99 ratio)
+#          4: LogCircular_1_10
+#          5: LogCircular_1_100
+
+# Framework configuration
+MANUAL_LIFTING_ON: 1       # 0: OFF, 1: ON,
+REFINEMENT_CRITERION: 1    # 1: global_refinement, 2: dual_weighted_error_estimator
+DUAL_FUNCTIONAL: 2         # 1: point_evaluation,  2: flux_evaluation
+
+# Point coordinates
+EVALUATION_POINT_X: 0.0019
+EVALUATION_POINT_Y: 0.
+
+# Reference values
+EXACT_POINT_VALUE: 6466.13
+EXACT_FLUX: 54575.1
+
+MANIFOLD_IS_APPLIED: 2      # 0: no, 1: yes, 2: only on boundary
+
+# NOTES:
+# (*): Will be overridden by the choice of a predefined Setup
+# (**): PATH_TO_MESH must be specified.
+#       If there isn't (**), PATH_TO_MESH is predetermined by setup

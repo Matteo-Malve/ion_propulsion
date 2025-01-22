@@ -75,7 +75,7 @@ void useGlobalConstants() {
     OPTIMIZE_ORDER= static_cast<unsigned int>(GlobalConstants::getInstance().get("BOTTOM_FRACTION", 2));
   }
 
-  MANIFOLD_IS_APPLIED = static_cast<unsigned int>(GlobalConstants::getInstance().get("MANIFOLD_IS_APPLIED",1));
+  MANIFOLD_IS_APPLIED = static_cast<unsigned int>(GlobalConstants::getInstance().get("MANIFOLD_IS_APPLIED",2));
 }
 
 
