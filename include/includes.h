@@ -32,6 +32,9 @@
 
 #include <deal.II/lac/petsc_precondition.h>
 
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+
 #include <algorithm>
 #include <fstream>
 #include <iostream>

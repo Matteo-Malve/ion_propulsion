@@ -22,6 +22,59 @@ namespace IonPropulsion{
       refinement_cycle = cycle;
     }
 
+    template <int dim>
+    void Base<dim>::checkpoint()
+    {
+      std::cout << "--- Writing checkpoint... ---" << std::endl << std::endl;
+
+      {
+        std::ofstream checkpoint_file(OUTPUT_PATH+"/"+"tmp.checkpoint_step_83");
+        AssertThrow(checkpoint_file,
+                    ExcMessage(
+                      "Could not write to the <tmp.checkpoint_step_83> file."));
+
+        boost::archive::text_oarchive archive(checkpoint_file);
+
+        archive << *this;
+      }
+
+      //particle_handler.prepare_for_serialization();
+      triangulation->save(OUTPUT_PATH+"/"+"tmp.checkpoint");
+
+      std::list<std::string> tmp_checkpoint_files;
+      for (const auto &dir_entry : std::filesystem::directory_iterator(OUTPUT_PATH))
+        if (dir_entry.is_regular_file() &&
+            (dir_entry.path().filename().string().find("tmp.checkpoint") == 0))
+          tmp_checkpoint_files.push_back(dir_entry.path().filename().string());
+
+      for (const std::string &filename : tmp_checkpoint_files) {
+        std::string new_name = filename.substr(4, std::string::npos);
+        std::filesystem::rename(OUTPUT_PATH + "/" + filename, OUTPUT_PATH + "/" + new_name);
+      }
+    }
+
+    template <int dim>
+    void Base<dim>::restart()
+      {
+        {
+          std::ifstream checkpoint_file(OUTPUT_PATH+"/"+"checkpoint_step_83");
+          AssertThrow(checkpoint_file,
+                      ExcMessage(
+                        "Could not read from the <checkpoint_step_83> file."));
+
+          boost::archive::text_iarchive archive(checkpoint_file);
+          archive >> *this;
+        }
+
+      triangulation->load(OUTPUT_PATH+"/"+"checkpoint");
+      //particle_handler.deserialize();
+      GridOut grid_out;
+      GridOutFlags::Msh msh_flags(true, true);
+      grid_out.set_flags(msh_flags);
+      grid_out.write_msh(*triangulation, OUTPUT_PATH+"/re-imported_mesh.msh");
+    }
+
+
     // ------------------------------------------------------
     // Solver
     // ------------------------------------------------------

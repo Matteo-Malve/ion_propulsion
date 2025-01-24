@@ -31,6 +31,15 @@ namespace IonPropulsion{
       virtual void update_convergence_table() = 0;
       virtual void print_convergence_table() const {};
 
+      template <class Archive>
+      void serialize(Archive &ar, const unsigned int version) {
+        (void)ar;
+        (void)version;
+      };
+
+      void checkpoint();
+      void restart();
+
     protected:
       const SmartPointer<Triangulation<dim>> triangulation;
       std::shared_ptr<ConvergenceTable> convergence_table;

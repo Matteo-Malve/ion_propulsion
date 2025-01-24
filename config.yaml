@@ -23,8 +23,8 @@ Vc: 0      # (*)          # Electric potential [V] at the collector: Boundary ID
 
 # Framework configuration
 MAPPING_DEGREE: 2
-MANUAL_LIFTING_ON: 1       # 0: OFF, 1: ON,
-REFINEMENT_CRITERION: 3    # 1: global_refinement, 2: dual_weighted_error_estimator
+MANUAL_LIFTING_ON: 0       # 0: OFF, 1: ON,
+REFINEMENT_CRITERION: 1    # 1: global_refinement, 2: dual_weighted_error_estimator
 DUAL_FUNCTIONAL: 2         # 1: point_evaluation,  2: flux_evaluation
 
 # Point coordinates

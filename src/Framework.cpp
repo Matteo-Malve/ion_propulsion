@@ -13,17 +13,18 @@ namespace IonPropulsion{
   {}
 
   template <int dim>
-  void Framework<dim>::run(const ProblemDescription &descriptor)
+  void Framework<dim>::run(const ProblemDescription &descriptor, const bool do_restart)
   {
     // First create a triangulation from the given data object,
     Triangulation<dim> triangulation(
       Triangulation<dim>::smoothing_on_refinement);
+
     descriptor.data->create_coarse_grid(triangulation);
 
     // then a set of finite elements and appropriate quadrature formula:
     const FE_Q<dim>       primal_fe(descriptor.primal_fe_degree);
     const FE_Q<dim>       dual_fe(descriptor.dual_fe_degree);
-    const QGauss<dim>     quadrature(descriptor.dual_fe_degree + 1);
+    const QGauss<dim>     quadrature(descriptor.dual_fe_degree + 1);  // TODO usa trapezi su primale
     const QGauss<dim - 1> face_quadrature(descriptor.dual_fe_degree + 1);
 
     // Next, select one of the classes implementing different refinement
@@ -95,6 +96,9 @@ namespace IonPropulsion{
           AssertThrow(false, ExcInternalError());
       }
 
+    if (do_restart == true)
+      solver->restart();
+
     for (unsigned int step = 0; true; ++step)
       {
       std::cout << "Refinement cycle: " << step << std::endl;
@@ -117,6 +121,7 @@ namespace IonPropulsion{
 
       unsigned int DoFs_before_refinement = solver->n_dofs();
       solver->refine_grid();
+      solver->checkpoint();
       solver->print_convergence_table();
       CSVLogger::getInstance().flushRow();
 
