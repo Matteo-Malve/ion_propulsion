@@ -29,13 +29,15 @@ EVALUATION_POINT_Y: 0.
 
 # Reference values
 EXACT_POINT_VALUE: 3148.182801
-EXACT_FLUX: 27287.5
+EXACT_FLUX: 2.728752707684e+04
 
 # Mesh refinement options:
 REFINEMENT_STRATEGY: 1      # 1. fixed_fraction(default), 2. fixed_number, 3. optimize
 TOP_FRACTION: 0.80          # default: 0.8
 BOTTOM_FRACTION: 0.01       # default: 0.02
 OPTIMIZE_ORDER: null        # default: 2
+
+MANIFOLD_IS_APPLIED: 2      # 0: no, 1: yes, 2: only on boundary
 
 
 # NOTES:

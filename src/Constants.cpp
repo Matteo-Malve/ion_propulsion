@@ -49,7 +49,7 @@ void useGlobalConstants() {
   if (LOAD_FROM_SETUP==0) {
     Ve = GlobalConstants::getInstance().get("Ve");
     Vc = GlobalConstants::getInstance().get("Vc");
-    RHS_EXPRESSION = GlobalConstants::getInstance().getString("RHS_EXPRESSION");
+    //RHS_EXPRESSION = GlobalConstants::getInstance().getString("RHS_EXPRESSION");
   }
 
   PATH_TO_MESH = GlobalConstants::getInstance().getString("PATH_TO_MESH");
@@ -60,11 +60,13 @@ void useGlobalConstants() {
   REFINEMENT_CRITERION = static_cast<unsigned int>(GlobalConstants::getInstance().get("REFINEMENT_CRITERION"));
   DUAL_FUNCTIONAL = static_cast<unsigned int>(GlobalConstants::getInstance().get("DUAL_FUNCTIONAL",1));
 
-  EVALUATION_POINT_X = GlobalConstants::getInstance().get("EVALUATION_POINT_X");
-  EVALUATION_POINT_Y = GlobalConstants::getInstance().get("EVALUATION_POINT_Y");
+  if (LOAD_FROM_SETUP > 0) {
+    EVALUATION_POINT_X = GlobalConstants::getInstance().get("EVALUATION_POINT_X");
+    EVALUATION_POINT_Y = GlobalConstants::getInstance().get("EVALUATION_POINT_Y");
 
-  EXACT_POINT_VALUE = GlobalConstants::getInstance().get("EXACT_POINT_VALUE");
-  EXACT_FLUX = GlobalConstants::getInstance().get("EXACT_FLUX");
+    EXACT_POINT_VALUE = GlobalConstants::getInstance().get("EXACT_POINT_VALUE");
+    EXACT_FLUX = GlobalConstants::getInstance().get("EXACT_FLUX");
+  }
 
   REFINEMENT_STRATEGY = static_cast<unsigned int>(GlobalConstants::getInstance().get("REFINEMENT_STRATEGY", 1));
   if (REFINEMENT_STRATEGY == 1 || REFINEMENT_STRATEGY==2) {

@@ -83,7 +83,8 @@ namespace IonPropulsion{
       linear_system_ptr->solve(homogeneous_solution);
       solution = homogeneous_solution;
 
-      compute_second_order_flux(*linear_system_ptr);   // NEW
+      if (LOAD_FROM_SETUP>0)
+        compute_second_order_flux(*linear_system_ptr);
 
       // Retrieve lifting
       if(MANUAL_LIFTING_ON)
@@ -152,22 +153,45 @@ namespace IonPropulsion{
                                                  Functions::ZeroFunction<dim>(),
                                                  boundary_value_map);
         VectorTools::interpolate_boundary_values(mapping,dof_handler,
+                                                 3,
+                                                 Functions::ZeroFunction<dim>(),
+                                                 boundary_value_map);
+        VectorTools::interpolate_boundary_values(mapping,dof_handler,   // TODO: remove Bdry id 9
                                                  9,
                                                  Functions::ZeroFunction<dim>(),
                                                  boundary_value_map);
       } else {
-        VectorTools::interpolate_boundary_values(mapping,dof_handler,
+        if (LOAD_FROM_SETUP==0) {
+          VectorTools::interpolate_boundary_values(mapping,dof_handler,
                                                1,
-                                               *boundary_values,
+                                               Functions::ConstantFunction<dim>(Ve),
                                                boundary_value_map);
-        VectorTools::interpolate_boundary_values(mapping,dof_handler,
-                                                 2,
-                                                 *boundary_values,
-                                                 boundary_value_map);
-        VectorTools::interpolate_boundary_values(mapping,dof_handler,
-                                                 9,
-                                                 *boundary_values,
-                                                 boundary_value_map);
+          VectorTools::interpolate_boundary_values(mapping,dof_handler,
+                                                   2,
+                                                   Functions::ConstantFunction<dim>(Vc),
+                                                   boundary_value_map);
+          VectorTools::interpolate_boundary_values(mapping,dof_handler,
+                                                   3,
+                                                   Functions::ConstantFunction<dim>(Vc),
+                                                   boundary_value_map);
+        } else {
+          VectorTools::interpolate_boundary_values(mapping,dof_handler,
+                                                1,
+                                                *boundary_values,
+                                                boundary_value_map);
+          VectorTools::interpolate_boundary_values(mapping,dof_handler,
+                                                   2,
+                                                   *boundary_values,
+                                                   boundary_value_map);
+          VectorTools::interpolate_boundary_values(mapping,dof_handler,
+                                                   3,
+                                                   *boundary_values,
+                                                   boundary_value_map);
+          VectorTools::interpolate_boundary_values(mapping,dof_handler,
+                                                   9,
+                                                   *boundary_values,
+                                                   boundary_value_map);
+        }
       }
 
 
@@ -447,9 +471,15 @@ namespace IonPropulsion{
         Threads::new_task(mhnc_p, this->dof_handler, hanging_node_constraints);
 
       std::map<types::global_dof_index, double> boundary_value_map;
-      VectorTools::interpolate_boundary_values(this->mapping,this->dof_handler, 1, *(this->boundary_values), boundary_value_map);
-      VectorTools::interpolate_boundary_values(this->mapping,this->dof_handler, 2, *(this->boundary_values), boundary_value_map);
-      VectorTools::interpolate_boundary_values(this->mapping,this->dof_handler, 9, *(this->boundary_values), boundary_value_map);
+      if (LOAD_FROM_SETUP==0) {
+        VectorTools::interpolate_boundary_values(this->mapping,this->dof_handler, 1, Functions::ConstantFunction<dim>(Ve), boundary_value_map);
+        VectorTools::interpolate_boundary_values(this->mapping,this->dof_handler, 2, Functions::ConstantFunction<dim>(Vc), boundary_value_map);
+        VectorTools::interpolate_boundary_values(this->mapping,this->dof_handler, 3, Functions::ConstantFunction<dim>(Vc), boundary_value_map);
+      } else {
+        VectorTools::interpolate_boundary_values(this->mapping,this->dof_handler, 1, *(this->boundary_values), boundary_value_map);
+        VectorTools::interpolate_boundary_values(this->mapping,this->dof_handler, 2, *(this->boundary_values), boundary_value_map);
+        VectorTools::interpolate_boundary_values(this->mapping,this->dof_handler, 9, *(this->boundary_values), boundary_value_map); //TODO: remove 9
+      }
       for (const auto &boundary_value : boundary_value_map)
         this->Rg_vector(boundary_value.first) = boundary_value.second;
 
@@ -482,9 +512,16 @@ namespace IonPropulsion{
       Vector<double> special_Rg_vector(dof_handler.n_dofs());
 
       std::map<types::global_dof_index, double> boundary_value_map;
-      VectorTools::interpolate_boundary_values(dof_handler, 1, special_boundary_values, boundary_value_map);
-      VectorTools::interpolate_boundary_values(dof_handler, 2, special_boundary_values, boundary_value_map);
-      VectorTools::interpolate_boundary_values(dof_handler, 9, special_boundary_values, boundary_value_map);
+      if (LOAD_FROM_SETUP==0) {
+        VectorTools::interpolate_boundary_values(dof_handler, 1, Functions::ConstantFunction<dim>(Ve), boundary_value_map);
+        VectorTools::interpolate_boundary_values(dof_handler, 2, Functions::ConstantFunction<dim>(Vc), boundary_value_map);
+        VectorTools::interpolate_boundary_values(dof_handler, 3, Functions::ConstantFunction<dim>(Vc), boundary_value_map);
+      } else {
+        VectorTools::interpolate_boundary_values(dof_handler, 1, special_boundary_values, boundary_value_map);
+        VectorTools::interpolate_boundary_values(dof_handler, 2, special_boundary_values, boundary_value_map);
+        VectorTools::interpolate_boundary_values(dof_handler, 3, special_boundary_values, boundary_value_map);
+        VectorTools::interpolate_boundary_values(dof_handler, 9, special_boundary_values, boundary_value_map);
+      }
       for (const auto &boundary_value : boundary_value_map)
         special_Rg_vector(boundary_value.first) = boundary_value.second;
       hanging_node_constraints.distribute(special_Rg_vector);
@@ -496,7 +533,7 @@ namespace IonPropulsion{
       FEValues<dim> fe_values(fe,
                               quadrature,
                               update_values | update_gradients | update_quadrature_points |
-                                update_JxW_values);
+                              update_JxW_values);
       const unsigned int dofs_per_cell = fe.n_dofs_per_cell();
       const unsigned int n_q_points    = quadrature.size();
       Vector<double>                       cell_rhs(dofs_per_cell);

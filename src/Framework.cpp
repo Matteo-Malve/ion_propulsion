@@ -107,11 +107,13 @@ namespace IonPropulsion{
       std::cout << "   Number of degrees of freedom=" << solver->n_dofs()
                 << std::endl;
 
-      for (const auto &evaluator : descriptor.evaluator_list)
+      if (LOAD_FROM_SETUP > 0) {
+        for (const auto &evaluator : descriptor.evaluator_list)
         {
           evaluator->set_refinement_cycle(step);
           solver->postprocess(*evaluator);
         }
+      }
 
       unsigned int DoFs_before_refinement = solver->n_dofs();
       solver->refine_grid();

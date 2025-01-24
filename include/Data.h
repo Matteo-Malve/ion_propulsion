@@ -64,7 +64,39 @@ namespace IonPropulsion{
     // ------------------------------------------------------
     // SetupNone
     // ------------------------------------------------------
+
     template <int dim>
+    struct SetupNone
+    {
+      class BoundaryValues : public Functions::ConstantFunction<dim>
+      {
+      public:
+        BoundaryValues()
+          : Functions::ConstantFunction<dim>(0.)
+        {}
+
+      };
+
+      class RightHandSide : public Functions::ConstantFunction<dim>
+      {
+      public:
+        RightHandSide()
+          : Functions::ConstantFunction<dim>(1.)
+        {}
+      };
+
+      class ExactSolution : public Functions::ConstantFunction<dim>
+      {
+      public:
+        ExactSolution()
+          : Functions::ConstantFunction<dim>(-1.e-19)  // Not available
+        {}
+      };
+
+      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+    };
+
+    /*template <int dim>
     struct SetupNone
     {
       class BoundaryValues : public Function<dim>
@@ -120,7 +152,7 @@ namespace IonPropulsion{
       };
 
 
-      /*class ExactSolution : public Function<dim>
+      class ExactSolution : public Function<dim>
       {
       public:
         ExactSolution()
@@ -151,7 +183,7 @@ namespace IonPropulsion{
         mu::Parser parser;
         std::string expression;
         mutable double x, y, z;
-      };*/
+      };
 
       class ExactSolution : public Functions::ConstantFunction<dim> {
       public:
@@ -161,7 +193,7 @@ namespace IonPropulsion{
       };
 
       static void create_coarse_grid(Triangulation<dim> &coarse_grid);
-    };
+    };*/
 
     // ------------------------------------------------------
     // Trait: CurvedRidges

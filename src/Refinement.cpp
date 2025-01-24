@@ -48,10 +48,12 @@ namespace IonPropulsion{
     template <int dim>
     void  RefinementGlobal<dim>::print_convergence_table() const
     {
-      Base<dim>::convergence_table->add_value("Cons. FLUX err", std::fabs(this->conservative_flux-EXACT_FLUX));
-      Base<dim>::convergence_table->set_scientific("Cons. FLUX err", true);
-      CSVLogger& logger = CSVLogger::getInstance();
-      logger.addColumn("Cons. FLUX err", std::to_string(std::fabs(this->conservative_flux-EXACT_FLUX)));
+      if (LOAD_FROM_SETUP > 0) {
+        Base<dim>::convergence_table->add_value("Cons. FLUX err", std::fabs(this->conservative_flux-EXACT_FLUX));
+        Base<dim>::convergence_table->set_scientific("Cons. FLUX err", true);
+        CSVLogger& logger = CSVLogger::getInstance();
+        logger.addColumn("Cons. FLUX err", std::to_string(std::fabs(this->conservative_flux-EXACT_FLUX)));
+      }
 
       this->convergence_table->omit_column_from_convergence_rate_evaluation("cycle");
       this->convergence_table->omit_column_from_convergence_rate_evaluation("cells");
@@ -472,7 +474,7 @@ namespace IonPropulsion{
             boundary_ids[cell->active_cell_index()] = cell->face(face)->boundary_id();
       data_out.add_data_vector(boundary_ids, "boundary_ids",DataOut<dim, dim>::type_cell_data);
 
-      data_out.build_patches(PrimalSolver<dim>::mapping, PrimalSolver<dim>::mapping.get_degree());
+      data_out.build_patches(PrimalSolver<dim>::mapping, 1 /*PrimalSolver<dim>::mapping.get_degree()*/);
 
       std::ofstream out(OUTPUT_PATH+"/"+"solution-" + std::to_string(this->refinement_cycle) +
                         ".vtu");
@@ -586,10 +588,12 @@ namespace IonPropulsion{
     template <int dim>
     void WeightedResidual<dim>::print_convergence_table() const
     {
-      Base<dim>::convergence_table->add_value("Cons. FLUX err", std::fabs(PrimalSolver<dim>::conservative_flux-EXACT_FLUX));
-      Base<dim>::convergence_table->set_scientific("Cons. FLUX err", true);
-      CSVLogger& logger = CSVLogger::getInstance();
-      logger.addColumn("Cons. FLUX err", std::to_string(std::fabs(PrimalSolver<dim>::conservative_flux-EXACT_FLUX)));
+      if (LOAD_FROM_SETUP >0) {
+        Base<dim>::convergence_table->add_value("Cons. FLUX err", std::fabs(PrimalSolver<dim>::conservative_flux-EXACT_FLUX));
+        Base<dim>::convergence_table->set_scientific("Cons. FLUX err", true);
+        CSVLogger& logger = CSVLogger::getInstance();
+        logger.addColumn("Cons. FLUX err", std::to_string(std::fabs(PrimalSolver<dim>::conservative_flux-EXACT_FLUX)));
+      }
 
       // No convergence rates. Makes no sense
       cout<<std::endl;
