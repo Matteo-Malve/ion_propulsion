@@ -28,10 +28,10 @@ namespace IonPropulsion{
       std::cout << "--- Writing checkpoint... ---" << std::endl << std::endl;
 
       {
-        std::ofstream checkpoint_file(OUTPUT_PATH+"/"+"tmp.checkpoint_step_83");
+        std::ofstream checkpoint_file(OUTPUT_PATH+"/"+"tmp.checkpoint_ion_propulsion");
         AssertThrow(checkpoint_file,
                     ExcMessage(
-                      "Could not write to the <tmp.checkpoint_step_83> file."));
+                      "Could not write to the <tmp.checkpoint_ion_propulsion> file."));
 
         boost::archive::text_oarchive archive(checkpoint_file);
 
@@ -54,24 +54,27 @@ namespace IonPropulsion{
     }
 
     template <int dim>
-    void Base<dim>::restart()
+    void Solver<dim>::restart()
       {
         {
-          std::ifstream checkpoint_file(OUTPUT_PATH+"/"+"checkpoint_step_83");
+          std::ifstream checkpoint_file(OUTPUT_PATH+"/"+"checkpoint_ion_propulsion");
           AssertThrow(checkpoint_file,
                       ExcMessage(
-                        "Could not read from the <checkpoint_step_83> file."));
+                        "Could not read from the <checkpoint_ion_propulsion> file."));
 
           boost::archive::text_iarchive archive(checkpoint_file);
           archive >> *this;
         }
 
-      triangulation->load(OUTPUT_PATH+"/"+"checkpoint");
+      this->triangulation->load(OUTPUT_PATH+"/"+"checkpoint");
       //particle_handler.deserialize();
+
+      dof_handler.reinit(*this->triangulation);
+
       GridOut grid_out;
       GridOutFlags::Msh msh_flags(true, true);
       grid_out.set_flags(msh_flags);
-      grid_out.write_msh(*triangulation, OUTPUT_PATH+"/re-imported_mesh.msh");
+      grid_out.write_msh(*this->triangulation, OUTPUT_PATH+"/re-imported_mesh.msh");
     }
 
 

@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 
     // Finally pass the descriptor object to a function that runs the entire
     // solution with it:
-    Framework<dim>::run(descriptor, true);
+    Framework<dim>::run(descriptor, false);
   }
 
   // Catch exceptions to give information about things that failed:

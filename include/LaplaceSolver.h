@@ -38,7 +38,7 @@ namespace IonPropulsion{
       };
 
       void checkpoint();
-      void restart();
+      virtual void restart() = 0;
 
     protected:
       const SmartPointer<Triangulation<dim>> triangulation;
@@ -71,6 +71,8 @@ namespace IonPropulsion{
       virtual unsigned int n_dofs() const override;
 
       void update_convergence_table() override;
+
+      void restart() override;
 
     protected:
       const SmartPointer<const FiniteElement<dim>>  fe;

@@ -100,6 +100,8 @@ namespace IonPropulsion{
 
       virtual void conservative_flux_rhs(Vector<double> & rhs) const override;
 
+      void restart() override{};
+
     private:
 
       void solve_primal_problem();
