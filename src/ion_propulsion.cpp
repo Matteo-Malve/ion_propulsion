@@ -20,7 +20,7 @@ int main(int argc, char **argv)
     Framework<dim>::ProblemDescription descriptor;
 
     // First set the refinement criterion we wish to use:
-    if (REFINEMENT_CRITERION==1)
+    if (REFINEMENT_CRITERION==1 || REFINEMENT_CRITERION==4)
       descriptor.refinement_criterion = Framework<dim>::ProblemDescription::global_refinement;
     else if (REFINEMENT_CRITERION==2 || REFINEMENT_CRITERION==3)
        descriptor.refinement_criterion = Framework<dim>::ProblemDescription::dual_weighted_error_estimator;
@@ -67,7 +67,7 @@ int main(int argc, char **argv)
     //const Point<dim> evaluation_point(0.75, 0.75);    // original-step14
     */
 
-    if (REFINEMENT_CRITERION>1) {
+    if (REFINEMENT_CRITERION == 2 || REFINEMENT_CRITERION==3) {
       if (DUAL_FUNCTIONAL==1)
         descriptor.dual_functional = std::make_unique<DualFunctional::PointValueEvaluation<dim>>(MAPPING_DEGREE,evaluation_point);
       else if (DUAL_FUNCTIONAL==2 || DUAL_FUNCTIONAL==3)

@@ -30,17 +30,50 @@ namespace IonPropulsion{
     template <int dim>
     void RefinementGlobal<dim>::refine_grid()
     {
-      if (MANUAL_LIFTING_ON) {
-        Vector<double> old_Rg_values = this->Rg_vector;
-        SolutionTransfer<dim> solution_transfer(this->dof_handler);
-        solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_values);
-        this->triangulation->refine_global(1);
-        this->dof_handler.distribute_dofs(*(this->fe));
-        this->Rg_vector.reinit(this->dof_handler.n_dofs());
-        solution_transfer.interpolate(old_Rg_values, this->Rg_vector);
-        this->construct_Rg_vector();
-      } else {
-        this->triangulation->refine_global(1);
+      if (REFINEMENT_CRITERION == 1) {
+        if (MANUAL_LIFTING_ON) {
+          Vector<double> old_Rg_values = this->Rg_vector;
+          SolutionTransfer<dim> solution_transfer(this->dof_handler);
+          solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_values);
+          this->triangulation->refine_global(1);
+          this->dof_handler.distribute_dofs(*(this->fe));
+          this->Rg_vector.reinit(this->dof_handler.n_dofs());
+          solution_transfer.interpolate(old_Rg_values, this->Rg_vector);
+          this->construct_Rg_vector();
+        } else {
+          this->triangulation->refine_global(1);
+        }
+      } else if (REFINEMENT_CRITERION == 4) {
+
+        unsigned int ctr = 0;
+        Vector<float> criteria(this->triangulation->n_active_cells());
+        for (auto &cell : this->triangulation->active_cell_iterators()) {
+          if(cell->at_boundary())
+            criteria[ctr++] = 1;
+          else
+            criteria[ctr++] = 0;
+        }
+        GridRefinement::refine(*this->triangulation, criteria, 0.5);
+
+        if (MANUAL_LIFTING_ON) {
+          this->triangulation->prepare_coarsening_and_refinement();
+          SolutionTransfer<dim> solution_transfer(this->dof_handler);
+
+          Vector<double> old_Rg_values = this->Rg_vector;
+          solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_values);
+
+          this->triangulation->execute_coarsening_and_refinement();
+
+          this->dof_handler.distribute_dofs(*this->fe);
+          this->Rg_vector.reinit(this->dof_handler.n_dofs());
+
+          solution_transfer.interpolate(old_Rg_values, this->Rg_vector);
+
+          this->construct_Rg_vector();
+
+        } else {
+          this->triangulation->execute_coarsening_and_refinement();
+        }
       }
 
     }

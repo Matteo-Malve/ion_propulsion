@@ -621,9 +621,6 @@ namespace IonPropulsion {
       double l = 0.0004;
 
       for (unsigned int i = 0; i < NUM_CONCENTRIC_REF; ++i) {
-        Vector<float> criteria(coarse_grid.n_active_cells());
-        //cout  << "Active cells " << triangulation.n_active_cells() << endl;
-        unsigned int ctr = 0;
 
         // Threshold
         const double max_thickness = 1.5 * l;    // 2*
@@ -634,7 +631,8 @@ namespace IonPropulsion {
         else
           D = min_thickness + (max_thickness-min_thickness)/(NUM_CONCENTRIC_REF-1)*(NUM_CONCENTRIC_REF-1-i);
 
-
+        Vector<float> criteria(coarse_grid.n_active_cells());
+        unsigned int ctr = 0;
         for (auto &cell : coarse_grid.active_cell_iterators()) {
           const Point<2> c = cell->center();
           if(center.distance(c) < D)

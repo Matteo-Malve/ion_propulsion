@@ -118,6 +118,8 @@ void printParsedConstants() {
     refinement_criterion="dual_weighted_error_estimator";
   else if (REFINEMENT_CRITERION == 3)
     refinement_criterion="global* (also evaluate dual-weighted residual)";
+  else if (REFINEMENT_CRITERION == 4)
+    refinement_criterion="global only around emitter";
   else
     DEAL_II_NOT_IMPLEMENTED();
 
@@ -181,7 +183,7 @@ void printParsedConstants() {
             << std::setw(20) << (MANUAL_LIFTING_ON ? "true" : "false") << "\n";
   std::cout << std::left << std::setw(30) << "REFINEMENT_CRITERION"
             << std::setw(20) << refinement_criterion << "\n";
-  if (REFINEMENT_CRITERION>1) {
+  if (REFINEMENT_CRITERION==2 || REFINEMENT_CRITERION==3) {
     std::cout << std::left << std::setw(30) << "DUAL_FUNCTIONAL" << std::setw(20) << functional_name << "\n";
   }
   std::cout << "------------------------------------------------------------\n";
