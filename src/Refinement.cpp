@@ -30,6 +30,7 @@ namespace IonPropulsion{
     template <int dim>
     void RefinementGlobal<dim>::refine_grid()
     {
+      // REFINE EVERYWHERE
       if (REFINEMENT_CRITERION == 1) {
         if (MANUAL_LIFTING_ON) {
           Vector<double> old_Rg_values = this->Rg_vector;
@@ -43,7 +44,10 @@ namespace IonPropulsion{
         } else {
           this->triangulation->refine_global(1);
         }
-      } else if (REFINEMENT_CRITERION == 4) {
+      }
+
+      // ONLY REFINE AROUND EMITTER
+      else if (REFINEMENT_CRITERION == 4) {
 
         unsigned int ctr = 0;
         Vector<float> criteria(this->triangulation->n_active_cells());
@@ -507,7 +511,7 @@ namespace IonPropulsion{
             boundary_ids[cell->active_cell_index()] = cell->face(face)->boundary_id();
       data_out.add_data_vector(boundary_ids, "boundary_ids",DataOut<dim, dim>::type_cell_data);
 
-      data_out.build_patches(PrimalSolver<dim>::mapping, 1 /*PrimalSolver<dim>::mapping.get_degree()*/);
+      data_out.build_patches(PrimalSolver<dim>::mapping, PrimalSolver<dim>::mapping.get_degree(), DataOut<dim,dim>::CurvedCellRegion::curved_inner_cells);
 
       std::ofstream out(OUTPUT_PATH+"/"+"solution-" + std::to_string(this->refinement_cycle) +
                         ".vtu");
