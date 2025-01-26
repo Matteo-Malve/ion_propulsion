@@ -52,10 +52,18 @@ namespace IonPropulsion{
         unsigned int ctr = 0;
         Vector<float> criteria(this->triangulation->n_active_cells());
         for (auto &cell : this->triangulation->active_cell_iterators()) {
-          if(cell->at_boundary())
-            criteria[ctr++] = 1;
-          else
+          if (cell->at_boundary()) {
+            bool refine_this_cell = false;
+            for (unsigned int face = 0; face < GeometryInfo<dim>::faces_per_cell; ++face) {
+              if (cell->face(face)->at_boundary() && cell->face(face)->boundary_id() == 1) {
+                refine_this_cell = true;
+                break;
+              }
+            }
+            criteria[ctr++] = refine_this_cell ? 1 : 0;
+          } else {
             criteria[ctr++] = 0;
+          }
         }
         GridRefinement::refine(*this->triangulation, criteria, 0.5);
 
