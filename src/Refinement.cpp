@@ -538,6 +538,7 @@ namespace IonPropulsion{
     WeightedResidual<dim>::estimate_error(Vector<float> &error_indicators) const
     {
 
+
       AffineConstraints<double> dual_hanging_node_constraints;
       DoFTools::make_hanging_node_constraints(DualSolver<dim>::dof_handler,
                                               dual_hanging_node_constraints);
