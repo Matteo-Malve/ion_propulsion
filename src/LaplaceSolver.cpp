@@ -424,9 +424,7 @@ namespace IonPropulsion{
             boundary_ids[cell->active_cell_index()] = cell->face(face)->boundary_id();
       data_out.add_data_vector(boundary_ids, "boundary_ids",DataOut<dim, dim>::type_cell_data);
 
-      data_out.build_patches(this->mapping, this->mapping.get_degree(),DataOut<dim,dim>::CurvedCellRegion::curved_inner_cells);
-      //data_out.build_patches(this->mapping, 5, DataOut<dim,dim>::CurvedCellRegion::curved_inner_cells);
-
+      data_out.build_patches(this->mapping, 1,DataOut<dim,dim>::CurvedCellRegion::curved_inner_cells);
 
       std::ofstream out(OUTPUT_PATH+"/"+"solution-" + std::to_string(this->refinement_cycle) +
                         ".vtu");
