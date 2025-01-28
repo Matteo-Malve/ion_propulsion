@@ -750,6 +750,51 @@ namespace IonPropulsion {
 
     }
 
+    template <int dim>
+    void WireWire<dim>::create_coarse_grid(Triangulation<dim> &coarse_grid)
+    {
+      const std::string path_to_mesh = PATH_TO_MESH;
+      std::ifstream input_file(path_to_mesh);
+      GridIn<2>       grid_in;
+      grid_in.attach_triangulation(coarse_grid);
+      grid_in.read_msh(input_file);
+
+      const types::manifold_id emitterUp = 1;
+      SphericalManifold<2> emitterUp_manifold(Point<2>(0.,0.03));
+
+      const types::manifold_id emitterDown = 2;
+      SphericalManifold<2> emitterDown_manifold(Point<2>(0.,-0.03));
+
+      const types::manifold_id collectorUp = 3;
+      SphericalManifold<2> collectorUp_manifold(Point<2>(0.053175,0.03));
+
+      const types::manifold_id collectorDown = 4;
+      SphericalManifold<2> collectorDown_manifold(Point<2>(0.053175,-0.03));
+
+      coarse_grid.set_all_manifold_ids_on_boundary(1, emitterUp);
+      coarse_grid.set_manifold(emitterUp, emitterUp_manifold);
+      coarse_grid.set_all_manifold_ids_on_boundary(2, emitterDown);
+      coarse_grid.set_manifold(emitterDown, emitterDown_manifold);
+
+      coarse_grid.set_all_manifold_ids_on_boundary(3, collectorUp);
+      coarse_grid.set_manifold(collectorUp, collectorUp_manifold);
+      coarse_grid.set_all_manifold_ids_on_boundary(4, collectorDown);
+      coarse_grid.set_manifold(collectorDown, collectorDown_manifold);
+
+      unsigned int ctr = 0;
+      Vector<float> criteria(coarse_grid.n_active_cells());
+      for (auto &cell : coarse_grid.active_cell_iterators()) {
+        if (cell->at_boundary())
+          criteria[ctr++] = 1;
+         else
+          criteria[ctr++] = 0;
+      }
+      GridRefinement::refine(coarse_grid, criteria, 0.5);
+      coarse_grid.execute_coarsening_and_refinement();
+
+
+    }
+
 
     // Template instantiation
     template struct SetUpBase<2>;
@@ -792,6 +837,9 @@ namespace IonPropulsion {
 
     template struct CircularStep14<2>;
     template struct SetUp<IonPropulsion::Data::CircularStep14<2>, 2>;
+
+    template struct WireWire<2>;
+    template struct SetUp<IonPropulsion::Data::WireWire<2>, 2>;
 
   } // namespace Data
 } // namespace IonPropulsion

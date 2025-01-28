@@ -46,7 +46,7 @@ void useGlobalConstants() {
   eps_r = GlobalConstants::getInstance().get("eps_r");
   eps_0 = GlobalConstants::getInstance().get("eps_0");
 
-  if (LOAD_FROM_SETUP==0) {
+  if (LOAD_FROM_SETUP==0 || LOAD_FROM_SETUP==11) {
     Ve = GlobalConstants::getInstance().get("Ve");
     Vc = GlobalConstants::getInstance().get("Vc");
     //RHS_EXPRESSION = GlobalConstants::getInstance().getString("RHS_EXPRESSION");
@@ -60,7 +60,7 @@ void useGlobalConstants() {
   REFINEMENT_CRITERION = static_cast<unsigned int>(GlobalConstants::getInstance().get("REFINEMENT_CRITERION"));
   DUAL_FUNCTIONAL = static_cast<unsigned int>(GlobalConstants::getInstance().get("DUAL_FUNCTIONAL",1));
 
-  if (LOAD_FROM_SETUP > 0) {
+  if (LOAD_FROM_SETUP != 0 && LOAD_FROM_SETUP != 11) {
     EVALUATION_POINT_X = GlobalConstants::getInstance().get("EVALUATION_POINT_X");
     EVALUATION_POINT_Y = GlobalConstants::getInstance().get("EVALUATION_POINT_Y");
 
@@ -108,6 +108,8 @@ void printParsedConstants() {
     setup_name="CircularStep14";
   else if (LOAD_FROM_SETUP == 10)
     setup_name="LogCircular_1_2";
+  else if (LOAD_FROM_SETUP == 11)
+    setup_name="WireWire";
   else
     DEAL_II_NOT_IMPLEMENTED();
 
@@ -164,7 +166,7 @@ void printParsedConstants() {
   std::cout << std::left << std::setw(30) << "NUM_CONCENTRIC_REF"
             << std::setw(20) << NUM_CONCENTRIC_REF << "\n";
 
-  if (LOAD_FROM_SETUP==0){
+  if (LOAD_FROM_SETUP==0 ||LOAD_FROM_SETUP==11){
     std::cout << "------------------------------------------------------------\n";
     std::cout << std::left << std::setw(30) << "Ve"
               << std::setw(20) << Ve << "\n";

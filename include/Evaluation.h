@@ -64,13 +64,14 @@ namespace IonPropulsion{
     class FluxEvaluation : public EvaluationBase<dim>
     {
     public:
-      FluxEvaluation(const unsigned degree);   // TODO: Construct with std::set Boundary iDs
+      FluxEvaluation(const unsigned degree, const std::set<unsigned int> &boundary_ids);
 
       virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
                                                         const Vector<double> & solution,
                                                         const Triangulation<dim> &       triangulation) const override;
 
     private:
+      const std::set<unsigned int> boundary_ids;
 
     };
 

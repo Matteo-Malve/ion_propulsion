@@ -93,7 +93,7 @@ namespace IonPropulsion{
     template <int dim>
     void  RefinementGlobal<dim>::print_convergence_table() const
     {
-      if (LOAD_FROM_SETUP > 0) {
+      if (LOAD_FROM_SETUP != 0 && LOAD_FROM_SETUP != 11) {
         Base<dim>::convergence_table->add_value("Cons. FLUX err", std::fabs(this->conservative_flux-EXACT_FLUX));
         Base<dim>::convergence_table->set_scientific("Cons. FLUX err", true);
         CSVLogger& logger = CSVLogger::getInstance();
@@ -634,7 +634,7 @@ namespace IonPropulsion{
     template <int dim>
     void WeightedResidual<dim>::print_convergence_table() const
     {
-      if (LOAD_FROM_SETUP >0) {
+      if (LOAD_FROM_SETUP != 0 && LOAD_FROM_SETUP != 11) {
         Base<dim>::convergence_table->add_value("Cons. FLUX err", std::fabs(PrimalSolver<dim>::conservative_flux-EXACT_FLUX));
         Base<dim>::convergence_table->set_scientific("Cons. FLUX err", true);
         CSVLogger& logger = CSVLogger::getInstance();

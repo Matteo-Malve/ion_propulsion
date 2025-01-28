@@ -111,7 +111,7 @@ namespace IonPropulsion{
       std::cout << "   Number of degrees of freedom=" << solver->n_dofs()
                 << std::endl;
 
-      if (LOAD_FROM_SETUP > 0) {
+      if (LOAD_FROM_SETUP != 0 && LOAD_FROM_SETUP != 11) {
         for (const auto &evaluator : descriptor.evaluator_list)
         {
           evaluator->set_refinement_cycle(step);

@@ -83,13 +83,13 @@ namespace IonPropulsion{
     public:
       StandardFluxEvaluation(
         const unsigned mapping_degree,
-        const unsigned int boundary_id);
+        const std::set<unsigned int> &boundary_ids);
 
       virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
                                 Vector<double> &       rhs) const override;
 
     protected:
-      const unsigned int boundary_id;
+      const std::set<unsigned int> boundary_ids;
     };
 
 

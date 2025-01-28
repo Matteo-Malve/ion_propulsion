@@ -129,8 +129,8 @@ namespace IonPropulsion{
     template <int dim>
       StandardFluxEvaluation<dim>::StandardFluxEvaluation(
         const unsigned mapping_degree,
-        const unsigned int boundary_id)
-        : DualFunctionalBase<dim>(mapping_degree), boundary_id(boundary_id)
+        const std::set<unsigned int> &boundary_ids)
+        : DualFunctionalBase<dim>(mapping_degree), boundary_ids(boundary_ids)
     {}
 
     template <int dim>
@@ -166,7 +166,7 @@ namespace IonPropulsion{
 
         for (const auto &face : cell->face_iterators()) {
           // Process only boundary faces with the specified boundary_id
-          if (face->at_boundary() && face->boundary_id() == 1) {
+          if (face->at_boundary() && boundary_ids.count(face->boundary_id()) > 0) {
             fe_face_values.reinit(cell, face);
 
             // Compute flux for this face

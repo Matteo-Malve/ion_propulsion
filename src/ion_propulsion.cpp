@@ -54,6 +54,8 @@ int main(int argc, char **argv)
       descriptor.data = std::make_unique<Data::SetUp<Data::CircularStep14<dim>, dim>>();
     else if (LOAD_FROM_SETUP == 10)
       descriptor.data = std::make_unique<Data::SetUp<Data::LogCircular_1_2<dim>, dim>>();
+    else if (LOAD_FROM_SETUP == 11)
+      descriptor.data = std::make_unique<Data::SetUp<Data::WireWire<dim>, dim>>();
     else
       DEAL_II_NOT_IMPLEMENTED();
 
@@ -67,11 +69,21 @@ int main(int argc, char **argv)
     //const Point<dim> evaluation_point(0.75, 0.75);    // original-step14
     */
 
+    std::unique_ptr<const std::set<unsigned int>> emitter_boundary_ids_set_ptr;
+
+    if (LOAD_FROM_SETUP==0)
+      emitter_boundary_ids_set_ptr = std::make_unique<const std::set<unsigned int>>(std::set<unsigned int>{1});
+    else  if (LOAD_FROM_SETUP==11)
+      emitter_boundary_ids_set_ptr = std::make_unique<const std::set<unsigned int>>(std::set<unsigned int>{1,2});
+    else
+      emitter_boundary_ids_set_ptr = std::make_unique<const std::set<unsigned int>>(std::set<unsigned int>{1});
+
+
     if (REFINEMENT_CRITERION == 2 || REFINEMENT_CRITERION==3) {
       if (DUAL_FUNCTIONAL==1)
         descriptor.dual_functional = std::make_unique<DualFunctional::PointValueEvaluation<dim>>(MAPPING_DEGREE,evaluation_point);
       else if (DUAL_FUNCTIONAL==2 || DUAL_FUNCTIONAL==3)
-        descriptor.dual_functional = std::make_unique<DualFunctional::StandardFluxEvaluation<dim>>(MAPPING_DEGREE,1);
+        descriptor.dual_functional = std::make_unique<DualFunctional::StandardFluxEvaluation<dim>>(MAPPING_DEGREE,*emitter_boundary_ids_set_ptr);
       else
         DEAL_II_NOT_IMPLEMENTED();
     }
@@ -80,7 +92,7 @@ int main(int argc, char **argv)
     Evaluation::PointValueEvaluation<dim> postprocessor1(descriptor.mapping_degree,evaluation_point);
     Evaluation::L2_error_estimate<dim> postprocessor2(descriptor.mapping_degree,descriptor.data->get_exact_solution());
     Evaluation::H1_error_estimate<dim> postprocessor3(descriptor.mapping_degree,descriptor.data->get_exact_solution());
-    Evaluation::FluxEvaluation<dim> postprocessor4(descriptor.mapping_degree);
+    Evaluation::FluxEvaluation<dim> postprocessor4(descriptor.mapping_degree, *emitter_boundary_ids_set_ptr);
     //Evaluation::GridOutput<dim>           postprocessor2("grid");
 
     descriptor.evaluator_list.push_back(&postprocessor1);

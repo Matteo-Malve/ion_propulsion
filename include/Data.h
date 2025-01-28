@@ -928,6 +928,41 @@ namespace IonPropulsion{
       static void create_coarse_grid(Triangulation<dim> &coarse_grid);
     };
 
+    // ------------------------------------------------------
+    // WireWire
+    // ------------------------------------------------------
+
+    template <int dim>
+    struct WireWire
+    {
+      class BoundaryValues : public Functions::ConstantFunction<dim>
+      {
+      public:
+        BoundaryValues()
+          : Functions::ConstantFunction<dim>(0.)
+        {}
+
+      };
+
+      class RightHandSide : public Functions::ConstantFunction<dim>
+      {
+      public:
+        RightHandSide()
+          : Functions::ConstantFunction<dim>(1.)
+        {}
+      };
+
+      class ExactSolution : public Functions::ConstantFunction<dim>
+      {
+      public:
+        ExactSolution()
+          : Functions::ConstantFunction<dim>(-1.e-19)  // Not available
+        {}
+      };
+
+      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+    };
+
 
   } // namespace Data
 }
