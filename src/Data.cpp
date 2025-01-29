@@ -782,12 +782,7 @@ namespace IonPropulsion {
 
       TransfiniteInterpolationManifold<dim> inner_manifold;
 
-      coarse_grid.set_all_manifold_ids(0);
-      //coarse_grid.set_all_manifold_ids_on_boundary(1, emitterUp);
-      //coarse_grid.set_all_manifold_ids_on_boundary(2, emitterDown);
-      //coarse_grid.set_all_manifold_ids_on_boundary(3, collectorUp);
-      //coarse_grid.set_all_manifold_ids_on_boundary(4, collectorDown);
-      const double R = 0.020+1e-6;
+      /*const double R = 0.010+1e-6;
       for (const auto &cell : coarse_grid.active_cell_iterators())
       {
         for (const auto &face : cell->face_iterators())
@@ -802,8 +797,14 @@ namespace IonPropulsion {
             face->set_all_manifold_ids(collectorDown);
 
         }
-      }
+      }*/
 
+      coarse_grid.reset_all_manifolds();
+      coarse_grid.set_all_manifold_ids(0);
+      coarse_grid.set_all_manifold_ids_on_boundary(1, emitterUp);
+      coarse_grid.set_all_manifold_ids_on_boundary(2, emitterDown);
+      coarse_grid.set_all_manifold_ids_on_boundary(3, collectorUp);
+      coarse_grid.set_all_manifold_ids_on_boundary(4, collectorDown);
 
       coarse_grid.set_manifold(emitterUp, emitterUp_manifold);
       coarse_grid.set_manifold(emitterDown, emitterDown_manifold);
@@ -814,6 +815,27 @@ namespace IonPropulsion {
       coarse_grid.set_manifold (0, inner_manifold);
       //coarse_grid.set_manifold (0, FlatManifold<dim>());
 
+
+      /*for (unsigned int i = 0; i < 2; ++i) {
+        Vector<float> criteria(coarse_grid.n_active_cells());
+        unsigned int ctr = 0;
+
+        for (auto &cell : coarse_grid.active_cell_iterators()) {
+          const Point<dim> c = cell->center();
+          if (cell->center().distance(center_emitterUp) < R)
+            criteria[ctr++] = 1;
+          else if (cell->center().distance(center_emitterDown) < R)
+            criteria[ctr++] = 1;
+          else if (cell->center().distance(center_collectorUp) < R)
+            criteria[ctr++] = 1;
+          else if (cell->center().distance(center_collectorDown) < R)
+            criteria[ctr++] = 1;
+          else
+            criteria[ctr++] = 0;
+        }
+        GridRefinement::refine(coarse_grid, criteria, 0.5);
+        coarse_grid.execute_coarsening_and_refinement();
+      }*/
 
       //coarse_grid.refine_global(1);
     }

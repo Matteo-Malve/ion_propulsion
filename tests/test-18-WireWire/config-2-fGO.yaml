@@ -4,7 +4,7 @@ eps_r: 1.0    # 1.0006          # Relative permittivity
 
 
 # Set-up configurations
-PATH_TO_MESH: ../mesh/myWW2.msh
+PATH_TO_MESH: ../mesh/myWW.msh
 LOAD_FROM_SETUP: 11                  # Setups: mesh, analytical solution, forcing term
 # Options: 0: NONE (**)
 #          1: CurvedRidges (from step-14)
