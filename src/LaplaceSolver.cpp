@@ -200,22 +200,20 @@ namespace IonPropulsion{
 
       std::map<types::global_dof_index, double> boundary_value_map;
       if(MANUAL_LIFTING_ON) {
-        VectorTools::interpolate_boundary_values(mapping,dof_handler,
-                                               1,
-                                               Functions::ZeroFunction<dim>(),
-                                               boundary_value_map);
-        VectorTools::interpolate_boundary_values(mapping,dof_handler,
-                                                 2,
-                                                 Functions::ZeroFunction<dim>(),
-                                                 boundary_value_map);
-        VectorTools::interpolate_boundary_values(mapping,dof_handler,
-                                                 3,
-                                                 Functions::ZeroFunction<dim>(),
-                                                 boundary_value_map);
-        VectorTools::interpolate_boundary_values(mapping,dof_handler,   // TODO: remove Bdry id 9
-                                                 9,
-                                                 Functions::ZeroFunction<dim>(),
-                                                 boundary_value_map);
+        if (LOAD_FROM_SETUP==0) {
+          VectorTools::interpolate_boundary_values(mapping,dof_handler,1,Functions::ZeroFunction<dim>(),boundary_value_map);
+          VectorTools::interpolate_boundary_values(mapping,dof_handler,2,Functions::ZeroFunction<dim>(),boundary_value_map);
+          VectorTools::interpolate_boundary_values(mapping,dof_handler,3,Functions::ZeroFunction<dim>(),boundary_value_map);
+        } else if (LOAD_FROM_SETUP == 11) {
+          VectorTools::interpolate_boundary_values(mapping,dof_handler,1,Functions::ZeroFunction<dim>(),boundary_value_map);
+          VectorTools::interpolate_boundary_values(mapping,dof_handler,2,Functions::ZeroFunction<dim>(),boundary_value_map);
+          VectorTools::interpolate_boundary_values(mapping,dof_handler,3,Functions::ZeroFunction<dim>(),boundary_value_map);
+          VectorTools::interpolate_boundary_values(mapping,dof_handler,4,Functions::ZeroFunction<dim>(),boundary_value_map);
+        } else {
+          VectorTools::interpolate_boundary_values(mapping,dof_handler,1,Functions::ZeroFunction<dim>(),boundary_value_map);
+          VectorTools::interpolate_boundary_values(mapping,dof_handler,2,Functions::ZeroFunction<dim>(),boundary_value_map);
+          VectorTools::interpolate_boundary_values(mapping,dof_handler,9,Functions::ZeroFunction<dim>(),boundary_value_map);
+        }
       } else {
         if (LOAD_FROM_SETUP==0) {
           VectorTools::interpolate_boundary_values(mapping,dof_handler,
