@@ -787,7 +787,7 @@ namespace IonPropulsion {
       //coarse_grid.set_all_manifold_ids_on_boundary(2, emitterDown);
       //coarse_grid.set_all_manifold_ids_on_boundary(3, collectorUp);
       //coarse_grid.set_all_manifold_ids_on_boundary(4, collectorDown);
-      const double R = 0.011+1e-6;
+      const double R = 0.020+1e-6;
       for (const auto &cell : coarse_grid.active_cell_iterators())
       {
         for (const auto &face : cell->face_iterators())
@@ -815,7 +815,7 @@ namespace IonPropulsion {
       //coarse_grid.set_manifold (0, FlatManifold<dim>());
 
 
-      coarse_grid.refine_global(1);
+      //coarse_grid.refine_global(1);
     }
 
 
