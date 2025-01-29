@@ -759,40 +759,63 @@ namespace IonPropulsion {
       grid_in.attach_triangulation(coarse_grid);
       grid_in.read_msh(input_file);
 
-      const types::manifold_id emitterUp = 1;
-      SphericalManifold<2> emitterUp_manifold(Point<2>(0.,0.03));
+      GridOut grid_out;
+      GridOutFlags::Msh msh_flags(true, true);
+      grid_out.set_flags(msh_flags);
+      grid_out.write_msh(coarse_grid, OUTPUT_PATH+"/initial_mesh.msh");
+
+     const types::manifold_id emitterUp = 1;
+      Point<2> center_emitterUp(0.0, 0.03);
+      SphericalManifold<2> emitterUp_manifold(center_emitterUp);
 
       const types::manifold_id emitterDown = 2;
-      SphericalManifold<2> emitterDown_manifold(Point<2>(0.,-0.03));
+      Point<2> center_emitterDown(0.0, -0.03);
+      SphericalManifold<2> emitterDown_manifold(center_emitterDown);
 
       const types::manifold_id collectorUp = 3;
-      SphericalManifold<2> collectorUp_manifold(Point<2>(0.053175,0.03));
+      Point<2> center_collectorUp(0.053175, 0.03);
+      SphericalManifold<2> collectorUp_manifold(center_collectorUp);
 
       const types::manifold_id collectorDown = 4;
-      SphericalManifold<2> collectorDown_manifold(Point<2>(0.053175,-0.03));
+      Point<2> center_collectorDown(0.053175, -0.03);
+      SphericalManifold<2> collectorDown_manifold(center_collectorDown);
 
-      coarse_grid.set_all_manifold_ids_on_boundary(1, emitterUp);
+      TransfiniteInterpolationManifold<dim> inner_manifold;
+
+      coarse_grid.set_all_manifold_ids(0);
+      //coarse_grid.set_all_manifold_ids_on_boundary(1, emitterUp);
+      //coarse_grid.set_all_manifold_ids_on_boundary(2, emitterDown);
+      //coarse_grid.set_all_manifold_ids_on_boundary(3, collectorUp);
+      //coarse_grid.set_all_manifold_ids_on_boundary(4, collectorDown);
+      const double R = 0.011+1e-6;
+      for (const auto &cell : coarse_grid.active_cell_iterators())
+      {
+        for (const auto &face : cell->face_iterators())
+        {
+          if (face->center().distance(center_emitterUp) < R)
+            face->set_all_manifold_ids(emitterUp);
+          else if (face->center().distance(center_emitterDown) < R)
+            face->set_all_manifold_ids(emitterDown);
+          else if (face->center().distance(center_collectorUp) < R)
+            face->set_all_manifold_ids(collectorUp);
+          else if (face->center().distance(center_collectorDown) < R)
+            face->set_all_manifold_ids(collectorDown);
+
+        }
+      }
+
+
       coarse_grid.set_manifold(emitterUp, emitterUp_manifold);
-      coarse_grid.set_all_manifold_ids_on_boundary(2, emitterDown);
       coarse_grid.set_manifold(emitterDown, emitterDown_manifold);
-
-      coarse_grid.set_all_manifold_ids_on_boundary(3, collectorUp);
       coarse_grid.set_manifold(collectorUp, collectorUp_manifold);
-      coarse_grid.set_all_manifold_ids_on_boundary(4, collectorDown);
       coarse_grid.set_manifold(collectorDown, collectorDown_manifold);
 
-      unsigned int ctr = 0;
-      Vector<float> criteria(coarse_grid.n_active_cells());
-      for (auto &cell : coarse_grid.active_cell_iterators()) {
-        if (cell->at_boundary())
-          criteria[ctr++] = 1;
-         else
-          criteria[ctr++] = 0;
-      }
-      GridRefinement::refine(coarse_grid, criteria, 0.5);
-      coarse_grid.execute_coarsening_and_refinement();
+      inner_manifold.initialize(coarse_grid);
+      coarse_grid.set_manifold (0, inner_manifold);
+      //coarse_grid.set_manifold (0, FlatManifold<dim>());
 
 
+      coarse_grid.refine_global(1);
     }
 
 
