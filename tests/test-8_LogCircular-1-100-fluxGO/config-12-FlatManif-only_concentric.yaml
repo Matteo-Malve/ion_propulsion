@@ -6,10 +6,11 @@ eps_r: 1.0    # 1.0006          # Relative permittivity
 Ve: null   # (*)             # Electric potential [V] at the emitter
 Vc: null      # (*)             # Electric potential [V] at the collector
 RHS_EXPRESSION: null
+#UEX_EXPRESSION: x
 
 # Set-up configurations
+#NUM_PRELIMINARY_GLOBAL_REF: null       # Number of preliminary global refinements
 PATH_TO_MESH: ../mesh/LogCircular_1_100-B.msh
-NUM_CONCENTRIC_REF: 0
 LOAD_FROM_SETUP: 5                  # Setups: mesh, analytical solution, forcing term
 # Options: 0: NONE (**)
 #          1: CurvedRidges (from step-14)
@@ -19,8 +20,9 @@ LOAD_FROM_SETUP: 5                  # Setups: mesh, analytical solution, forcing
 #          5: LogCircular_1_100
 
 # Framework configuration
+MAPPING_DEGREE: 1
 MANUAL_LIFTING_ON: 1       # 0: OFF, 1: ON,
-REFINEMENT_CRITERION: 2    # 1: global_refinement, 2: dual_weighted_error_estimator
+REFINEMENT_CRITERION: 4    # 1: global_refinement, 2: dual_weighted_error_estimator, 4: GlobRef around emitter
 DUAL_FUNCTIONAL: 2         # 1: point_evaluation,  2: flux_evaluation
 
 # Point coordinates
@@ -31,14 +33,7 @@ EVALUATION_POINT_Y: 0.
 EXACT_POINT_VALUE: 3148.182801
 EXACT_FLUX: 2.728752707684e+04
 
-# Mesh refinement options:
-REFINEMENT_STRATEGY: 1      # 1. fixed_fraction(default), 2. fixed_number, 3. optimize
-TOP_FRACTION: 0.80          # default: 0.8
-BOTTOM_FRACTION: 0.01       # default: 0.02
-OPTIMIZE_ORDER: null        # default: 2
-
-MANIFOLD_IS_APPLIED: 2      # 0: no, 1: yes, 2: only on boundary
-
+MANIFOLD_IS_APPLIED: 2      # 0: no, 1: yes, 2: on bdry Flat Manif otw, 3: on bdry TransfiniteManif otw
 
 # NOTES:
 # (*): Will be overridden by the choice of a predefined Setup

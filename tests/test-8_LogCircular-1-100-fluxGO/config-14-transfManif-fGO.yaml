@@ -20,7 +20,7 @@ LOAD_FROM_SETUP: 5                  # Setups: mesh, analytical solution, forcing
 
 # Framework configuration
 MANUAL_LIFTING_ON: 1       # 0: OFF, 1: ON,
-REFINEMENT_CRITERION: 1    # 1: global_refinement, 2: dual_weighted_error_estimator
+REFINEMENT_CRITERION: 2    # 1: global_refinement, 2: dual_weighted_error_estimator
 DUAL_FUNCTIONAL: 2         # 1: point_evaluation,  2: flux_evaluation
 
 # Point coordinates
@@ -37,7 +37,7 @@ TOP_FRACTION: 0.80          # default: 0.8
 BOTTOM_FRACTION: 0.01       # default: 0.02
 OPTIMIZE_ORDER: null        # default: 2
 
-MANIFOLD_IS_APPLIED: 2      # 0: no, 1: yes, 2: only on boundary
+MANIFOLD_IS_APPLIED: 3      # 0: no, 1: yes, 2: on bdry Flat Manif otw, 3: on bdry TransfiniteManif otw
 
 
 # NOTES:

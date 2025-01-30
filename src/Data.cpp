@@ -660,14 +660,25 @@ namespace IonPropulsion {
 
       const Point<2> center(0.0, 0.0);
       SphericalManifold<2> circular_manifold(center);
+
+
       coarse_grid.reset_all_manifolds();
+      coarse_grid.set_all_manifold_ids(0);
+      if (MANIFOLD_IS_APPLIED == 2 || MANIFOLD_IS_APPLIED == 3)
+        coarse_grid.set_all_manifold_ids_on_boundary(1);
+      else if (MANIFOLD_IS_APPLIED == 1)
+        coarse_grid.set_all_manifold_ids(1);
+
+      coarse_grid.set_manifold (1, circular_manifold);
 
       if (MANIFOLD_IS_APPLIED == 2)
-        coarse_grid.set_all_manifold_ids_on_boundary(0);
-      else if (MANIFOLD_IS_APPLIED == 1)
-        coarse_grid.set_all_manifold_ids(0);
+         coarse_grid.set_manifold (0, FlatManifold<2>());
+      else if(MANIFOLD_IS_APPLIED == 3){
+          TransfiniteInterpolationManifold<2> inner_manifold;
+          inner_manifold.initialize(coarse_grid);
+          coarse_grid.set_manifold (0, inner_manifold);
+      }
 
-      coarse_grid.set_manifold (0, circular_manifold);
     }
 
 
