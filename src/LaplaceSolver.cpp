@@ -196,7 +196,7 @@ namespace IonPropulsion{
                       copier,
                       AssemblyScratchData(*fe, *quadrature,mapping),
                       AssemblyCopyData());
-      linear_system.hanging_node_constraints.condense(linear_system.matrix);
+      //linear_system.hanging_node_constraints.condense(linear_system.matrix);
 
       std::map<types::global_dof_index, double> boundary_value_map;
       if(MANUAL_LIFTING_ON) {
@@ -309,11 +309,16 @@ namespace IonPropulsion{
     void Solver<dim>::copy_local_to_global(const AssemblyCopyData &copy_data,
                                            LinearSystem &linear_system) const
     {
+      linear_system.hanging_node_constraints.distribute_local_to_global(
+        copy_data.cell_matrix,
+        copy_data.local_dof_indices,
+        linear_system.matrix);
+
       for (unsigned int i = 0; i < copy_data.local_dof_indices.size(); ++i)
         for (unsigned int j = 0; j < copy_data.local_dof_indices.size(); ++j) {
-          linear_system.matrix.add(copy_data.local_dof_indices[i],
+          /*linear_system.matrix.add(copy_data.local_dof_indices[i],
                                    copy_data.local_dof_indices[j],
-                                   copy_data.cell_matrix(i, j));
+                                   copy_data.cell_matrix(i, j));*/
           linear_system.Umatrix.add(copy_data.local_dof_indices[i],
                                    copy_data.local_dof_indices[j],
                                    copy_data.cell_matrix(i, j));
