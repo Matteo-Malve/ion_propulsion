@@ -96,8 +96,10 @@ int main(int argc, char **argv)
     //Evaluation::GridOutput<dim>           postprocessor2("grid");
 
     descriptor.evaluator_list.push_back(&postprocessor1);
-    descriptor.evaluator_list.push_back(&postprocessor2);
-    descriptor.evaluator_list.push_back(&postprocessor3);
+    if (LOAD_FROM_SETUP != 0 && LOAD_FROM_SETUP != 11) {
+      descriptor.evaluator_list.push_back(&postprocessor2);
+      descriptor.evaluator_list.push_back(&postprocessor3);
+    }
     descriptor.evaluator_list.push_back(&postprocessor4);
 
     // Set the maximal number of degrees of freedom after which we want the

@@ -60,12 +60,14 @@ namespace IonPropulsion{
 
 			std::cout << std::scientific << std::setprecision(12)
 								<< "   Point value = " << point_value << std::endl;
-			std::cout << std::scientific << std::setprecision(12)
-								<< "   Exact value = " << EXACT_POINT_VALUE << std::endl;
+			/*std::cout << std::scientific << std::setprecision(12)
+								<< "   Exact value = " << EXACT_POINT_VALUE << std::endl;*/
 
-			// Update table with exact error
-			double exact_error = std::fabs(point_value-EXACT_POINT_VALUE);
-			return std::make_pair("ex POINT err",exact_error);
+			if (LOAD_FROM_SETUP != 0 && LOAD_FROM_SETUP != 11) {
+				double exact_error = std::fabs(point_value-EXACT_POINT_VALUE);
+				return std::make_pair("ex POINT err",exact_error);
+			} else
+				return std::make_pair("POINT value",point_value);
 		}
 
 		// ------------------------------------------------------
@@ -106,12 +108,15 @@ namespace IonPropulsion{
 
 			std::cout << std::scientific << std::setprecision(12)
 								<< "   Comp. Flux = " << flux << std::endl;
-			std::cout << std::scientific << std::setprecision(12)
-								<< "   Exact Flux = " << EXACT_FLUX << std::endl;
+			/*std::cout << std::scientific << std::setprecision(12)
+								<< "   Exact Flux = " << EXACT_FLUX << std::endl;*/
 
-			// Update table with exact error
-			double exact_error = std::fabs(flux-EXACT_FLUX);
-			return std::make_pair("std FLUX err",exact_error);
+			if (LOAD_FROM_SETUP != 0 && LOAD_FROM_SETUP != 11) {
+				double exact_error = std::fabs(flux-EXACT_FLUX);
+				return std::make_pair("std FLUX err",exact_error);
+			} else {
+				return std::make_pair("std FLUX value",flux);
+			}
 		}
 
 		// ------------------------------------------------------
