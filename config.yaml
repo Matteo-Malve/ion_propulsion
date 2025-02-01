@@ -37,7 +37,7 @@ TOP_FRACTION: 0.80          # default: 0.8
 BOTTOM_FRACTION: 0.01       # default: 0.02
 OPTIMIZE_ORDER: null        # default: 2
 
-MANIFOLD_IS_APPLIED: 2      # 0: no, 1: yes, 2: on bdry Flat Manif otw, 3: on bdry TransfiniteManif otw
+MANIFOLD_IS_APPLIED: 3      # 0: no, 1: yes, 2: on bdry Flat Manif otw, 3: on bdry TransfiniteManif otw
 
 
 # NOTES:

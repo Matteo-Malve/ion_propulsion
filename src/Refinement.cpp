@@ -609,6 +609,20 @@ namespace IonPropulsion{
             }
           ++present_cell;
         }
+
+      /* Output
+      DataOut<dim> data_out;
+      data_out.attach_dof_handler(DualSolver<dim>::dof_handler);
+      data_out.add_data_vector(error_indicators, "error_indicators", DataOut<dim, dim>::type_cell_data);
+      data_out.add_data_vector(primal_solution, "primal_solution", DataOut<dim, dim>::type_dof_data);
+      data_out.add_data_vector(dual_weights, "dual_weights", DataOut<dim, dim>::type_dof_data);
+      data_out.build_patches();
+      std::ofstream out( "error_indicators-" + std::to_string(this->refinement_cycle) +
+                        ".vtu");
+      data_out.write(out, DataOutBase::vtu);
+
+      */ //END output
+
       double estimated_error = std::accumulate(error_indicators.begin(),
                                    error_indicators.end(),
                                    0.);

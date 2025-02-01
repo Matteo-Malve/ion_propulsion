@@ -793,29 +793,35 @@ namespace IonPropulsion {
 
       TransfiniteInterpolationManifold<dim> inner_manifold;
 
-      /*const double R = 0.010+1e-6;
-      for (const auto &cell : coarse_grid.active_cell_iterators())
-      {
-        for (const auto &face : cell->face_iterators())
+      if (MANIFOLD_IS_APPLIED==1) {
+
+        coarse_grid.reset_all_manifolds();
+        coarse_grid.set_all_manifold_ids(0);
+
+        const double R = 0.011;
+        for (const auto &cell : coarse_grid.active_cell_iterators())
         {
-          if (face->center().distance(center_emitterUp) < R)
-            face->set_all_manifold_ids(emitterUp);
-          else if (face->center().distance(center_emitterDown) < R)
-            face->set_all_manifold_ids(emitterDown);
-          else if (face->center().distance(center_collectorUp) < R)
-            face->set_all_manifold_ids(collectorUp);
-          else if (face->center().distance(center_collectorDown) < R)
-            face->set_all_manifold_ids(collectorDown);
+          for (const auto &face : cell->face_iterators())
+          {
+            if (face->center().distance(center_emitterUp) < R)
+              face->set_all_manifold_ids(emitterUp);
+            else if (face->center().distance(center_emitterDown) < R)
+              face->set_all_manifold_ids(emitterDown);
+            else if (face->center().distance(center_collectorUp) < R)
+              face->set_all_manifold_ids(collectorUp);
+            else if (face->center().distance(center_collectorDown) < R)
+              face->set_all_manifold_ids(collectorDown);
 
+          }
         }
-      }*/
-
-      coarse_grid.reset_all_manifolds();
-      coarse_grid.set_all_manifold_ids(0);
-      coarse_grid.set_all_manifold_ids_on_boundary(1, emitterUp);
-      coarse_grid.set_all_manifold_ids_on_boundary(2, emitterDown);
-      coarse_grid.set_all_manifold_ids_on_boundary(3, collectorUp);
-      coarse_grid.set_all_manifold_ids_on_boundary(4, collectorDown);
+      } else if (MANIFOLD_IS_APPLIED==3) {
+        coarse_grid.reset_all_manifolds();
+        coarse_grid.set_all_manifold_ids(0);
+        coarse_grid.set_all_manifold_ids_on_boundary(1, emitterUp);
+        coarse_grid.set_all_manifold_ids_on_boundary(2, emitterDown);
+        coarse_grid.set_all_manifold_ids_on_boundary(3, collectorUp);
+        coarse_grid.set_all_manifold_ids_on_boundary(4, collectorDown);
+      }
 
       coarse_grid.set_manifold(emitterUp, emitterUp_manifold);
       coarse_grid.set_manifold(emitterDown, emitterDown_manifold);
