@@ -13,3 +13,5 @@ src/.DS_Store
 */results/*/*.msh
 tests/old-tests/
 *.png
+tests/*/*.ipynb
+../results/.DS_Store
