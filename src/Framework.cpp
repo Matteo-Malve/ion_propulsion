@@ -127,9 +127,9 @@ namespace IonPropulsion{
       solver->refine_grid();
       solver->print_convergence_table();
       CSVLogger::getInstance().flushRow();
-      solver->checkpoint();
 
-
+      if (REFINEMENT_CRITERION==2)
+        solver->checkpoint();
 
       if (DoFs_before_refinement > descriptor.max_degrees_of_freedom)
         break;
