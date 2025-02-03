@@ -49,13 +49,22 @@ namespace IonPropulsion{
       // ONLY REFINE AROUND EMITTER
       else if (REFINEMENT_CRITERION == 4) {
 
+        std::unique_ptr<const std::set<unsigned int>> emitter_boundary_ids_set_ptr;
+
+        if (LOAD_FROM_SETUP==0)
+          emitter_boundary_ids_set_ptr = std::make_unique<const std::set<unsigned int>>(std::set<unsigned int>{1});
+        else  if (LOAD_FROM_SETUP==11)
+          emitter_boundary_ids_set_ptr = std::make_unique<const std::set<unsigned int>>(std::set<unsigned int>{1,2});
+        else
+          emitter_boundary_ids_set_ptr = std::make_unique<const std::set<unsigned int>>(std::set<unsigned int>{1});
+
         unsigned int ctr = 0;
         Vector<float> criteria(this->triangulation->n_active_cells());
         for (auto &cell : this->triangulation->active_cell_iterators()) {
           if (cell->at_boundary()) {
             bool refine_this_cell = false;
             for (unsigned int face = 0; face < GeometryInfo<dim>::faces_per_cell; ++face) {
-              if (cell->face(face)->at_boundary() && cell->face(face)->boundary_id() == 1) {
+              if (cell->face(face)->at_boundary() && emitter_boundary_ids_set_ptr->count(cell->face(face)->boundary_id()) > 0) {
                 refine_this_cell = true;
                 break;
               }
