@@ -27,7 +27,7 @@ namespace IonPropulsion{
     {
       std::cout << "--- Writing checkpoint... ---" << std::endl << std::endl;
 
-      {
+      /*{
         std::ofstream checkpoint_file(OUTPUT_PATH+"/"+"tmp.checkpoint_ion_propulsion");
         AssertThrow(checkpoint_file,
                     ExcMessage(
@@ -36,11 +36,14 @@ namespace IonPropulsion{
         boost::archive::text_oarchive archive(checkpoint_file);
 
         archive << *this;
-      }
+      }*/
 
       //particle_handler.prepare_for_serialization();
-      triangulation->save(OUTPUT_PATH+"/"+"tmp.checkpoint");
-
+      //triangulation->save(OUTPUT_PATH+"/"+"tmp.checkpoint");
+      std::ofstream                 checkpoint_file(OUTPUT_PATH+"/"+"checkpoint-mesh");
+      boost::archive::text_oarchive archive(checkpoint_file);
+      triangulation->save(archive,1);
+      /*
       std::list<std::string> tmp_checkpoint_files;
       for (const auto &dir_entry : std::filesystem::directory_iterator(OUTPUT_PATH))
         if (dir_entry.is_regular_file() &&
@@ -50,7 +53,7 @@ namespace IonPropulsion{
       for (const std::string &filename : tmp_checkpoint_files) {
         std::string new_name = filename.substr(4, std::string::npos);
         std::filesystem::rename(OUTPUT_PATH + "/" + filename, OUTPUT_PATH + "/" + new_name);
-      }
+      }*/
     }
 
     template <int dim>
