@@ -16,7 +16,7 @@ namespace IonPropulsion{
     class Base
     {
     public:
-      Base(Triangulation<dim> &coarse_grid);
+      Base(parallel::distributed::Triangulation<dim> &coarse_grid);
       virtual ~Base() = default;
 
       virtual void solve_problem() = 0;
@@ -27,9 +27,16 @@ namespace IonPropulsion{
 
       virtual void set_refinement_cycle(const unsigned int cycle);
 
-      virtual void output_solution() const = 0;
+      virtual void output_solution()  = 0;
       virtual void update_convergence_table() = 0;
       virtual void print_convergence_table() const {};
+      void print_and_reset_timer() {
+        computing_timer.print_summary();
+        computing_timer.reset();
+      }
+      TimerOutput & get_timer() {
+        return computing_timer;
+      }
 
       template <class Archive>
       void serialize(Archive &ar, const unsigned int version) {
@@ -41,10 +48,17 @@ namespace IonPropulsion{
       virtual void restart() = 0;
 
     protected:
-      const SmartPointer<Triangulation<dim>> triangulation;
+      const SmartPointer<parallel::distributed::Triangulation<dim>> triangulation;
       std::shared_ptr<ConvergenceTable> convergence_table;
 
       unsigned int refinement_cycle;
+
+      MPI_Comm mpi_communicator;
+      const unsigned int n_mpi_processes;
+      const unsigned int this_mpi_process;
+      ConditionalOStream pcout;
+
+      TimerOutput        computing_timer;
     };
 
     // ------------------------------------------------------
@@ -54,7 +68,7 @@ namespace IonPropulsion{
     class Solver : public virtual Base<dim>
     {
     public:
-      Solver(Triangulation<dim> &       triangulation,
+      Solver(parallel::distributed::Triangulation<dim> &       triangulation,
              const FiniteElement<dim> & fe,
              const Quadrature<dim> &    quadrature,
              const Quadrature<dim - 1> &face_quadrature,
@@ -79,14 +93,17 @@ namespace IonPropulsion{
       const SmartPointer<const Quadrature<dim>>     quadrature;
       const SmartPointer<const Quadrature<dim - 1>> face_quadrature;
       DoFHandler<dim>                               dof_handler;
-      Vector<double>                                solution;
-      Vector<double>                                homogeneous_solution;
-      Vector<double>                                Rg_vector;
+      PETScWrappers::MPI::Vector                    locally_relevant_solution;
+      //PETScWrappers::MPI::Vector                    homogeneous_solution;
+      PETScWrappers::MPI::Vector                    locally_relevant_Rg_vector;   // TODO
+      PETScWrappers::MPI::Vector                    completely_distributed_solution;
       const SmartPointer<const Function<dim>>       boundary_values;
       double                                        conservative_flux;
       MappingQ<dim>      mapping;
+      IndexSet                                      locally_owned_dofs;
+      IndexSet                                      locally_relevant_dofs;
 
-      virtual void assemble_rhs(Vector<double> &rhs) const = 0;
+      virtual void assemble_rhs(PETScWrappers::MPI::Vector &rhs, AffineConstraints<double> &) const = 0;
 
       virtual void construct_Rg_vector() = 0;
 
@@ -95,20 +112,24 @@ namespace IonPropulsion{
 
       struct LinearSystem
       {
-        LinearSystem(const DoFHandler<dim> &dof_handler);
+        LinearSystem(
+          const DoFHandler<dim> &dof_handler,
+          MPI_Comm & mpi_communicator,
+          IndexSet & locally_owned_dofs,
+          IndexSet & locally_relevant_dofs);
 
-        void solve(Vector<double> &solution) const;
+        void solve(
+          PETScWrappers::MPI::Vector &solution,
+          PETScWrappers::MPI::Vector & completely_distributed_solution) const;
 
         AffineConstraints<double> hanging_node_constraints;
-        SparsityPattern           sparsity_pattern;
-        SparseMatrix<double>      matrix;
-        Vector<double>            rhs;
-        SparseMatrix<double>      Umatrix;
+        //SparsityPattern           sparsity_pattern;
+        PETScWrappers::MPI::SparseMatrix    matrix;
+        PETScWrappers::MPI::Vector          rhs;
+        PETScWrappers::MPI::SparseMatrix    Umatrix;
       };
 
       std::unique_ptr<LinearSystem>                 linear_system_ptr;
-
-      virtual void compute_second_order_flux(LinearSystem &linear_system) = 0;
 
     private:
 
@@ -152,7 +173,7 @@ namespace IonPropulsion{
     class PrimalSolver : public Solver<dim>
     {
     public:
-      PrimalSolver(Triangulation<dim> &       triangulation,
+      PrimalSolver(parallel::distributed::Triangulation<dim> &       triangulation,
                    const FiniteElement<dim> & fe,
                    const Quadrature<dim> &    quadrature,
                    const Quadrature<dim - 1> &face_quadrature,
@@ -160,22 +181,20 @@ namespace IonPropulsion{
                    const Function<dim> &      boundary_values,
                    const unsigned degree);
 
-      virtual void output_solution() const override;
+      virtual void output_solution()  override;
 
     protected:
       const SmartPointer<const Function<dim>>       rhs_function;
       double                                        conservative_flux;
       Vector<double>                                Au;
 
-      virtual void assemble_rhs(Vector<double> &rhs) const override;
-
+      virtual void assemble_rhs(PETScWrappers::MPI::Vector &rhs
+                                      , AffineConstraints<double> &) const override;
       virtual void construct_Rg_vector() override;
-
-      void compute_second_order_flux(typename Solver<dim>::LinearSystem &linear_system) override;
 
     private:
       void retrieve_Rg() override {
-        this->solution += this->Rg_vector;
+        this->locally_relevant_solution += this->locally_relevant_Rg_vector;
       }
     };
 
@@ -187,7 +206,7 @@ namespace IonPropulsion{
     {
     public:
       DualSolver(
-        Triangulation<dim> &                           triangulation,
+        parallel::distributed::Triangulation<dim> &    triangulation,
         const FiniteElement<dim> &                     fe,
         const Quadrature<dim> &                        quadrature,
         const Quadrature<dim - 1> &                    face_quadrature,
@@ -202,8 +221,8 @@ namespace IonPropulsion{
 
       const SmartPointer<const DualFunctional::DualFunctionalBase<dim>>
                    dual_functional;
-      virtual void assemble_rhs(Vector<double> &rhs) const override;  //TODO: do it in WeightedResidual
-      virtual void conservative_flux_rhs(Vector<double> & rhs) const = 0;   //TODO: New
+      virtual void assemble_rhs(PETScWrappers::MPI::Vector &rhs
+                                      , AffineConstraints<double> &) const override;
       static const Functions::ZeroFunction<dim> boundary_values;
 
       /*void assemble_conservative_flux_rhs(
@@ -214,8 +233,6 @@ namespace IonPropulsion{
     private:
       virtual void construct_Rg_vector() override {};
       void retrieve_Rg() override {};
-
-      void compute_second_order_flux(typename Solver<dim>::LinearSystem & ) override {};
 
     };
 

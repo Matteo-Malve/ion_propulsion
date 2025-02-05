@@ -23,12 +23,16 @@ namespace IonPropulsion{
       void set_refinement_cycle(const unsigned int refinement_cycle);
 
       virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
-                                                        const Vector<double> & solution,
-                                                        const Triangulation<dim> &       triangulation) const = 0;
+                                                        const PETScWrappers::MPI::Vector & solution,
+                                                        const parallel::distributed::Triangulation<dim> &       triangulation) const = 0;
 
     protected:
       unsigned int refinement_cycle;
       MappingQ<dim>      mapping;
+      MPI_Comm mpi_communicator;
+      const unsigned int n_mpi_processes;
+      const unsigned int this_mpi_process;
+      ConditionalOStream pcout;
 
     };
 
@@ -43,8 +47,8 @@ namespace IonPropulsion{
       PointValueEvaluation(const unsigned degree, const Point<dim> &evaluation_point);
 
       virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
-                                                        const Vector<double> & solution,
-                                                        const Triangulation<dim> &       triangulation) const override;
+                                                        const PETScWrappers::MPI::Vector & solution,
+                                                        const parallel::distributed::Triangulation<dim> &       triangulation) const override;
 
       DeclException1(
         ExcEvaluationPointNotFound,
@@ -67,8 +71,8 @@ namespace IonPropulsion{
       FluxEvaluation(const unsigned degree, const std::set<unsigned int> &boundary_ids);
 
       virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
-                                                        const Vector<double> & solution,
-                                                        const Triangulation<dim> &       triangulation) const override;
+                                                        const PETScWrappers::MPI::Vector & solution,
+                                                        const parallel::distributed::Triangulation<dim> &       triangulation) const override;
 
     private:
       const std::set<unsigned int> boundary_ids;
@@ -87,8 +91,8 @@ namespace IonPropulsion{
       GridOutput(const unsigned degree, const std::string &output_name_base);
 
       virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
-                                                        const Vector<double> & solution,
-                                                        const Triangulation<dim> &       triangulation) const override;
+                                                        const PETScWrappers::MPI::Vector & solution,
+                                                        const parallel::distributed::Triangulation<dim> &       triangulation) const override;
 
     private:
       const std::string output_name_base;
@@ -106,8 +110,8 @@ namespace IonPropulsion{
       L2_error_estimate(const unsigned degree, const Function<dim> & analytical_solution);
 
       virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
-                                                        const Vector<double> & solution,
-                                                        const Triangulation<dim> &       triangulation) const override;
+                                                        const PETScWrappers::MPI::Vector & solution,
+                                                        const parallel::distributed::Triangulation<dim> &       triangulation) const override;
 
     private:
       const std::string output_name_base;
@@ -125,8 +129,8 @@ namespace IonPropulsion{
       H1_error_estimate(const unsigned degree, const Function<dim> & analytical_solution);
 
       virtual std::pair<std::string, double> operator()(const DoFHandler<dim> &dof_handler,
-                                                        const Vector<double> & solution,
-                                                        const Triangulation<dim> &       triangulation) const override;
+                                                        const PETScWrappers::MPI::Vector & solution,
+                                                        const parallel::distributed::Triangulation<dim> &       triangulation) const override;
 
     private:
       const std::string output_name_base;

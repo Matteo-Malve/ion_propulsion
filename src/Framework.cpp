@@ -15,10 +15,17 @@ namespace IonPropulsion{
   template <int dim>
   void Framework<dim>::run(const ProblemDescription &descriptor, const bool do_restart)
   {
-    // First create a triangulation from the given data object,
-    Triangulation<dim> triangulation(
-      Triangulation<dim>::smoothing_on_refinement);
+    MPI_Comm mpi_communicator(MPI_COMM_WORLD);
+    //const unsigned int n_mpi_processes(Utilities::MPI::n_mpi_processes(mpi_communicator));
+    const unsigned int this_mpi_process(Utilities::MPI::this_mpi_process(mpi_communicator));
+    ConditionalOStream pcout(std::cout, (this_mpi_process == 0));
 
+    parallel::distributed::Triangulation<dim> triangulation(
+      mpi_communicator,
+      typename Triangulation<dim>::MeshSmoothing(
+        Triangulation<dim>::smoothing_on_refinement |
+        Triangulation<dim>::smoothing_on_coarsening)
+        );
     descriptor.data->create_coarse_grid(triangulation);
 
     // then a set of finite elements and appropriate quadrature formula:
@@ -34,7 +41,6 @@ namespace IonPropulsion{
       {
         case ProblemDescription::dual_weighted_error_estimator:
         {
-          //cout<<"Refinement strategy: dual_weighted_error_estimator"<<std::endl;
           solver = std::make_unique<LaplaceSolver::WeightedResidual<dim>>(
             triangulation,
             primal_fe,
@@ -47,10 +53,8 @@ namespace IonPropulsion{
             descriptor.mapping_degree);
           break;
           }
-
         case ProblemDescription::global_refinement:
           {
-          //cout<<"Refinement strategy: global_refinement"<<std::endl;
             solver = std::make_unique<LaplaceSolver::RefinementGlobal<dim>>(
               triangulation,
               primal_fe,
@@ -61,37 +65,6 @@ namespace IonPropulsion{
               descriptor.mapping_degree);
             break;
           }
-
-        case ProblemDescription::kelly_indicator:
-          {
-          //cout<<"Refinement strategy: kelly_indicator"<<std::endl;
-            solver = std::make_unique<LaplaceSolver::RefinementKelly<dim>>(
-              triangulation,
-              primal_fe,
-              quadrature,
-              face_quadrature,
-              descriptor.data->get_right_hand_side(),
-              descriptor.data->get_boundary_values(),
-              descriptor.mapping_degree);
-            break;
-          }
-
-        case ProblemDescription::weighted_kelly_indicator:
-          {
-          //cout<<"Refinement strategy: weighted_kelly_indicator"<<std::endl;
-            solver =
-              std::make_unique<LaplaceSolver::RefinementWeightedKelly<dim>>(
-                triangulation,
-                primal_fe,
-                quadrature,
-                face_quadrature,
-                descriptor.data->get_right_hand_side(),
-                descriptor.data->get_boundary_values(),
-                *descriptor.kelly_weight,
-                descriptor.mapping_degree);
-            break;
-          }
-
         default:
           AssertThrow(false, ExcInternalError());
       }
@@ -101,39 +74,67 @@ namespace IonPropulsion{
 
     for (unsigned int step = 0; true; ++step)
       {
-      std::cout << "Refinement cycle: " << step << std::endl;
 
+      // ------------------------------------------------------
+      // Solution
+      // ------------------------------------------------------
+
+      pcout << "Refinement cycle: " << step << std::endl;
       solver->set_refinement_cycle(step);
+
       solver->solve_problem();
+
+      MPI_Barrier(mpi_communicator);
       solver->update_convergence_table();
+
+      MPI_Barrier(mpi_communicator);
       solver->output_solution();
 
-      std::cout << "   Number of degrees of freedom=" << solver->n_dofs()
-                << std::endl;
+      MPI_Barrier(mpi_communicator);
+      pcout << "   Number of degrees of freedom=" << solver->n_dofs() << std::endl;
 
 
-      for (const auto &evaluator : descriptor.evaluator_list)
+      // ------------------------------------------------------
+      // Evaluation
+      // ------------------------------------------------------
       {
-        evaluator->set_refinement_cycle(step);
-        solver->postprocess(*evaluator);
+        TimerOutput::Scope t(solver->get_timer(), "evaluation");
+        for (const auto &evaluator : descriptor.evaluator_list)
+        {
+          evaluator->set_refinement_cycle(step);
+          solver->postprocess(*evaluator);
+        }
       }
 
-
+      // ------------------------------------------------------
+      // Refinement
+      // ------------------------------------------------------
+      MPI_Barrier(mpi_communicator);
       unsigned int DoFs_before_refinement = solver->n_dofs();
-
-
-
-
       solver->refine_grid();
-      solver->print_convergence_table();
-      CSVLogger::getInstance().flushRow();
+
+      // ------------------------------------------------------
+      // Output
+      // ------------------------------------------------------
+      MPI_Barrier(mpi_communicator);
+      if (this_mpi_process == 0) {
+        solver->print_convergence_table();
+        CSVLogger::getInstance().flushRow();
+      }
 
       if (REFINEMENT_CRITERION==2)
         solver->checkpoint();
 
+      // ------------------------------------------------------
+      // Closure
+      // ------------------------------------------------------
+      MPI_Barrier(mpi_communicator);
+      cout<<std::defaultfloat<<std::endl;
+      solver->print_and_reset_timer();
+      MPI_Barrier(mpi_communicator);
+
       if (DoFs_before_refinement > descriptor.max_degrees_of_freedom)
         break;
-
 
     }
 

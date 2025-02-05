@@ -10,7 +10,7 @@ namespace IonPropulsion{
     // ------------------------------------------------------
     template <int dim>
     RefinementGlobal<dim>::RefinementGlobal(
-      Triangulation<dim> &       coarse_grid,
+      parallel::distributed::Triangulation<dim> &       coarse_grid,
       const FiniteElement<dim> & fe,
       const Quadrature<dim> &    quadrature,
       const Quadrature<dim - 1> &face_quadrature,
@@ -30,17 +30,18 @@ namespace IonPropulsion{
     template <int dim>
     void RefinementGlobal<dim>::refine_grid()
     {
+      TimerOutput::Scope t(this->computing_timer, "refine");
       // REFINE EVERYWHERE
       if (REFINEMENT_CRITERION == 1) {
-        if (MANUAL_LIFTING_ON) {
-          Vector<double> old_Rg_values = this->Rg_vector;
+        if (MANUAL_LIFTING_ON) {    // TODO
+          /*Vector<double> old_Rg_values = this->locally_relevantRg_vector;
           SolutionTransfer<dim> solution_transfer(this->dof_handler);
           solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_values);
           this->triangulation->refine_global(1);
           this->dof_handler.distribute_dofs(*(this->fe));
-          this->Rg_vector.reinit(this->dof_handler.n_dofs());
-          solution_transfer.interpolate(old_Rg_values, this->Rg_vector);
-          this->construct_Rg_vector();
+          this->locally_relevantRg_vector.reinit(this->dof_handler.n_dofs());
+          solution_transfer.interpolate(old_Rg_values, this->locally_relevantRg_vector);
+          this->construct_Rg_vector();*/
         } else {
           this->triangulation->refine_global(1);
         }
@@ -58,39 +59,32 @@ namespace IonPropulsion{
         else
           emitter_boundary_ids_set_ptr = std::make_unique<const std::set<unsigned int>>(std::set<unsigned int>{1});
 
-        unsigned int ctr = 0;
         Vector<float> criteria(this->triangulation->n_active_cells());
         for (auto &cell : this->triangulation->active_cell_iterators()) {
-          if (cell->at_boundary()) {
-            bool refine_this_cell = false;
-            for (unsigned int face = 0; face < GeometryInfo<dim>::faces_per_cell; ++face) {
-              if (cell->face(face)->at_boundary() && emitter_boundary_ids_set_ptr->count(cell->face(face)->boundary_id()) > 0) {
-                refine_this_cell = true;
-                break;
-              }
-            }
-            criteria[ctr++] = refine_this_cell ? 1 : 0;
-          } else {
-            criteria[ctr++] = 0;
-          }
+          if (cell->is_locally_owned())
+            if (cell->at_boundary())
+              for (unsigned int face = 0; face < GeometryInfo<dim>::faces_per_cell; ++face)
+                if (cell->face(face)->at_boundary() && emitter_boundary_ids_set_ptr->count(cell->face(face)->boundary_id()) > 0) {
+                  cell->set_refine_flag();
+                  break;
+                }
         }
-        GridRefinement::refine(*this->triangulation, criteria, 0.5);
 
-        if (MANUAL_LIFTING_ON) {
-          this->triangulation->prepare_coarsening_and_refinement();
+        if (MANUAL_LIFTING_ON) {    //TODO
+          /*this->triangulation->prepare_coarsening_and_refinement();
           SolutionTransfer<dim> solution_transfer(this->dof_handler);
 
-          Vector<double> old_Rg_values = this->Rg_vector;
+          Vector<double> old_Rg_values = this->locally_relevantRg_vector;
           solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_values);
 
           this->triangulation->execute_coarsening_and_refinement();
 
           this->dof_handler.distribute_dofs(*this->fe);
-          this->Rg_vector.reinit(this->dof_handler.n_dofs());
+          this->locally_relevantRg_vector.reinit(this->dof_handler.n_dofs());
 
-          solution_transfer.interpolate(old_Rg_values, this->Rg_vector);
+          solution_transfer.interpolate(old_Rg_values, this->locally_relevantRg_vector);
 
-          this->construct_Rg_vector();
+          this->construct_Rg_vector();*/
 
         } else {
           this->triangulation->execute_coarsening_and_refinement();
@@ -102,13 +96,6 @@ namespace IonPropulsion{
     template <int dim>
     void  RefinementGlobal<dim>::print_convergence_table() const
     {
-      if (LOAD_FROM_SETUP != 0 && LOAD_FROM_SETUP != 11) {
-        Base<dim>::convergence_table->add_value("Cons. FLUX err", std::fabs(this->conservative_flux-EXACT_FLUX));
-        Base<dim>::convergence_table->set_scientific("Cons. FLUX err", true);
-        CSVLogger& logger = CSVLogger::getInstance();
-        logger.addColumn("Cons. FLUX err", std::to_string(std::fabs(this->conservative_flux-EXACT_FLUX)));
-      }
-
       this->convergence_table->omit_column_from_convergence_rate_evaluation("cycle");
       this->convergence_table->omit_column_from_convergence_rate_evaluation("cells");
       this->convergence_table->omit_column_from_convergence_rate_evaluation("DoFs");
@@ -125,94 +112,6 @@ namespace IonPropulsion{
       tex_file.close();
     }
 
-    // ------------------------------------------------------
-    // RefinementKelly
-    // ------------------------------------------------------
-    template <int dim>
-    RefinementKelly<dim>::RefinementKelly(
-      Triangulation<dim> &       coarse_grid,
-      const FiniteElement<dim> & fe,
-      const Quadrature<dim> &    quadrature,
-      const Quadrature<dim - 1> &face_quadrature,
-      const Function<dim> &      rhs_function,
-      const Function<dim> &      boundary_values,
-      const unsigned degree)
-      : Base<dim>(coarse_grid)
-      , PrimalSolver<dim>(coarse_grid,
-                          fe,
-                          quadrature,
-                          face_quadrature,
-                          rhs_function,
-                          boundary_values,
-                          degree)
-    {}
-
-
-
-    template <int dim>
-    void RefinementKelly<dim>::refine_grid()
-    {
-      Vector<float> estimated_error_per_cell(
-        this->triangulation->n_active_cells());
-      KellyErrorEstimator<dim>::estimate(
-        this->dof_handler,
-        QGauss<dim - 1>(this->fe->degree + 1),
-        std::map<types::boundary_id, const Function<dim> *>(),
-        this->solution,
-        estimated_error_per_cell);
-      GridRefinement::refine_and_coarsen_fixed_number(*this->triangulation,
-                                                      estimated_error_per_cell,
-                                                      0.3,
-                                                      0.03);
-      this->triangulation->execute_coarsening_and_refinement();
-    }
-
-    // ------------------------------------------------------
-    // RefinementWeightedKelly
-    // ------------------------------------------------------
-    template <int dim>
-    RefinementWeightedKelly<dim>::RefinementWeightedKelly(
-      Triangulation<dim> &       coarse_grid,
-      const FiniteElement<dim> & fe,
-      const Quadrature<dim> &    quadrature,
-      const Quadrature<dim - 1> &face_quadrature,
-      const Function<dim> &      rhs_function,
-      const Function<dim> &      boundary_values,
-      const Function<dim> &      weighting_function,
-      const unsigned degree)
-      : Base<dim>(coarse_grid)
-      , PrimalSolver<dim>(coarse_grid,
-                          fe,
-                          quadrature,
-                          face_quadrature,
-                          rhs_function,
-                          boundary_values,
-                          degree)
-      , weighting_function(&weighting_function)
-    {}
-
-    template <int dim>
-    void RefinementWeightedKelly<dim>::refine_grid()
-    {
-      Vector<float> estimated_error_per_cell(
-        this->triangulation->n_active_cells());
-      std::map<types::boundary_id, const Function<dim> *> dummy_function_map;
-      KellyErrorEstimator<dim>::estimate(this->dof_handler,
-                                         *this->face_quadrature,
-                                         dummy_function_map,
-                                         this->solution,
-                                         estimated_error_per_cell);
-
-      for (const auto &cell : this->dof_handler.active_cell_iterators())
-        estimated_error_per_cell(cell->active_cell_index()) *=
-          weighting_function->value(cell->center());
-
-      GridRefinement::refine_and_coarsen_fixed_number(*this->triangulation,
-                                                      estimated_error_per_cell,
-                                                      0.3,
-                                                      0.03);
-      this->triangulation->execute_coarsening_and_refinement();
-    }
 
     template <int dim>
     WeightedResidual<dim>::CellData::CellData(
@@ -328,31 +227,33 @@ namespace IonPropulsion{
     {}
 
     template <int dim>
-    void output_cell_flags_to_vtk(const Triangulation<dim> &triangulation, const std::string &filename="cell_flags.vtk") {
+    void output_cell_flags_to_vtk(const parallel::distributed::Triangulation<dim> &triangulation, unsigned int refinement_cycle, MPI_Comm & mpi_communicator) {
       Vector<float> cell_flags(triangulation.n_active_cells());
       unsigned int cell_index = 0;
       for (const auto &cell : triangulation.active_cell_iterators())
       {
-        if (cell->refine_flag_set())
-          cell_flags[cell_index] = 1.0; // Refinement flag
-        else if (cell->coarsen_flag_set())
-          cell_flags[cell_index] = -1.0; // Coarsening flag
-        else
-          cell_flags[cell_index] = 0.0; // No flag
-        ++cell_index;
+        if (cell->is_locally_owned()) {
+          if (cell->refine_flag_set())
+            cell_flags[cell_index] = 1.0; // Refinement flag
+          else if (cell->coarsen_flag_set())
+            cell_flags[cell_index] = -1.0; // Coarsening flag
+          else
+            cell_flags[cell_index] = 0.0; // No flag
+          ++cell_index;
+        }
       }
       DataOut<dim> data_out;
       data_out.attach_triangulation(triangulation);
       data_out.add_data_vector(cell_flags, "CellFlags",DataOut<dim>::type_cell_data);
       data_out.build_patches();
-      std::ofstream output(OUTPUT_PATH+"/"+filename);
-      data_out.write_vtk(output);
-      //std::cout << "   Cell flags written to " << filename << std::endl;
+      data_out.write_vtu_with_pvtu_record(
+        OUTPUT_PATH+"/", "cell_flags", refinement_cycle, mpi_communicator, 2);
+
     }
 
     template <int dim>
     WeightedResidual<dim>::WeightedResidual(
-      Triangulation<dim> &                           coarse_grid,
+      parallel::distributed::Triangulation<dim> &                           coarse_grid,
       const FiniteElement<dim> &                     primal_fe,
       const FiniteElement<dim> &                     dual_fe,
       const Quadrature<dim> &                        quadrature,
@@ -382,13 +283,6 @@ namespace IonPropulsion{
     template <int dim>
     void WeightedResidual<dim>::solve_problem()
     {
-      /*Threads::TaskGroup<void> tasks;
-      tasks +=
-        Threads::new_task(&WeightedResidual<dim>::solve_primal_problem, *this);
-      tasks +=
-        Threads::new_task(&WeightedResidual<dim>::solve_dual_problem, *this);
-      tasks.join_all();*/
-
       solve_primal_problem();
       solve_dual_problem();
     }
@@ -425,26 +319,37 @@ namespace IonPropulsion{
     template <int dim>
     void WeightedResidual<dim>::refine_grid()
     {
+      TimerOutput::Scope t(this->computing_timer, "refine");
+
       // ERROR ESTIMATION
       Vector<float> error_indicators(this->triangulation->n_active_cells());
+      error_indicators = 0.0;
+
       estimate_error(error_indicators);
 
       for (float &error_indicator : error_indicators)
         error_indicator = std::fabs(error_indicator);
 
+      unsigned int nonzero_entries = 0;
+      for (size_t i = 0; i<error_indicators.size(); ++i)
+        if (std::fabs(error_indicators[i]) > 1e-8)
+          nonzero_entries++;
+      cout<<"Rank "<<this->this_mpi_process<<std::scientific<<" nonzero entries: "<<nonzero_entries<<std::endl;
+      MPI_Barrier(this->mpi_communicator);
+
       // GRID REFINEMENT
 
       if (REFINEMENT_CRITERION == 3) {
         if (MANUAL_LIFTING_ON) {
-          Vector<double> old_Rg_values = PrimalSolver<dim>::Rg_vector;
+          /*Vector<double> old_Rg_values = PrimalSolver<dim>::locally_relevant_Rg_vector;
           SolutionTransfer<dim> solution_transfer(PrimalSolver<dim>::dof_handler);
           solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_values);
           this->triangulation->refine_global(1);
           PrimalSolver<dim>::dof_handler.distribute_dofs(*(PrimalSolver<dim>::fe));
-          PrimalSolver<dim>::Rg_vector.reinit(PrimalSolver<dim>::dof_handler.n_dofs());
-          solution_transfer.interpolate(old_Rg_values, PrimalSolver<dim>::Rg_vector);
+          PrimalSolver<dim>::locally_relevant_Rg_vector.reinit(PrimalSolver<dim>::dof_handler.n_dofs());
+          solution_transfer.interpolate(old_Rg_values, PrimalSolver<dim>::locally_relevant_Rg_vector);
           PrimalSolver<dim>::construct_Rg_vector();
-          DualSolver<dim>::Rg_vector.reinit(DualSolver<dim>::dof_handler.n_dofs());
+          DualSolver<dim>::locally_relevantRg_vector.reinit(DualSolver<dim>::dof_handler.n_dofs());*/
         } else {
           this->triangulation->refine_global(1);
         }
@@ -452,42 +357,44 @@ namespace IonPropulsion{
       }
 
       if (REFINEMENT_STRATEGY==1)
-        GridRefinement::refine_and_coarsen_fixed_fraction(*this->triangulation,
+        parallel::distributed::GridRefinement::refine_and_coarsen_fixed_fraction(*this->triangulation,
                                                           error_indicators,
                                                           TOP_FRACTION,
                                                           BOTTOM_FRACTION);
       else if (REFINEMENT_STRATEGY==2)
-        GridRefinement::refine_and_coarsen_fixed_number(*this->triangulation,
+        parallel::distributed::GridRefinement::refine_and_coarsen_fixed_number(*this->triangulation,
                                                           error_indicators,
                                                           TOP_FRACTION,
                                                           BOTTOM_FRACTION);
-      else if (REFINEMENT_STRATEGY==3)
-        GridRefinement::refine_and_coarsen_optimize(*this->triangulation,
+      else if (REFINEMENT_STRATEGY==3) {
+        // TODO: not avaliable in parallel
+        /*GridRefinement::refine_and_coarsen_optimize(*this->triangulation,
                                                           error_indicators,
-                                                          OPTIMIZE_ORDER);
+                                                          OPTIMIZE_ORDER);*/
+      }
       else
         DEAL_II_NOT_IMPLEMENTED();
 
-      if (MANUAL_LIFTING_ON) {
-        this->triangulation->prepare_coarsening_and_refinement();
+      if (MANUAL_LIFTING_ON) {    // TODO
+        /*this->triangulation->prepare_coarsening_and_refinement();
         SolutionTransfer<dim> solution_transfer(PrimalSolver<dim>::dof_handler);
 
-        Vector<double> old_Rg_values = PrimalSolver<dim>::Rg_vector;
+        Vector<double> old_Rg_values = PrimalSolver<dim>::locally_relevantRg_vector;
         solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_values);
 
-        output_cell_flags_to_vtk(*this->triangulation, "cell_flags-"+std::to_string(this->refinement_cycle)+".vtk");
-
+        output_cell_flags_to_vtk(*this->triangulation, this->refinement_cycle, this->mpi_communicator);
         this->triangulation->execute_coarsening_and_refinement();
 
         PrimalSolver<dim>::dof_handler.distribute_dofs(*PrimalSolver<dim>::fe);
-        PrimalSolver<dim>::Rg_vector.reinit(PrimalSolver<dim>::dof_handler.n_dofs());
+        PrimalSolver<dim>::locally_relevantRg_vector.reinit(PrimalSolver<dim>::dof_handler.n_dofs());
 
-        solution_transfer.interpolate(old_Rg_values, PrimalSolver<dim>::Rg_vector);
+        solution_transfer.interpolate(old_Rg_values, PrimalSolver<dim>::locally_relevantRg_vector);
 
         PrimalSolver<dim>::construct_Rg_vector();
 
-        DualSolver<dim>::Rg_vector.reinit(DualSolver<dim>::dof_handler.n_dofs());
+        DualSolver<dim>::locally_relevantRg_vector.reinit(DualSolver<dim>::dof_handler.n_dofs());*/
       } else {
+        this->triangulation->prepare_coarsening_and_refinement();
         this->triangulation->execute_coarsening_and_refinement();
       }
 
@@ -495,54 +402,184 @@ namespace IonPropulsion{
     }
 
     template <int dim>
-    void WeightedResidual<dim>::output_solution() const
+    void WeightedResidual<dim>::output_solution()
     {
-      AffineConstraints<double> primal_hanging_node_constraints;
-      DoFTools::make_hanging_node_constraints(PrimalSolver<dim>::dof_handler,
-                                              primal_hanging_node_constraints);
-      primal_hanging_node_constraints.close();
-      Vector<double> dual_solution(PrimalSolver<dim>::dof_handler.n_dofs());
+      TimerOutput::Scope t(this->computing_timer, "output");
+
+      PETScWrappers::MPI::Vector completely_distributed_dual_solution_on_primal(PrimalSolver<dim>::locally_owned_dofs,
+                                                                                 PrimalSolver<dim>::mpi_communicator); // Constructor for NO GHOST elements
       FETools::interpolate(DualSolver<dim>::dof_handler,
-                           DualSolver<dim>::solution,
+                           DualSolver<dim>::locally_relevant_solution,
                            PrimalSolver<dim>::dof_handler,
-                           primal_hanging_node_constraints,
-                           dual_solution);
+                           PrimalSolver<dim>::linear_system_ptr->hanging_node_constraints,
+                           completely_distributed_dual_solution_on_primal);
 
       DataOut<dim> data_out;
       data_out.attach_dof_handler(PrimalSolver<dim>::dof_handler);
+      data_out.add_data_vector(PrimalSolver<dim>::locally_relevant_solution, "uh",DataOut<dim, dim>::type_dof_data);
 
-      // Add the data vectors for which we want output. Add them both, the
-      // <code>DataOut</code> functions can handle as many data vectors as you
-      // wish to write to output:
-      data_out.add_data_vector(PrimalSolver<dim>::solution, "uh",DataOut<dim, dim>::type_dof_data);
-      if (MANUAL_LIFTING_ON) {
-        data_out.add_data_vector(PrimalSolver<dim>::homogeneous_solution, "uh0",DataOut<dim, dim>::type_dof_data);
-        data_out.add_data_vector(PrimalSolver<dim>::Rg_vector, "Rg",DataOut<dim, dim>::type_dof_data);
+      if (MANUAL_LIFTING_ON) { //TODO
+        //data_out.add_data_vector(PrimalSolver<dim>::homogeneous_solution, "uh0",DataOut<dim, dim>::type_dof_data);
+        //data_out.add_data_vector(PrimalSolver<dim>::locally_relevantRg_vector, "Rg",DataOut<dim, dim>::type_dof_data);
       }
-      data_out.add_data_vector(dual_solution, "zh",DataOut<dim, dim>::type_dof_data);
+
+      data_out.add_data_vector(completely_distributed_dual_solution_on_primal, "zh",DataOut<dim, dim>::type_dof_data);
 
       Vector<double> boundary_ids(this->triangulation->n_active_cells());
       for (const auto &cell : this->triangulation->active_cell_iterators())
         for (unsigned int face = 0; face < GeometryInfo<dim>::faces_per_cell; ++face)
           if (cell->face(face)->at_boundary())
-            boundary_ids[cell->active_cell_index()] = cell->face(face)->boundary_id();
+            if (cell->is_locally_owned())
+              boundary_ids[cell->active_cell_index()] = cell->face(face)->boundary_id();
       data_out.add_data_vector(boundary_ids, "boundary_ids",DataOut<dim, dim>::type_cell_data);
+
+      Vector<float> subdomain(this->triangulation->n_active_cells());
+      for (unsigned int i = 0; i < subdomain.size(); ++i)
+        subdomain(i) = this->triangulation->locally_owned_subdomain();
+      data_out.add_data_vector(subdomain, "subdomain");
+
 
       data_out.build_patches(PrimalSolver<dim>::mapping, 1, DataOut<dim,dim>::CurvedCellRegion::curved_inner_cells);
 
-      std::ofstream out(OUTPUT_PATH+"/"+"solution-" + std::to_string(this->refinement_cycle) +
-                        ".vtu");
-      data_out.write(out, DataOutBase::vtu);
+      const std::string pvtu_filename = data_out.write_vtu_with_pvtu_record(
+        OUTPUT_PATH+"/", "solution", this->refinement_cycle, this->mpi_communicator, 2);
 
 
-      GridOut grid_out;
+      /*GridOut grid_out;
       GridOutFlags::Msh msh_flags(true, true);
       grid_out.set_flags(msh_flags);
-      grid_out.write_msh(*this->triangulation, OUTPUT_PATH+"/final_mesh.msh");
+      grid_out.write_msh(*this->triangulation, OUTPUT_PATH+"/final_mesh.msh");*/
 
     }
 
     template <int dim>
+    void WeightedResidual<dim>::estimate_error(Vector<float> &error_indicators) const {
+
+      PETScWrappers::MPI::Vector completely_distributed_primal_solution_on_dual(
+        DualSolver<dim>::locally_owned_dofs,
+        DualSolver<dim>::mpi_communicator);   // non-ghosted
+
+      FETools::interpolate(PrimalSolver<dim>::dof_handler,
+                           PrimalSolver<dim>::locally_relevant_solution, // ghosted
+                           DualSolver<dim>::dof_handler,
+                           DualSolver<dim>::linear_system_ptr->hanging_node_constraints,
+                           completely_distributed_primal_solution_on_dual);  // non-ghosted
+
+      PETScWrappers::MPI::Vector locally_relevant_primal_solution_on_dual(
+        DualSolver<dim>::locally_owned_dofs,
+        DualSolver<dim>::locally_relevant_dofs,
+        DualSolver<dim>::mpi_communicator);   // ghosted
+      locally_relevant_primal_solution_on_dual = completely_distributed_primal_solution_on_dual;
+
+      // --------
+
+      PETScWrappers::MPI::Vector completely_distributed_dual_weights(
+        DualSolver<dim>::locally_owned_dofs,
+        DualSolver<dim>::mpi_communicator);  // non-ghosted
+
+      FETools::interpolation_difference(
+        DualSolver<dim>::dof_handler,
+        DualSolver<dim>::linear_system_ptr->hanging_node_constraints,
+        DualSolver<dim>::locally_relevant_solution,    // ghosted
+        PrimalSolver<dim>::dof_handler,
+        PrimalSolver<dim>::linear_system_ptr->hanging_node_constraints,
+        completely_distributed_dual_weights);   // non-ghosted
+
+      PETScWrappers::MPI::Vector locally_relevant_dual_weights(
+        DualSolver<dim>::locally_owned_dofs,
+        DualSolver<dim>::locally_relevant_dofs,
+        DualSolver<dim>::mpi_communicator);   // ghosted
+      locally_relevant_dual_weights = completely_distributed_dual_weights;
+
+      // --------
+
+      auto & primal_solution = locally_relevant_primal_solution_on_dual;
+      auto & dual_weights = locally_relevant_dual_weights;
+
+
+      // ------------------------------------------------------------
+      // LOCAL ESTIMATE: integrate over cells
+      // ------------------------------------------------------------
+
+      FEValues<dim> fe_values(DualSolver<dim>::mapping, *DualSolver<dim>::fe,
+                              *DualSolver<dim>::quadrature,
+                              update_values | update_gradients | update_quadrature_points | update_JxW_values);
+
+      const unsigned int n_q_points = DualSolver<dim>::quadrature->size();
+
+      std::vector<Tensor<1,dim>> cell_Rg_plus_uh0hat_gradients(n_q_points);
+      std::vector<Tensor<1,dim>> cell_dual_weights_gradients(n_q_points);
+      std::vector<double> cell_rhs_values(n_q_points);
+      std::vector<double> cell_dual_weights(n_q_points);
+
+      double sum;
+
+      for (const auto &cell : DualSolver<dim>::dof_handler.active_cell_iterators()){
+        if (cell->is_locally_owned()) {
+          fe_values.reinit(cell);
+          fe_values.get_function_gradients(primal_solution, cell_Rg_plus_uh0hat_gradients);
+          fe_values.get_function_gradients(dual_weights, cell_dual_weights_gradients);
+          fe_values.get_function_values(dual_weights, cell_dual_weights);
+          PrimalSolver<dim>::rhs_function->value_list(fe_values.get_quadrature_points(), cell_rhs_values);
+
+          // Numerically approximate the integral of the scalar product between the gradients of the two
+          sum = 0;
+
+          for (unsigned int p = 0; p < n_q_points; ++p) {
+            sum -=  eps_r * eps_0 *
+                    ((cell_Rg_plus_uh0hat_gradients[p] * cell_dual_weights_gradients[p]  )   // Scalar product btw Tensors
+                      * fe_values.JxW(p));
+            sum += (cell_rhs_values[p] * cell_dual_weights[p] * fe_values.JxW(p));
+          }
+          error_indicators(cell->active_cell_index()) += sum;
+        }
+      }
+
+      // BEGIN Output
+      DataOut<dim> data_out;
+      data_out.attach_dof_handler(DualSolver<dim>::dof_handler);
+      data_out.add_data_vector(error_indicators, "error_indicators", DataOut<dim, dim>::type_cell_data);
+      data_out.add_data_vector(primal_solution, "primal_solution", DataOut<dim, dim>::type_dof_data);
+      data_out.add_data_vector(dual_weights, "dual_weights", DataOut<dim, dim>::type_dof_data);
+      data_out.build_patches();
+      const std::string pvtu_filename = data_out.write_vtu_with_pvtu_record(
+        "./../results/", "error_indicators", this->refinement_cycle, this->mpi_communicator, 4);
+      // END Output
+
+      this->pcout<<"error_indicators.size() = "<<error_indicators.size()<<std::endl;
+      unsigned int nonzero_entries = 0;
+      for (size_t i = 0; i<error_indicators.size(); ++i)
+        if (std::fabs(error_indicators[i]) > 1e-8)
+          nonzero_entries++;
+      cout<<"Rank "<<this->this_mpi_process<<std::scientific<<" nonzero entries: "<<nonzero_entries<<std::endl;
+      MPI_Barrier(this->mpi_communicator);
+
+      //double local_error = std::accumulate(error_indicators.begin(), error_indicators.end(), 0.0);
+      // Accumulate only locally owned cells' contributions
+      double local_error = 0.0;
+      for (const auto &cell : DualSolver<dim>::dof_handler.active_cell_iterators()) {
+        if (cell->is_locally_owned()) {
+          local_error += error_indicators(cell->active_cell_index());
+        }
+      }
+
+      cout<<"Rank "<<this->this_mpi_process<<std::scientific<<" local error: "<<std::fabs(local_error)<<std::endl;
+
+      double global_error = 0.0;
+      MPI_Allreduce(&local_error, &global_error, 1, MPI_DOUBLE, MPI_SUM, this->mpi_communicator);
+      cout<<std::scientific<<"Common error (MPI_Allreduce): "<<std::fabs(global_error)<<std::endl;
+      MPI_Barrier(this->mpi_communicator);
+
+      double estimated_error = Utilities::MPI::sum(local_error, this->mpi_communicator);
+
+      PrimalSolver<dim>::convergence_table->add_value("est err",std::fabs(estimated_error));
+      PrimalSolver<dim>::convergence_table->set_scientific("est err",true);
+
+      CSVLogger::getInstance().addColumn("est err", to_string_with_precision(std::fabs(estimated_error),15));
+
+    }
+
+    /*template <int dim>
     void
     WeightedResidual<dim>::estimate_error(Vector<float> &error_indicators) const
     {
@@ -619,19 +656,6 @@ namespace IonPropulsion{
           ++present_cell;
         }
 
-      /* Output
-      DataOut<dim> data_out;
-      data_out.attach_dof_handler(DualSolver<dim>::dof_handler);
-      data_out.add_data_vector(error_indicators, "error_indicators", DataOut<dim, dim>::type_cell_data);
-      data_out.add_data_vector(primal_solution, "primal_solution", DataOut<dim, dim>::type_dof_data);
-      data_out.add_data_vector(dual_weights, "dual_weights", DataOut<dim, dim>::type_dof_data);
-      data_out.build_patches();
-      std::ofstream out( "error_indicators-" + std::to_string(this->refinement_cycle) +
-                        ".vtu");
-      data_out.write(out, DataOutBase::vtu);
-
-      */ //END output
-
       double estimated_error = std::accumulate(error_indicators.begin(),
                                    error_indicators.end(),
                                    0.);
@@ -641,29 +665,26 @@ namespace IonPropulsion{
       PrimalSolver<dim>::convergence_table->set_scientific("est err",true);
 
       CSVLogger::getInstance().addColumn("est err", to_string_with_precision(std::fabs(estimated_error),15));
-    }
+    }*/
 
     template <int dim>
     void WeightedResidual<dim>::update_convergence_table() {
-      PrimalSolver<dim>::convergence_table->add_value("cycle", this->refinement_cycle);
-      PrimalSolver<dim>::convergence_table->add_value("cells", this->triangulation->n_active_cells());
-      PrimalSolver<dim>::convergence_table->add_value("DoFs", PrimalSolver<dim>::dof_handler.n_dofs());
+      if (this->this_mpi_process == 0)
+      {
+        PrimalSolver<dim>::convergence_table->add_value("cycle", this->refinement_cycle);
+        PrimalSolver<dim>::convergence_table->add_value("cells", this->triangulation->n_active_cells());
+        PrimalSolver<dim>::convergence_table->add_value("DoFs", PrimalSolver<dim>::dof_handler.n_dofs());
 
-      CSVLogger& logger = CSVLogger::getInstance();
-      logger.addColumn("cycle", std::to_string(this->refinement_cycle));
-      logger.addColumn("cells", std::to_string(this->triangulation->n_active_cells()));
-      logger.addColumn("DoFs", std::to_string(PrimalSolver<dim>::dof_handler.n_dofs()));
+        CSVLogger& logger = CSVLogger::getInstance();
+        logger.addColumn("cycle", std::to_string(this->refinement_cycle));
+        logger.addColumn("cells", std::to_string(this->triangulation->n_active_cells()));
+        logger.addColumn("DoFs", std::to_string(PrimalSolver<dim>::dof_handler.n_dofs()));
+      }
     }
+
     template <int dim>
     void WeightedResidual<dim>::print_convergence_table() const
     {
-      if (LOAD_FROM_SETUP != 0 && LOAD_FROM_SETUP != 11) {
-        Base<dim>::convergence_table->add_value("Cons. FLUX err", std::fabs(PrimalSolver<dim>::conservative_flux-EXACT_FLUX));
-        Base<dim>::convergence_table->set_scientific("Cons. FLUX err", true);
-        CSVLogger& logger = CSVLogger::getInstance();
-        logger.addColumn("Cons. FLUX err", std::to_string(std::fabs(PrimalSolver<dim>::conservative_flux-EXACT_FLUX)));
-      }
-
       // No convergence rates. Makes no sense
       cout<<std::endl;
       PrimalSolver<dim>::convergence_table->write_text(std::cout);
@@ -909,61 +930,9 @@ namespace IonPropulsion{
       face_integrals[face] = sum;
     }
 
-    template <int dim>
-    void WeightedResidual<dim>::conservative_flux_rhs(Vector<double> & rhs) const {
-
-      auto & primal_dof_handler = PrimalSolver<dim>::dof_handler;
-      auto & dual_dof_handler = DualSolver<dim>::dof_handler;
-
-      IndexSet not_on_emitter_index_set = dual_dof_handler.locally_owned_dofs();
-      auto e_index_set = DoFTools::extract_boundary_dofs(dual_dof_handler,
-                                      ComponentMask(),
-                                      std::set<types::boundary_id>({1}));
-      not_on_emitter_index_set.subtract_set(e_index_set);
-
-      Vector<double> Au(primal_dof_handler.n_dofs());
-      Vector<double> ARg(primal_dof_handler.n_dofs());
-
-
-      if (MANUAL_LIFTING_ON) {
-        PrimalSolver<dim>::linear_system_ptr->Umatrix.vmult(Au, PrimalSolver<dim>::solution);
-        Au-=PrimalSolver<dim>::linear_system_ptr->rhs;
-        PrimalSolver<dim>::linear_system_ptr->Umatrix.vmult(ARg, PrimalSolver<dim>::Rg_vector);
-        Au+=ARg;
-      } else { // TODO: for now works only on zero Dirichlet BCs
-        PrimalSolver<dim>::linear_system_ptr->Umatrix.vmult(Au, PrimalSolver<dim>::solution);
-        Au-=PrimalSolver<dim>::linear_system_ptr->rhs;
-      }
-
-      AffineConstraints<double> dual_hanging_node_constraints;
-      DoFTools::make_hanging_node_constraints(dual_dof_handler,
-                                              dual_hanging_node_constraints);
-      dual_hanging_node_constraints.close();
-      rhs.reinit(dual_dof_handler.n_dofs());
-      FETools::interpolate(primal_dof_handler,
-                           Au,
-                           dual_dof_handler,
-                           dual_hanging_node_constraints,
-                           rhs);
-
-      for (auto index = not_on_emitter_index_set.begin(); index != not_on_emitter_index_set.end(); ++index) {
-        rhs(*index) = 0.;
-      }
-      /*unsigned int nonzero_values = 0;
-      for (size_t i = 0; i < rhs.size(); ++i)
-        if (abs(rhs(i)) > 1e-6)
-          nonzero_values++;
-      cout<<"    dual_rhs's size: "<<rhs.size()<<std::endl
-          <<"    nonzero values:  "<<nonzero_values<<std::endl;*/
-
-    }
-
-
 
     // Template instantiation
     template class RefinementGlobal<2>;
-    template class RefinementKelly<2>;
-    template class RefinementWeightedKelly<2>;
     template class WeightedResidual<2>;
   } // namespace LaplaceSolver
 } // namespace IonPropulsion

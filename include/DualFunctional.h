@@ -21,10 +21,9 @@ namespace IonPropulsion{
     public:
       DualFunctionalBase(const unsigned mapping_degree);
       virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
-                                Vector<double> &       rhs) const = 0;
-      /*virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
-                                Vector<double> &       rhs,
-                                std::unique_ptr<LaplaceSolver::Base<dim>> &) const {};*/
+                                PETScWrappers::MPI::Vector &       rhs
+                                , AffineConstraints<double> &) const = 0;
+
     };
     // ------------------------------------------------------
     // PointValueEvaluation
@@ -38,31 +37,8 @@ namespace IonPropulsion{
         const Point<dim> &evaluation_point);
 
       virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
-                                Vector<double> &       rhs) const override;
-
-      DeclException1(
-        ExcEvaluationPointNotFound,
-        Point<dim>,
-        << "The evaluation point " << arg1
-        << " was not found among the vertices of the present grid.");
-
-    protected:
-      const Point<dim> evaluation_point;
-    };
-
-    // ------------------------------------------------------
-    // PointXDerivativeEvaluation
-    // ------------------------------------------------------
-    template <int dim>
-    class PointXDerivativeEvaluation : public DualFunctionalBase<dim>
-    {
-    public:
-      PointXDerivativeEvaluation(
-        const unsigned mapping_degree,
-        const Point<dim> &evaluation_point);
-
-      virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
-                                Vector<double> &       rhs) const override;
+                                PETScWrappers::MPI::Vector &       rhs
+                                , AffineConstraints<double> &) const override;
 
       DeclException1(
         ExcEvaluationPointNotFound,
@@ -86,7 +62,8 @@ namespace IonPropulsion{
         const std::set<unsigned int> &boundary_ids);
 
       virtual void assemble_rhs(const DoFHandler<dim> &dof_handler,
-                                Vector<double> &       rhs) const override;
+                                PETScWrappers::MPI::Vector &       rhs
+                                , AffineConstraints<double> &) const override;
 
     protected:
       const std::set<unsigned int> boundary_ids;

@@ -25,7 +25,7 @@ namespace IonPropulsion{
       virtual const Function<dim> &get_exact_solution() const = 0;
 
       virtual void
-      create_coarse_grid(Triangulation<dim> &coarse_grid) const = 0;
+      create_coarse_grid( parallel::distributed::Triangulation<dim> &coarse_grid) const = 0;
     };
 
     // ------------------------------------------------------
@@ -42,7 +42,7 @@ namespace IonPropulsion{
       virtual const Function<dim> &get_exact_solution() const override;
 
       virtual void
-      create_coarse_grid(Triangulation<dim> &coarse_grid) const override;
+      create_coarse_grid( parallel::distributed::Triangulation<dim> &coarse_grid) const override;
 
     private:
       static const typename Traits::BoundaryValues boundary_values;
@@ -93,7 +93,7 @@ namespace IonPropulsion{
         {}
       };
 
-      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+      static void create_coarse_grid( parallel::distributed::Triangulation<dim> &coarse_grid);
     };
 
     /*template <int dim>
@@ -224,7 +224,7 @@ namespace IonPropulsion{
         {}
       };
 
-      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+      static void create_coarse_grid( parallel::distributed::Triangulation<dim> &coarse_grid);
     };
 
     // ------------------------------------------------------
@@ -267,7 +267,7 @@ namespace IonPropulsion{
 
       // Finally a function to generate the coarse grid. This is somewhat more
       // complicated here, see immediately below.
-      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+      static void create_coarse_grid( parallel::distributed::Triangulation<dim> &coarse_grid);
     };
 
     // ------------------------------------------------------
@@ -302,7 +302,7 @@ namespace IonPropulsion{
 
       // Finally a function to generate the coarse grid. This is somewhat more
       // complicated here, see immediately below.
-      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+      static void create_coarse_grid( parallel::distributed::Triangulation<dim> &coarse_grid);
     };
 
     // ------------------------------------------------------
@@ -337,7 +337,7 @@ namespace IonPropulsion{
 
       // Finally a function to generate the coarse grid. This is somewhat more
       // complicated here, see immediately below.
-      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+      static void create_coarse_grid( parallel::distributed::Triangulation<dim> &coarse_grid);
     };
 
     // ------------------------------------------------------
@@ -430,7 +430,7 @@ namespace IonPropulsion{
 
       // Finally a function to generate the coarse grid. This is somewhat more
       // complicated here, see immediately below.
-      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+      static void create_coarse_grid(parallel::distributed::Triangulation<dim> &coarse_grid);
     };
 
     // ------------------------------------------------------
@@ -518,7 +518,7 @@ namespace IonPropulsion{
 
       // Finally a function to generate the coarse grid. This is somewhat more
       // complicated here, see immediately below.
-      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+      static void create_coarse_grid(parallel::distributed::Triangulation<dim> &coarse_grid);
     };
 
     // ------------------------------------------------------
@@ -587,7 +587,7 @@ namespace IonPropulsion{
 
       // Finally a function to generate the coarse grid. This is somewhat more
       // complicated here, see immediately below.
-      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+      static void create_coarse_grid(parallel::distributed::Triangulation<dim> &coarse_grid);
     };
 
     // ------------------------------------------------------
@@ -656,7 +656,7 @@ namespace IonPropulsion{
 
       using RightHandSide = Functions::ZeroFunction<dim>;
 
-      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+      static void create_coarse_grid(parallel::distributed::Triangulation<dim> &coarse_grid);
     };
 
     // ------------------------------------------------------
@@ -716,7 +716,7 @@ namespace IonPropulsion{
 
       using RightHandSide = Functions::ZeroFunction<dim>;
 
-      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+      static void create_coarse_grid(parallel::distributed::Triangulation<dim> &coarse_grid);
     };
 
     // ------------------------------------------------------
@@ -781,7 +781,7 @@ namespace IonPropulsion{
 
       // Finally a function to generate the coarse grid. This is somewhat more
       // complicated here, see immediately below.
-      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+      static void create_coarse_grid(parallel::distributed::Triangulation<dim> &coarse_grid);
     };
 
     // ------------------------------------------------------
@@ -859,7 +859,7 @@ namespace IonPropulsion{
 
       // Finally a function to generate the coarse grid. This is somewhat more
       // complicated here, see immediately below.
-      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+      static void create_coarse_grid(parallel::distributed::Triangulation<dim> &coarse_grid);
     };
 
     // ------------------------------------------------------
@@ -925,7 +925,7 @@ namespace IonPropulsion{
         {}
       };
 
-      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+      static void create_coarse_grid(parallel::distributed::Triangulation<dim> &coarse_grid);
     };
 
     // ------------------------------------------------------
@@ -960,7 +960,7 @@ namespace IonPropulsion{
         {}
       };
 
-      static void create_coarse_grid(Triangulation<dim> &coarse_grid);
+      static void create_coarse_grid(parallel::distributed::Triangulation<dim> &coarse_grid);
     };
 
 

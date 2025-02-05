@@ -24,12 +24,11 @@ namespace IonPropulsion{
 
     template <int dim>
     void
-    PointValueEvaluation<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler,
-                                            Vector<double> &       rhs) const
-    {
-      // So, first set everything to zeros...
-      rhs.reinit(dof_handler.n_dofs());
-
+    PointValueEvaluation<dim>::assemble_rhs(const DoFHandler<dim> &,
+                                            PETScWrappers::MPI::Vector &
+                                            , AffineConstraints<double> &) const
+    { //TODO
+      /*
       // Keep track of nearest vertex
       double min_distance = std::numeric_limits<double>::max();
       typename DoFHandler<dim>::active_cell_iterator nearest_cell;
@@ -61,66 +60,7 @@ namespace IonPropulsion{
         rhs(nearest_cell->vertex_dof_index(nearest_vertex, 0)) = 1;
       } else {
         AssertThrow(false, ExcEvaluationPointNotFound(evaluation_point));
-      }
-    }
-
-    // ------------------------------------------------------
-    // PointXDerivativeEvaluation
-    // ------------------------------------------------------
-    template <int dim>
-    PointXDerivativeEvaluation<dim>::PointXDerivativeEvaluation(
-      const unsigned mapping_degree,
-      const Point<dim> &evaluation_point)
-      : DualFunctionalBase<dim>(mapping_degree), evaluation_point(evaluation_point)
-    {}
-
-    template <int dim>
-    void PointXDerivativeEvaluation<dim>::assemble_rhs(
-      const DoFHandler<dim> &dof_handler,
-      Vector<double> &       rhs) const
-    {
-      rhs.reinit(dof_handler.n_dofs());
-      QGauss<dim>        quadrature(dof_handler.get_fe().degree + 1);
-      FEValues<dim>      fe_values(this->mapping, dof_handler.get_fe(),
-                              quadrature,
-                              update_gradients | update_quadrature_points |
-                                update_JxW_values);
-      const unsigned int n_q_points    = fe_values.n_quadrature_points;
-      const unsigned int dofs_per_cell = dof_handler.get_fe().dofs_per_cell;
-
-
-      Vector<double>            cell_rhs(dofs_per_cell);
-      std::vector<unsigned int> local_dof_indices(dofs_per_cell);
-
-
-      double total_volume = 0;
-
-      // Then start the loop over all cells, and select those cells which are
-      // close enough to the evaluation point:
-      for (const auto &cell : dof_handler.active_cell_iterators())
-        if (cell->center().distance(evaluation_point) <= cell->diameter())
-          {
-
-            fe_values.reinit(cell);
-            cell_rhs = 0;
-
-            for (unsigned int q = 0; q < n_q_points; ++q)
-              {
-                for (unsigned int i = 0; i < dofs_per_cell; ++i)
-                  cell_rhs(i) +=
-                    fe_values.shape_grad(i, q)[0] // (d/dx phi_i(x_q))
-                    * fe_values.JxW(q);           // * dx
-                total_volume += fe_values.JxW(q);
-              }
-
-            // If we have the local contributions, distribute them to the
-            // global vector:
-            cell->get_dof_indices(local_dof_indices);
-            for (unsigned int i = 0; i < dofs_per_cell; ++i)
-              rhs(local_dof_indices[i]) += cell_rhs(i);
-          }
-      AssertThrow(total_volume > 0, ExcEvaluationPointNotFound(evaluation_point));
-      rhs /= total_volume;
+      }*/
     }
 
     // ------------------------------------------------------
@@ -136,10 +76,12 @@ namespace IonPropulsion{
     template <int dim>
     void
     StandardFluxEvaluation<dim>::assemble_rhs(const DoFHandler<dim> &dof_handler,
-                                            Vector<double> &       rhs) const
+                                            PETScWrappers::MPI::Vector &       rhs
+                                            , AffineConstraints<double> & hanging_node_constraints) const
     {
+
       // Set up:
-      rhs.reinit(dof_handler.n_dofs());
+      //rhs.reinit(dof_handler.n_dofs());  // Done already by the calling function in solver
 
       auto & fe_face = dof_handler.get_fe();
 
@@ -147,53 +89,57 @@ namespace IonPropulsion{
       const QGauss<dim-1> face_quadrature(fe_face.degree + 1);
 
       // Finite elements
-      FEFaceValues<dim> fe_face_values(this->mapping,
-                                        fe_face,
+      FEFaceValues<dim> fe_face_values(fe_face,
                                        face_quadrature,
                                        update_gradients |
                                        update_normal_vectors |
                                        update_JxW_values);
 
       const unsigned int dofs_per_cell = fe_face.n_dofs_per_cell();
-      //const unsigned int dofs_per_face = fe_face.n_dofs_per_face();
       const unsigned int n_face_q_points = face_quadrature.size();
       Vector<double> cell_rhs(dofs_per_cell);
       std::vector<unsigned int> local_dof_indices(dofs_per_cell);
 
       // Loop over all cells and faces
       for (const auto &cell : dof_handler.active_cell_iterators()) {
-        cell_rhs = 0;
+        if (cell->is_locally_owned()) {
+          cell_rhs = 0;
 
-        for (const auto &face : cell->face_iterators()) {
-          // Process only boundary faces with the specified boundary_id
-          if (face->at_boundary() && boundary_ids.count(face->boundary_id()) > 0) {
-            fe_face_values.reinit(cell, face);
+          for (const auto &face : cell->face_iterators()) {
+            // Process only boundary faces with the specified boundary_id
+            if (face->at_boundary() && boundary_ids.count(face->boundary_id()) > 0) {
+              fe_face_values.reinit(cell, face);
 
-            // Compute flux for this face
-            for (unsigned int q_point = 0; q_point < n_face_q_points; ++q_point) {
-              const Tensor<1, dim> &n = fe_face_values.normal_vector(q_point);
+              // Compute flux for this face
+              for (unsigned int q_point = 0; q_point < n_face_q_points; ++q_point) {
+                const Tensor<1, dim> &n = fe_face_values.normal_vector(q_point);
 
-              for (unsigned int i = 0; i < dofs_per_cell; ++i) {
-                // Sum the flux contribution from each quadrature point on the boundary
-                cell_rhs[i] += (fe_face_values.shape_grad(i, q_point) * (-n)) * fe_face_values.JxW(q_point);
+                for (unsigned int i = 0; i < dofs_per_cell; ++i) {
+                  // Sum the flux contribution from each quadrature point on the boundary
+                  cell_rhs[i] += (fe_face_values.shape_grad(i, q_point) * (-n)) * fe_face_values.JxW(q_point);
+                }
               }
             }
           }
-        }
 
-        // Local to global: sum the contribution of this cell to the rhs
-        cell->get_dof_indices(local_dof_indices);
-        for (unsigned int i = 0; i < dofs_per_cell; ++i)
-          rhs(local_dof_indices[i]) += cell_rhs[i];
+          // Local to global: sum the contribution of this cell to the rhs
+          cell->get_dof_indices(local_dof_indices);
+          hanging_node_constraints.distribute_local_to_global(
+            cell_rhs,
+            local_dof_indices,
+            rhs
+            );
+        }
       }
     }
+
+
 
 
 
     // Template instantiation
     template class DualFunctionalBase<2>;
     template class PointValueEvaluation<2>;
-    template class PointXDerivativeEvaluation<2>;
     template class StandardFluxEvaluation<2>;
 
 

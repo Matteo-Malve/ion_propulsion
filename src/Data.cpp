@@ -31,7 +31,7 @@ namespace IonPropulsion {
 
     template <class Traits, int dim>
     void SetUp<Traits, dim>::create_coarse_grid(
-      Triangulation<dim> &coarse_grid) const
+      parallel::distributed::Triangulation<dim> &coarse_grid) const
     {
       Traits::create_coarse_grid(coarse_grid);
     }
@@ -137,7 +137,7 @@ namespace IonPropulsion {
 
 
     template <int dim>
-    void SetupNone<dim>::create_coarse_grid(Triangulation<dim> &coarse_grid)
+    void SetupNone<dim>::create_coarse_grid(parallel::distributed::Triangulation<dim> &coarse_grid)
     {
       const std::string path_to_mesh = PATH_TO_MESH;
       std::ifstream input_file(path_to_mesh);
@@ -205,7 +205,7 @@ namespace IonPropulsion {
     }
 
     template <int dim>
-    void CurvedRidges<dim>::create_coarse_grid(Triangulation<dim> &coarse_grid)
+    void CurvedRidges<dim>::create_coarse_grid(parallel::distributed::Triangulation<dim> &coarse_grid)
     {
       GridGenerator::hyper_cube(coarse_grid, -1, 1);
       coarse_grid.refine_global(2);
@@ -216,7 +216,7 @@ namespace IonPropulsion {
     // ------------------------------------------------------
 
     template <>
-    void Exercise_2_3<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    void Exercise_2_3<2>::create_coarse_grid(parallel::distributed::Triangulation<2> &coarse_grid)
     {
       const unsigned int dim = 2;
 
@@ -276,7 +276,7 @@ namespace IonPropulsion {
     // ------------------------------------------------------
 
     template <>
-    void Rectangle_1_99<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    void Rectangle_1_99<2>::create_coarse_grid(parallel::distributed::Triangulation<2> &coarse_grid)
     {
       //const std::string path_to_mesh = "../mesh/TinyStep14_1_99.msh";
       //const std::string path_to_mesh = "../mesh/TinyStep14_deFalco.msh";
@@ -381,7 +381,7 @@ namespace IonPropulsion {
     };
 
     template <>
-    void Rectangle_1_99_manifold<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    void Rectangle_1_99_manifold<2>::create_coarse_grid(parallel::distributed::Triangulation<2> &coarse_grid)
     {
       const std::string path_to_mesh = PATH_TO_MESH;
       std::ifstream input_file(path_to_mesh);
@@ -448,7 +448,7 @@ namespace IonPropulsion {
     // ------------------------------------------------------
 
     template <>
-    void angle_step14_forced<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    void angle_step14_forced<2>::create_coarse_grid(parallel::distributed::Triangulation<2> &coarse_grid)
     {
       const std::string path_to_mesh = PATH_TO_MESH;
       std::ifstream input_file(path_to_mesh);
@@ -464,7 +464,7 @@ namespace IonPropulsion {
     // ------------------------------------------------------
 
     template <>
-    void angle_Rectangle_1_100_forced<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    void angle_Rectangle_1_100_forced<2>::create_coarse_grid(parallel::distributed::Triangulation<2> &coarse_grid)
     {
       const std::string path_to_mesh = PATH_TO_MESH;
       std::ifstream input_file(path_to_mesh);
@@ -478,7 +478,7 @@ namespace IonPropulsion {
     // ------------------------------------------------------
 
     template <>
-    void Circular<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    void Circular<2>::create_coarse_grid(parallel::distributed::Triangulation<2> &coarse_grid)
     {
       const std::string path_to_mesh = "../mesh/cerchi_concentrici.msh";
       std::ifstream input_file(path_to_mesh);
@@ -499,7 +499,7 @@ namespace IonPropulsion {
     // ------------------------------------------------------
 
     template <>
-    void LogCircular_1_2<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    void LogCircular_1_2<2>::create_coarse_grid(parallel::distributed::Triangulation<2> &coarse_grid)
     {
 
       const std::string path_to_mesh = PATH_TO_MESH;
@@ -574,7 +574,7 @@ namespace IonPropulsion {
     // ------------------------------------------------------
 
     template <>
-    void LogCircular_1_10<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    void LogCircular_1_10<2>::create_coarse_grid(parallel::distributed::Triangulation<2> &coarse_grid)
     {
       //const std::string path_to_mesh = "../mesh/cerchi_concentrici_1_100.msh";
       //const std::string path_to_mesh = "../mesh/cerchi_concentrici.msh";
@@ -640,7 +640,7 @@ namespace IonPropulsion {
     // ------------------------------------------------------
 
     template <>
-    void LogCircular_1_100<2>::create_coarse_grid(Triangulation<2> &coarse_grid) {
+    void LogCircular_1_100<2>::create_coarse_grid(parallel::distributed::Triangulation<2> &coarse_grid) {
       //const std::string path_to_mesh = "../mesh/cerchi_concentrici_1_100.msh";
       const std::string path_to_mesh = PATH_TO_MESH;
       std::ifstream input_file(path_to_mesh);
@@ -689,7 +689,7 @@ namespace IonPropulsion {
     // ------------------------------------------------------
 
     template <>
-    void CircularZeroDirichlet<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    void CircularZeroDirichlet<2>::create_coarse_grid(parallel::distributed::Triangulation<2> &coarse_grid)
     {
       //const std::string path_to_mesh = "../mesh/cerchi_concentrici_1_100.msh";
       const std::string path_to_mesh = "../mesh/cerchi_concentrici.msh";
@@ -731,7 +731,7 @@ namespace IonPropulsion {
     // ------------------------------------------------------
 
     template <>
-    void CircularStep14<2>::create_coarse_grid(Triangulation<2> &coarse_grid)
+    void CircularStep14<2>::create_coarse_grid(parallel::distributed::Triangulation<2> &coarse_grid)
     {
       const std::string path_to_mesh = PATH_TO_MESH;
       std::ifstream input_file(path_to_mesh);
@@ -762,7 +762,7 @@ namespace IonPropulsion {
     }
 
     template <int dim>
-    void WireWire<dim>::create_coarse_grid(Triangulation<dim> &coarse_grid)
+    void WireWire<dim>::create_coarse_grid(parallel::distributed::Triangulation<dim> &coarse_grid)
     {
       const std::string path_to_mesh = PATH_TO_MESH;
       std::ifstream input_file(path_to_mesh);

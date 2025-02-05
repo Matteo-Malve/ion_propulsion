@@ -25,9 +25,7 @@ namespace IonPropulsion{
       enum RefinementCriterion
       {
         dual_weighted_error_estimator,
-        global_refinement,
-        kelly_indicator,
-        weighted_kelly_indicator
+        global_refinement
       };
 
       RefinementCriterion refinement_criterion;

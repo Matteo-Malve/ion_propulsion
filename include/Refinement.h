@@ -13,7 +13,7 @@ namespace IonPropulsion{
     class RefinementGlobal : public PrimalSolver<dim>
     {
     public:
-      RefinementGlobal(Triangulation<dim> &       coarse_grid,
+      RefinementGlobal(parallel::distributed::Triangulation<dim> &       coarse_grid,
                        const FiniteElement<dim> & fe,
                        const Quadrature<dim> &    quadrature,
                        const Quadrature<dim - 1> &face_quadrature,
@@ -26,46 +26,6 @@ namespace IonPropulsion{
     };
 
     // ------------------------------------------------------
-    // RefinementKelly
-    // ------------------------------------------------------
-    template <int dim>
-    class RefinementKelly : public PrimalSolver<dim>
-    {
-    public:
-      RefinementKelly(Triangulation<dim> &       coarse_grid,
-                      const FiniteElement<dim> & fe,
-                      const Quadrature<dim> &    quadrature,
-                      const Quadrature<dim - 1> &face_quadrature,
-                      const Function<dim> &      rhs_function,
-                      const Function<dim> &      boundary_values,
-                      const unsigned degree);
-
-      virtual void refine_grid() override;
-    };
-
-    // ------------------------------------------------------
-    // RefinementWeightedKelly
-    // ------------------------------------------------------
-    template <int dim>
-    class RefinementWeightedKelly : public PrimalSolver<dim>
-    {
-    public:
-      RefinementWeightedKelly(Triangulation<dim> &       coarse_grid,
-                              const FiniteElement<dim> & fe,
-                              const Quadrature<dim> &    quadrature,
-                              const Quadrature<dim - 1> &face_quadrature,
-                              const Function<dim> &      rhs_function,
-                              const Function<dim> &      boundary_values,
-                              const Function<dim> &      weighting_function,
-                              const unsigned degree);
-
-      virtual void refine_grid() override;
-
-    private:
-      const SmartPointer<const Function<dim>> weighting_function;
-    };
-
-    // ------------------------------------------------------
     // WeightedResidual
     // ------------------------------------------------------
 
@@ -74,7 +34,7 @@ namespace IonPropulsion{
     {
     public:
       WeightedResidual(
-        Triangulation<dim> &                           coarse_grid,
+        parallel::distributed::Triangulation<dim> &                           coarse_grid,
         const FiniteElement<dim> &                     primal_fe,
         const FiniteElement<dim> &                     dual_fe,
         const Quadrature<dim> &                        quadrature,
@@ -93,12 +53,10 @@ namespace IonPropulsion{
 
       virtual void refine_grid() override;
 
-      virtual void output_solution() const override;
+      virtual void output_solution()  override;
 
       void update_convergence_table() override;
       void print_convergence_table() const override;
-
-      virtual void conservative_flux_rhs(Vector<double> & rhs) const override;
 
       void restart() override{};
 
