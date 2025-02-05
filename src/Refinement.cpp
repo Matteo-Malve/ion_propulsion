@@ -97,7 +97,7 @@ namespace IonPropulsion{
     void  RefinementGlobal<dim>::print_convergence_table() const
     {
       this->convergence_table->omit_column_from_convergence_rate_evaluation("cycle");
-      this->convergence_table->omit_column_from_convergence_rate_evaluation("cells");
+      //this->convergence_table->omit_column_from_convergence_rate_evaluation("cells");
       this->convergence_table->omit_column_from_convergence_rate_evaluation("DoFs");
       this->convergence_table->evaluate_all_convergence_rates(ConvergenceTable::reduction_rate_log2);
       cout<<std::endl;
@@ -543,7 +543,7 @@ namespace IonPropulsion{
       data_out.add_data_vector(dual_weights, "dual_weights", DataOut<dim, dim>::type_dof_data);
       data_out.build_patches();
       const std::string pvtu_filename = data_out.write_vtu_with_pvtu_record(
-        "./../results/", "error_indicators", this->refinement_cycle, this->mpi_communicator, 4);
+        OUTPUT_PATH+"/", "error_indicators", this->refinement_cycle, this->mpi_communicator, 4);
       // END Output
 
       this->pcout<<"error_indicators.size() = "<<error_indicators.size()<<std::endl;
@@ -672,12 +672,12 @@ namespace IonPropulsion{
       if (this->this_mpi_process == 0)
       {
         PrimalSolver<dim>::convergence_table->add_value("cycle", this->refinement_cycle);
-        PrimalSolver<dim>::convergence_table->add_value("cells", this->triangulation->n_active_cells());
+        //PrimalSolver<dim>::convergence_table->add_value("cells", this->triangulation->n_active_cells());
         PrimalSolver<dim>::convergence_table->add_value("DoFs", PrimalSolver<dim>::dof_handler.n_dofs());
 
         CSVLogger& logger = CSVLogger::getInstance();
         logger.addColumn("cycle", std::to_string(this->refinement_cycle));
-        logger.addColumn("cells", std::to_string(this->triangulation->n_active_cells()));
+        //logger.addColumn("cells", std::to_string(this->triangulation->n_active_cells()));
         logger.addColumn("DoFs", std::to_string(PrimalSolver<dim>::dof_handler.n_dofs()));
       }
     }

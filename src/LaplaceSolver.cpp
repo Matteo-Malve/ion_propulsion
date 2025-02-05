@@ -35,7 +35,7 @@ namespace IonPropulsion{
     template <int dim>
     void Base<dim>::checkpoint()
     {
-      std::cout << "--- Writing checkpoint... ---" << std::endl << std::endl;
+      std::cout << "--- Writing checkpoint... ---" << std::endl;
 
       triangulation->save(OUTPUT_PATH+"/"+"tmp.checkpoint");
       //std::ofstream                 checkpoint_file(OUTPUT_PATH+"/"+"checkpoint-mesh");
@@ -100,12 +100,12 @@ namespace IonPropulsion{
     void Solver<dim>::update_convergence_table() {
       if (this->this_mpi_process == 0) {
         this->convergence_table->add_value("cycle", this->refinement_cycle);
-        this->convergence_table->add_value("cells", this->triangulation->n_active_cells());
+        //this->convergence_table->add_value("cells", this->triangulation->n_active_cells());
         this->convergence_table->add_value("DoFs", this->dof_handler.n_dofs());
 
         CSVLogger& logger = CSVLogger::getInstance();
         logger.addColumn("cycle", std::to_string(this->refinement_cycle));
-        logger.addColumn("cells", std::to_string(this->triangulation->n_active_cells()));
+        //logger.addColumn("cells", std::to_string(this->triangulation->n_active_cells()));
         logger.addColumn("DoFs", std::to_string(this->dof_handler.n_dofs()));
       }
     }
@@ -317,7 +317,7 @@ namespace IonPropulsion{
     {
 
 
-      SolverControl            solver_control(5000, 1e-12);
+      SolverControl            solver_control(5000, 1e-15);
       PETScWrappers::SolverCG  cg(solver_control);
 
       PETScWrappers::PreconditionBoomerAMG::AdditionalData data;

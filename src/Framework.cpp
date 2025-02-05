@@ -121,7 +121,7 @@ namespace IonPropulsion{
         solver->print_convergence_table();
         CSVLogger::getInstance().flushRow();
       }
-
+      MPI_Barrier(mpi_communicator);
       if (REFINEMENT_CRITERION==2)
         solver->checkpoint();
 
@@ -129,7 +129,8 @@ namespace IonPropulsion{
       // Closure
       // ------------------------------------------------------
       MPI_Barrier(mpi_communicator);
-      cout<<std::defaultfloat<<std::endl;
+      cout<<std::defaultfloat;
+      MPI_Barrier(mpi_communicator);
       solver->print_and_reset_timer();
       MPI_Barrier(mpi_communicator);
 
