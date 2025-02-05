@@ -7,6 +7,9 @@ int main(int argc, char **argv)
   {
     using namespace IonPropulsion;
 
+    Utilities::MPI::MPI_InitFinalize mpi_initialization(argc, argv, 1);
+
+    cout<<"argc = "<<argc<<"\n";
     const std::string configFile = (argc > 1) ? argv[1] : "../config.yaml";
     GlobalConstants::initialize(configFile);
     std::cout << "Output path: " << OUTPUT_PATH << std::endl;
