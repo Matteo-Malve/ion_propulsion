@@ -508,30 +508,27 @@ namespace IonPropulsion {
       grid_in.attach_triangulation(coarse_grid);
       grid_in.read_msh(input_file);
 
-      const Point<2> center(0.0, 0.0); // Center of the circles
+      const Point<2> center(0.0, 0.0);
+      SphericalManifold<2> circular_manifold(center);
 
-      if (MANIFOLD_IS_APPLIED>0){
-        for (const auto &cell : coarse_grid.active_cell_iterators())
-        {
-          for (unsigned int face = 0; face < GeometryInfo<2>::faces_per_cell; ++face)
-          {
-            if (MANIFOLD_IS_APPLIED==2) {
-              if (cell->face(face)->at_boundary() && (cell->face(face)->boundary_id() == 1 || cell->face(face)->boundary_id() == 3 ||cell->face(face)->boundary_id() == 9)) // Boundary ID 1 for the emitter, 9 for collector
-              {
-                cell->face(face)->set_manifold_id(1); // Assign manifold ID 1 for the emitter
-              }
-            } else if (MANIFOLD_IS_APPLIED == 1) {
-              cell->face(face)->set_manifold_id(1);
-            } else {
-              DEAL_II_NOT_IMPLEMENTED();
-            }
-          }
-        }
 
-        // Attach a circular manifold to the emitter
-        SphericalManifold<2> circular_manifold(center);
-        coarse_grid.set_manifold(1, circular_manifold); // Set the manifold for the emitter
+      coarse_grid.reset_all_manifolds();
+      coarse_grid.set_all_manifold_ids(0);
+      if (MANIFOLD_IS_APPLIED == 2 || MANIFOLD_IS_APPLIED == 3)
+        coarse_grid.set_all_manifold_ids_on_boundary(1);
+      else if (MANIFOLD_IS_APPLIED == 1)
+        coarse_grid.set_all_manifold_ids(1);
+
+      coarse_grid.set_manifold (1, circular_manifold);
+
+      if (MANIFOLD_IS_APPLIED == 0 || MANIFOLD_IS_APPLIED == 2)
+        coarse_grid.set_manifold (0, FlatManifold<2>());
+      else if(MANIFOLD_IS_APPLIED == 3){
+        TransfiniteInterpolationManifold<2> inner_manifold;
+        inner_manifold.initialize(coarse_grid);
+        coarse_grid.set_manifold (0, inner_manifold);
       }
+
 
       double l = 0.5;
 
