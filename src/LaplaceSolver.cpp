@@ -281,7 +281,9 @@ namespace IonPropulsion{
           IndexSet & locally_relevant_dofs)
     {
       hanging_node_constraints.clear();
-      hanging_node_constraints.reinit(locally_owned_dofs, locally_relevant_dofs);
+
+      //hanging_node_constraints.reinit(locally_owned_dofs, locally_relevant_dofs);
+      hanging_node_constraints.reinit(locally_owned_dofs);
       DoFTools::make_hanging_node_constraints(dof_handler, hanging_node_constraints);
       hanging_node_constraints.close();
 

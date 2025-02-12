@@ -1,3 +1,19 @@
+#ifndef DEAL_II_NOT_IMPLEMENTED
+#define DEAL_II_NOT_IMPLEMENTED()              \
+do {                                         \
+Assert(false, dealii::ExcNotImplemented());\
+} while (false)
+#endif
+#include <iomanip> // For std::setw
+#if __cplusplus < 201703L
+    #include <experimental/filesystem>
+    namespace std {
+        namespace filesystem = experimental::filesystem;
+    }
+#else
+#include <filesystem>
+#endif
+
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
