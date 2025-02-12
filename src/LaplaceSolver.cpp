@@ -40,9 +40,9 @@ namespace IonPropulsion{
 
       //particle_handler.prepare_for_serialization();
       //triangulation->save(OUTPUT_PATH+"/"+"tmp.checkpoint");
-      std::ofstream                 checkpoint_file(OUTPUT_PATH+"/"+"checkpoint-mesh");
+      std::ofstream                 checkpoint_file(OUTPUT_PATH+"/"+"checkpoint-mesh-"+std::to_string(this->refinement_cycle));
       boost::archive::text_oarchive archive(checkpoint_file);
-      triangulation->save(archive,1);
+      triangulation->save(archive,0);
       /*
       std::list<std::string> tmp_checkpoint_files;
       for (const auto &dir_entry : std::filesystem::directory_iterator(OUTPUT_PATH))
