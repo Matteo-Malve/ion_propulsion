@@ -35,7 +35,7 @@ namespace IonPropulsion{
       void serialize(Archive &ar, const unsigned int version) {
         (void)ar;
         (void)version;
-      };
+      }
 
       void checkpoint();
       virtual void restart() = 0;

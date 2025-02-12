@@ -59,7 +59,7 @@ namespace IonPropulsion{
     template <int dim>
     void Solver<dim>::restart()
       {
-        {
+        /*{
           std::ifstream checkpoint_file(OUTPUT_PATH+"/"+"checkpoint_ion_propulsion");
           AssertThrow(checkpoint_file,
                       ExcMessage(
@@ -77,7 +77,21 @@ namespace IonPropulsion{
       GridOut grid_out;
       GridOutFlags::Msh msh_flags(true, true);
       grid_out.set_flags(msh_flags);
-      grid_out.write_msh(*this->triangulation, OUTPUT_PATH+"/re-imported_mesh.msh");
+      grid_out.write_msh(*this->triangulation, OUTPUT_PATH+"/re-imported_mesh.msh");*/
+
+      cout<<"Enter restart() function"<<std::endl;
+      std::ifstream checkpoint_file("../checkpoint-mesh");
+      AssertThrow(checkpoint_file,
+                  ExcMessage(
+                    "Could not read from the <checkpoint-mesh> file."));
+      cout<<"Checkpoint file found"<<std::endl;
+      boost::archive::text_iarchive archive(checkpoint_file);
+
+      cout<<"Archive built. Ready to load traingulation:"<<std::endl;
+      this->triangulation->load(archive,1);
+      cout<<"Mesh loaded."<<std::endl;
+
+      dof_handler.reinit(*this->triangulation);
     }
 
 
