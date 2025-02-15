@@ -282,8 +282,11 @@ namespace IonPropulsion{
     {
       hanging_node_constraints.clear();
 
-      //hanging_node_constraints.reinit(locally_owned_dofs, locally_relevant_dofs);
+#if (DEAL_II_VERSION_MAJOR > 9) || (DEAL_II_VERSION_MAJOR == 9 && DEAL_II_VERSION_MINOR >= 6)
+      hanging_node_constraints.reinit(locally_owned_dofs, locally_relevant_dofs);
+#else
       hanging_node_constraints.reinit(locally_owned_dofs);
+#endif
       DoFTools::make_hanging_node_constraints(dof_handler, hanging_node_constraints);
       hanging_node_constraints.close();
 
