@@ -636,7 +636,6 @@ namespace IonPropulsion{
         if (cell->is_locally_owned())
           for (const auto &face : cell->face_iterators())
             face_integrals[face] = -1e20;
-
       auto worker = [this,
                      &error_indicators,
                      &face_integrals](const active_cell_iterator & cell,
@@ -727,25 +726,39 @@ namespace IonPropulsion{
       FaceIntegrals &              face_integrals) const
     {
       (void)copy_data;
-      integrate_over_cell(cell,
-                          scratch_data.primal_solution,
-                          scratch_data.dual_weights,
-                          scratch_data.cell_data,
-                          error_indicators);
-      for (const auto face_no : cell->face_indices())
+      if (cell->is_locally_owned()) {
+        integrate_over_cell(cell,
+                           scratch_data.primal_solution,
+                           scratch_data.dual_weights,
+                           scratch_data.cell_data,
+                           error_indicators);
+        for (const auto face_no : cell->face_indices())
         {
-          if (cell->face(face_no)->at_boundary())
-            {
-              face_integrals[cell->face(face_no)] = 0;
-              continue;
-            }
+          if (cell->face(face_no)->at_boundary() )
+          {
+            face_integrals[cell->face(face_no)] = 0;
+            continue;
+          }
           if ((cell->neighbor(face_no)->has_children() == false) &&
               (cell->neighbor(face_no)->level() == cell->level()) &&
-              (cell->neighbor(face_no)->index() < cell->index()))
-            continue;
-          if (cell->at_boundary(face_no) == false)
-            if (cell->neighbor(face_no)->level() < cell->level())
+              (cell->neighbor(face_no)->index() < cell->index())) {
+            if (!cell->neighbor(face_no)->is_ghost())         // At least at step 0 should solve the issue
               continue;
+          }
+          if (cell->at_boundary(face_no) == false)
+            if (cell->neighbor(face_no)->level() < cell->level())   // You are more refined than your neighbor
+            {
+              if (cell->neighbor(face_no)->is_ghost()){
+                integrate_over_irregular_face_flipped(cell,
+                                         face_no,
+                                         scratch_data.primal_solution,
+                                         scratch_data.dual_weights,
+                                         scratch_data.face_data,
+                                         face_integrals);
+              }
+              continue;
+            }
+
           if (cell->face(face_no)->has_children() == false)
             integrate_over_regular_face(cell,
                                         face_no,
@@ -753,14 +766,17 @@ namespace IonPropulsion{
                                         scratch_data.dual_weights,
                                         scratch_data.face_data,
                                         face_integrals);
-          else
+          else {
             integrate_over_irregular_face(cell,
-                                          face_no,
-                                          scratch_data.primal_solution,
-                                          scratch_data.dual_weights,
-                                          scratch_data.face_data,
-                                          face_integrals);
+                                         face_no,
+                                         scratch_data.primal_solution,
+                                         scratch_data.dual_weights,
+                                         scratch_data.face_data,
+                                         face_integrals);
+
+          }
         }
+      }
     }
 
     template <int dim>
