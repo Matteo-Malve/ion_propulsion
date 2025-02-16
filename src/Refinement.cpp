@@ -164,6 +164,7 @@ namespace IonPropulsion{
                                 update_values | update_gradients |
                                   update_JxW_values | update_normal_vectors)
       , fe_subface_values_cell(mapping, fe, face_quadrature, update_gradients)
+      , fe_subface_values_neighbor(mapping, fe, face_quadrature, update_gradients)
     {
       const unsigned int n_face_q_points = face_quadrature.size();
 
@@ -192,6 +193,11 @@ namespace IonPropulsion{
           face_data.fe_subface_values_cell.get_fe(),
           face_data.fe_subface_values_cell.get_quadrature(),
           update_gradients)
+      , fe_subface_values_neighbor(
+          face_data.mapping,
+          face_data.fe_subface_values_neighbor.get_fe(),
+          face_data.fe_subface_values_neighbor.get_quadrature(),
+          update_gradients)
       , jump_residual(face_data.jump_residual)
       , dual_weights(face_data.dual_weights)
       , cell_grads(face_data.cell_grads)
@@ -205,8 +211,8 @@ namespace IonPropulsion{
         const Quadrature<dim> &    primal_quadrature,
         const Quadrature<dim - 1> &primal_face_quadrature,
         const Function<dim> &      rhs_function,
-        const Vector<double> &     primal_solution,
-        const Vector<double> &     dual_weights,
+        const PETScWrappers::MPI::Vector &     primal_solution,
+        const PETScWrappers::MPI::Vector &     dual_weights,
         const MappingQ<dim> & mapping)
       : mapping(mapping),
         cell_data(primal_fe, primal_quadrature, rhs_function, mapping)
@@ -452,7 +458,7 @@ namespace IonPropulsion{
 
     }
 
-    template <int dim>
+    /*template <int dim>
     void WeightedResidual<dim>::estimate_error(Vector<float> &error_indicators) const {
 
       PETScWrappers::MPI::Vector completely_distributed_primal_solution_on_dual(
@@ -577,43 +583,59 @@ namespace IonPropulsion{
 
       CSVLogger::getInstance().addColumn("est err", to_string_with_precision(std::fabs(estimated_error),15));
 
-    }
+    }*/
 
-    /*template <int dim>
+    template <int dim>
     void
     WeightedResidual<dim>::estimate_error(Vector<float> &error_indicators) const
     {
+      PETScWrappers::MPI::Vector completely_distributed_primal_solution_on_dual(
+        DualSolver<dim>::locally_owned_dofs,
+        DualSolver<dim>::mpi_communicator);   // non-ghosted
 
-
-      AffineConstraints<double> dual_hanging_node_constraints;
-      DoFTools::make_hanging_node_constraints(DualSolver<dim>::dof_handler,
-                                              dual_hanging_node_constraints);
-      dual_hanging_node_constraints.close();
-      Vector<double> primal_solution(DualSolver<dim>::dof_handler.n_dofs());
       FETools::interpolate(PrimalSolver<dim>::dof_handler,
-                           PrimalSolver<dim>::solution,
+                           PrimalSolver<dim>::locally_relevant_solution, // ghosted
                            DualSolver<dim>::dof_handler,
-                           dual_hanging_node_constraints,
-                           primal_solution);
+                           DualSolver<dim>::linear_system_ptr->hanging_node_constraints,
+                           completely_distributed_primal_solution_on_dual);  // non-ghosted
 
+      PETScWrappers::MPI::Vector locally_relevant_primal_solution_on_dual(
+        DualSolver<dim>::locally_owned_dofs,
+        DualSolver<dim>::locally_relevant_dofs,
+        DualSolver<dim>::mpi_communicator);   // ghosted
+      locally_relevant_primal_solution_on_dual = completely_distributed_primal_solution_on_dual;
 
-      AffineConstraints<double> primal_hanging_node_constraints;
-      DoFTools::make_hanging_node_constraints(PrimalSolver<dim>::dof_handler,
-                                              primal_hanging_node_constraints);
-      primal_hanging_node_constraints.close();
-      Vector<double> dual_weights(DualSolver<dim>::dof_handler.n_dofs());
-      FETools::interpolation_difference(DualSolver<dim>::dof_handler,
-                                        dual_hanging_node_constraints,
-                                        DualSolver<dim>::solution,
-                                        PrimalSolver<dim>::dof_handler,
-                                        primal_hanging_node_constraints,
-                                        dual_weights);
+      // --------
+
+      PETScWrappers::MPI::Vector completely_distributed_dual_weights(
+        DualSolver<dim>::locally_owned_dofs,
+        DualSolver<dim>::mpi_communicator);  // non-ghosted
+
+      FETools::interpolation_difference(
+        DualSolver<dim>::dof_handler,
+        DualSolver<dim>::linear_system_ptr->hanging_node_constraints,
+        DualSolver<dim>::locally_relevant_solution,    // ghosted
+        PrimalSolver<dim>::dof_handler,
+        PrimalSolver<dim>::linear_system_ptr->hanging_node_constraints,
+        completely_distributed_dual_weights);   // non-ghosted
+
+      PETScWrappers::MPI::Vector locally_relevant_dual_weights(
+        DualSolver<dim>::locally_owned_dofs,
+        DualSolver<dim>::locally_relevant_dofs,
+        DualSolver<dim>::mpi_communicator);   // ghosted
+      locally_relevant_dual_weights = completely_distributed_dual_weights;
+
+      // --------
+
+      auto & primal_solution = locally_relevant_primal_solution_on_dual;
+      auto & dual_weights = locally_relevant_dual_weights;
+
 
       FaceIntegrals face_integrals;
-      for (const auto &cell :
-           DualSolver<dim>::dof_handler.active_cell_iterators())
-        for (const auto &face : cell->face_iterators())
-          face_integrals[face] = -1e20;
+      for (const auto &cell :DualSolver<dim>::dof_handler.active_cell_iterators())
+        if (cell->is_locally_owned())
+          for (const auto &face : cell->face_iterators())
+            face_integrals[face] = -1e20;
 
       auto worker = [this,
                      &error_indicators,
@@ -644,28 +666,33 @@ namespace IonPropulsion{
         WeightedResidualCopyData());
 
       unsigned int present_cell = 0;
-      for (const auto &cell :
-           DualSolver<dim>::dof_handler.active_cell_iterators())
-        {
-          for (const auto &face : cell->face_iterators())
-            {
-              Assert(face_integrals.find(face) != face_integrals.end(),
-                     ExcInternalError());
-              error_indicators(present_cell) -= 0.5 * face_integrals[face];
-            }
-          ++present_cell;
+      for (const auto &cell : DualSolver<dim>::dof_handler.active_cell_iterators()){
+        if (cell->is_locally_owned()) {
+          for (const auto &face : cell->face_iterators()){
+            Assert(face_integrals.find(face) != face_integrals.end(),
+                   ExcInternalError());
+            error_indicators(present_cell) -= 0.5 * face_integrals[face];
+          }
         }
+        ++present_cell;
+      }
 
-      double estimated_error = std::accumulate(error_indicators.begin(),
-                                   error_indicators.end(),
-                                   0.);
+      //double estimated_error = std::accumulate(error_indicators.begin(),error_indicators.end(),0.);
+      double local_error = 0.0;
+      for (const auto &cell : DualSolver<dim>::dof_handler.active_cell_iterators())
+        if (cell->is_locally_owned())
+          local_error += error_indicators(cell->active_cell_index());
 
+      double global_error = 0.0;
+      MPI_Allreduce(&local_error, &global_error, 1, MPI_DOUBLE, MPI_SUM, this->mpi_communicator);
 
-      PrimalSolver<dim>::convergence_table->add_value("est err",std::fabs(estimated_error));
+      MPI_Barrier(this->mpi_communicator);
+
+      PrimalSolver<dim>::convergence_table->add_value("est err",std::fabs(global_error));
       PrimalSolver<dim>::convergence_table->set_scientific("est err",true);
 
-      CSVLogger::getInstance().addColumn("est err", to_string_with_precision(std::fabs(estimated_error),15));
-    }*/
+      CSVLogger::getInstance().addColumn("est err", to_string_with_precision(std::fabs(global_error),15));
+    }
 
     template <int dim>
     void WeightedResidual<dim>::update_convergence_table() {
@@ -739,8 +766,8 @@ namespace IonPropulsion{
     template <int dim>
     void WeightedResidual<dim>::integrate_over_cell(
       const active_cell_iterator &cell,
-      const Vector<double> &      primal_solution,
-      const Vector<double> &      dual_weights,
+      const PETScWrappers::MPI::Vector &      primal_solution,
+      const PETScWrappers::MPI::Vector &      dual_weights,
       CellData &                  cell_data,
       Vector<float> &             error_indicators) const
     {
@@ -779,8 +806,8 @@ namespace IonPropulsion{
     void WeightedResidual<dim>::integrate_over_regular_face(
       const active_cell_iterator &cell,
       const unsigned int          face_no,
-      const Vector<double> &      primal_solution,
-      const Vector<double> &      dual_weights,
+      const PETScWrappers::MPI::Vector &      primal_solution,
+      const PETScWrappers::MPI::Vector &      dual_weights,
       FaceData &                  face_data,
       FaceIntegrals &             face_integrals) const
     {
@@ -853,8 +880,8 @@ namespace IonPropulsion{
     void WeightedResidual<dim>::integrate_over_irregular_face(
       const active_cell_iterator &cell,
       const unsigned int          face_no,
-      const Vector<double> &      primal_solution,
-      const Vector<double> &      dual_weights,
+      const PETScWrappers::MPI::Vector &      primal_solution,
+      const PETScWrappers::MPI::Vector &      dual_weights,
       FaceData &                  face_data,
       FaceIntegrals &             face_integrals) const
     {
@@ -928,6 +955,73 @@ namespace IonPropulsion{
         }
       // Finally store the value with the parent face.
       face_integrals[face] = sum;
+    }
+
+    template <int dim>
+    void WeightedResidual<dim>::integrate_over_irregular_face_flipped(
+      const active_cell_iterator &cell,
+      const unsigned int          face_no,
+      const PETScWrappers::MPI::Vector &      primal_solution,
+      const PETScWrappers::MPI::Vector &      dual_weights,
+      FaceData &                  face_data,
+      FaceIntegrals &             face_integrals) const
+    {
+      const unsigned int n_q_points =
+        face_data.fe_face_values_cell.n_quadrature_points;
+
+      const typename DoFHandler<dim>::face_iterator face = cell->face(face_no);
+      const typename DoFHandler<dim>::cell_iterator neighbor =
+        cell->neighbor(face_no);
+      Assert(neighbor.state() == IteratorState::valid, ExcInternalError());
+      Assert(neighbor->has_children(), ExcInternalError());
+      (void)neighbor;
+
+      //const unsigned int neighbor_neighbor = cell->neighbor_of_neighbor(face_no);      // If the neighbor is coarser this function throws an exception
+      auto pair = cell->neighbor_of_coarser_neighbor(face_no);
+      const unsigned int neighbor_face_no = pair.first;
+      const unsigned int neighbor_subface_no = pair.second;
+
+      // Then simply do everything we did in the previous function for one
+      // face for all the sub-faces now:
+      //for (unsigned int subface_no = 0; subface_no < face->n_children();++subface_no)   // Now we only have one subface to deal with
+
+
+      // const active_cell_iterator neighbor_child = cell->neighbor_child_on_subface(face_no, subface_no);
+
+      // Now start the work by again getting the gradient of the solution
+      // first at this side of the interface,
+
+      //face_data.fe_subface_values_cell.reinit(cell, face_no, subface_no);   // We are small, we have no subface
+      face_data.fe_face_values_cell.reinit(cell, face_no);
+      face_data.fe_subface_values_cell.get_function_gradients(
+        primal_solution, face_data.cell_grads);
+
+      // then at the other side,
+      // face_data.fe_face_values_neighbor.reinit(neighbor_child, neighbor_neighbor);       // Other side needs subface_values now
+      // face_data.fe_face_values_neighbor.get_function_gradients( primal_solution, face_data.neighbor_grads);
+
+      face_data.fe_subface_values_neighbor.reinit(neighbor, neighbor_face_no, neighbor_subface_no);
+      face_data.fe_subface_values_neighbor.get_function_gradients(primal_solution, face_data.neighbor_grads);
+
+      for (unsigned int p = 0; p < n_q_points; ++p)
+        face_data.jump_residual[p] =
+          ((face_data.cell_grads[p] - face_data.neighbor_grads[p]) *    // Invert cell - neighbor as in "regular face" bcs we use normal vector from cell's side
+           face_data.fe_face_values_cell.normal_vector(p));
+
+      // Then get dual weights:
+      //face_data.fe_face_values_neighbor.get_function_values(dual_weights, face_data.dual_weights);    // Take dual weights from cells perspective, as in "regular face"
+      face_data.fe_face_values_cell.get_function_values(dual_weights, face_data.dual_weights);
+
+      // At last, sum up the contribution of this sub-face, and set it in
+      // the global map:
+      double face_integral = 0;
+      for (unsigned int p = 0; p < n_q_points; ++p)
+        face_integral += eps_0 * eps_r *
+          (face_data.jump_residual[p] * face_data.dual_weights[p] *
+           face_data.fe_face_values_neighbor.JxW(p));
+
+      face_integrals[face] = face_integral;
+
     }
 
 

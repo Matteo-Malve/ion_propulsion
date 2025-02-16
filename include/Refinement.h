@@ -94,6 +94,7 @@ namespace IonPropulsion{
         FEFaceValues<dim>    fe_face_values_cell;
         FEFaceValues<dim>    fe_face_values_neighbor;
         FESubfaceValues<dim> fe_subface_values_cell;
+        FESubfaceValues<dim> fe_subface_values_neighbor;
 
         std::vector<double>                  jump_residual;
         std::vector<double>                  dual_weights;
@@ -113,8 +114,8 @@ namespace IonPropulsion{
           const Quadrature<dim> &    primal_quadrature,
           const Quadrature<dim - 1> &primal_face_quadrature,
           const Function<dim> &      rhs_function,
-          const Vector<double> &     primal_solution,
-          const Vector<double> &     dual_weights,
+          const PETScWrappers::MPI::Vector &     primal_solution,
+          const PETScWrappers::MPI::Vector &     dual_weights,
           const MappingQ<dim> & mapping);
 
         WeightedResidualScratchData(
@@ -123,8 +124,8 @@ namespace IonPropulsion{
         MappingQ<dim>  mapping;
         CellData       cell_data;
         FaceData       face_data;
-        Vector<double> primal_solution;
-        Vector<double> dual_weights;
+        PETScWrappers::MPI::Vector primal_solution;
+        PETScWrappers::MPI::Vector dual_weights;
       };
 
       struct WeightedResidualCopyData
@@ -139,21 +140,27 @@ namespace IonPropulsion{
                                 FaceIntegrals &face_integrals) const;
 
       void integrate_over_cell(const active_cell_iterator &cell,
-                               const Vector<double> &      primal_solution,
-                               const Vector<double> &      dual_weights,
+                               const PETScWrappers::MPI::Vector &      primal_solution,
+                               const PETScWrappers::MPI::Vector &      dual_weights,
                                CellData &                  cell_data,
                                Vector<float> &error_indicators) const;
 
       void integrate_over_regular_face(const active_cell_iterator &cell,
                                        const unsigned int          face_no,
-                                       const Vector<double> &primal_solution,
-                                       const Vector<double> &dual_weights,
+                                       const PETScWrappers::MPI::Vector &primal_solution,
+                                       const PETScWrappers::MPI::Vector &dual_weights,
                                        FaceData &            face_data,
                                        FaceIntegrals &face_integrals) const;
       void integrate_over_irregular_face(const active_cell_iterator &cell,
                                          const unsigned int          face_no,
-                                         const Vector<double> &primal_solution,
-                                         const Vector<double> &dual_weights,
+                                         const PETScWrappers::MPI::Vector &primal_solution,
+                                         const PETScWrappers::MPI::Vector &dual_weights,
+                                         FaceData &            face_data,
+                                         FaceIntegrals &face_integrals) const;
+      void integrate_over_irregular_face_flipped(const active_cell_iterator &cell,
+                                         const unsigned int          face_no,
+                                         const PETScWrappers::MPI::Vector &primal_solution,
+                                         const PETScWrappers::MPI::Vector &dual_weights,
                                          FaceData &            face_data,
                                          FaceIntegrals &face_integrals) const;
     };
