@@ -141,7 +141,7 @@ namespace IonPropulsion{
 			for (const auto &cell : dof_handler.active_cell_iterators())
 				if (cell->is_locally_owned()){
 					for (const auto &face : cell->face_iterators())
-						if (face->at_boundary() && face->boundary_id()==1 ) {
+						if (face->at_boundary() && boundary_ids.count(face->boundary_id()) > 0 ) {
 							fe_face_values.reinit(cell, face);
 							fe_face_values.get_function_gradients(solution, solution_gradients);
 							for (unsigned int q_point = 0; q_point < n_face_q_points; ++q_point) {
