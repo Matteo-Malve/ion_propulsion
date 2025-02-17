@@ -343,6 +343,30 @@ namespace IonPropulsion{
       cout<<"Rank "<<this->this_mpi_process<<std::scientific<<" nonzero entries: "<<nonzero_entries<<std::endl;
       MPI_Barrier(this->mpi_communicator);
 
+      // Output
+      DataOut<dim> data_out;
+      data_out.attach_dof_handler(DualSolver<dim>::dof_handler);
+      data_out.add_data_vector(error_indicators, "error_indicators", DataOut<dim, dim>::type_cell_data);
+
+      Vector<float> cell_flags(this->triangulation->n_active_cells());
+      unsigned int cell_index = 0;
+      for (const auto &cell : this->triangulation->active_cell_iterators())
+      {
+        if (cell->refine_flag_set())
+          cell_flags[cell_index] = 1.0; // Refinement flag
+        else if (cell->coarsen_flag_set())
+          cell_flags[cell_index] = -1.0; // Coarsening flag
+        else
+          cell_flags[cell_index] = 0.0; // No flag
+        ++cell_index;
+      }
+      data_out.add_data_vector(cell_flags, "CellFlags",DataOut<dim>::type_cell_data);
+
+      data_out.build_patches();
+      const std::string pvtu_filename = data_out.write_vtu_with_pvtu_record(
+        OUTPUT_PATH+"/", "cell_flags", this->refinement_cycle, this->mpi_communicator, 4);
+      // END Output
+
       // GRID REFINEMENT
 
       if (REFINEMENT_CRITERION == 3) {
