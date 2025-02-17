@@ -542,6 +542,85 @@ namespace IonPropulsion{
 
     }
 
+
+    /*template <int dim>
+    void WeightedResidual<dim>::estimate_error(Vector<float> &error_indicators) const {
+
+      AffineConstraints<double> dual_hanging_node_constraints;
+      DoFTools::make_hanging_node_constraints(DualSolver<dim>::dof_handler,
+                                              dual_hanging_node_constraints);
+      dual_hanging_node_constraints.close();
+      Vector<double> primal_solution(DualSolver<dim>::dof_handler.n_dofs());
+      FETools::interpolate(PrimalSolver<dim>::dof_handler,
+                           PrimalSolver<dim>::solution,
+                           DualSolver<dim>::dof_handler,
+                           dual_hanging_node_constraints,
+                           primal_solution);
+
+
+      AffineConstraints<double> primal_hanging_node_constraints;
+      DoFTools::make_hanging_node_constraints(PrimalSolver<dim>::dof_handler,
+                                              primal_hanging_node_constraints);
+      primal_hanging_node_constraints.close();
+      Vector<double> dual_weights(DualSolver<dim>::dof_handler.n_dofs());
+      FETools::interpolation_difference(DualSolver<dim>::dof_handler,
+                                        dual_hanging_node_constraints,
+                                        DualSolver<dim>::solution,
+                                        PrimalSolver<dim>::dof_handler,
+                                        primal_hanging_node_constraints,
+                                        dual_weights);
+
+
+      // ------------------------------------------------------------
+      // LOCAL ESTIMATE: integrate over cells
+      // ------------------------------------------------------------
+
+      FEValues<dim> fe_values(DualSolver<dim>::mapping, *DualSolver<dim>::fe,
+                              *DualSolver<dim>::quadrature,
+                              update_values | update_gradients | update_quadrature_points | update_JxW_values);
+
+      const unsigned int n_q_points = DualSolver<dim>::quadrature->size();
+
+      std::vector<Tensor<1,dim>> cell_Rg_plus_uh0hat_gradients(n_q_points);
+      std::vector<Tensor<1,dim>> cell_dual_weights_gradients(n_q_points);
+      std::vector<double> cell_rhs_values(n_q_points);
+      std::vector<double> cell_dual_weights(n_q_points);
+
+      double sum;
+
+      for (const auto &cell : DualSolver<dim>::dof_handler.active_cell_iterators()){
+        if (cell->is_locally_owned()) {
+          fe_values.reinit(cell);
+          fe_values.get_function_gradients(primal_solution, cell_Rg_plus_uh0hat_gradients);
+          fe_values.get_function_gradients(dual_weights, cell_dual_weights_gradients);
+          fe_values.get_function_values(dual_weights, cell_dual_weights);
+          PrimalSolver<dim>::rhs_function->value_list(fe_values.get_quadrature_points(), cell_rhs_values);
+
+          // Numerically approximate the integral of the scalar product between the gradients of the two
+          sum = 0;
+
+          for (unsigned int p = 0; p < n_q_points; ++p) {
+            sum -=  eps_r * eps_0 *
+                    ((cell_Rg_plus_uh0hat_gradients[p] * cell_dual_weights_gradients[p]  )   // Scalar product btw Tensors
+                      * fe_values.JxW(p));
+            sum += (cell_rhs_values[p] * cell_dual_weights[p] * fe_values.JxW(p));
+          }
+          error_indicators(cell->active_cell_index()) += sum;
+        }
+      }
+
+      double estimated_error = std::accumulate(error_indicators.begin(),
+                                   error_indicators.end(),
+                                   0.);
+
+
+      PrimalSolver<dim>::convergence_table->add_value("est err",std::fabs(estimated_error));
+      PrimalSolver<dim>::convergence_table->set_scientific("est err",true);
+
+      CSVLogger::getInstance().addColumn("est err", to_string_with_precision(std::fabs(estimated_error),15));
+
+    }*/
+
     template <int dim>
     void
     WeightedResidual<dim>::estimate_error(Vector<float> &error_indicators) const
@@ -619,18 +698,7 @@ namespace IonPropulsion{
           ++present_cell;
         }
 
-      /* Output
-      DataOut<dim> data_out;
-      data_out.attach_dof_handler(DualSolver<dim>::dof_handler);
-      data_out.add_data_vector(error_indicators, "error_indicators", DataOut<dim, dim>::type_cell_data);
-      data_out.add_data_vector(primal_solution, "primal_solution", DataOut<dim, dim>::type_dof_data);
-      data_out.add_data_vector(dual_weights, "dual_weights", DataOut<dim, dim>::type_dof_data);
-      data_out.build_patches();
-      std::ofstream out( "error_indicators-" + std::to_string(this->refinement_cycle) +
-                        ".vtu");
-      data_out.write(out, DataOutBase::vtu);
 
-      */ //END output
 
       double estimated_error = std::accumulate(error_indicators.begin(),
                                    error_indicators.end(),
