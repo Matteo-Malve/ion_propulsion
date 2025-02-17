@@ -335,6 +335,9 @@ namespace IonPropulsion{
                 rhs,
                 preconditioner);
 
+      /*PETScWrappers::SparseDirectMUMPS solverMUMPS(solver_control);
+      solverMUMPS.solve(matrix, completely_distributed_solution, rhs);*/
+
       hanging_node_constraints.distribute(completely_distributed_solution);
 
       locally_relevant_solution = completely_distributed_solution;

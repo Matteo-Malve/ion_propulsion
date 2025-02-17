@@ -706,8 +706,10 @@ namespace IonPropulsion{
         if (cell->is_locally_owned())
           local_error += error_indicators(cell->active_cell_index());
 
-      double global_error = 0.0;
-      MPI_Allreduce(&local_error, &global_error, 1, MPI_DOUBLE, MPI_SUM, this->mpi_communicator);
+      //double global_error = 0.0;
+      //MPI_Allreduce(&local_error, &global_error, 1, MPI_DOUBLE, MPI_SUM, this->mpi_communicator);
+
+      double global_error = Utilities::MPI::sum(local_error,this->mpi_communicator);
 
       MPI_Barrier(this->mpi_communicator);
 
