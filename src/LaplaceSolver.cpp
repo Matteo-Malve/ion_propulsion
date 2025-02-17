@@ -322,7 +322,7 @@ namespace IonPropulsion{
     {
 
 
-      SolverControl            solver_control(5000, 1e-15);
+      SolverControl            solver_control(5000, 1e-12);
       PETScWrappers::SolverCG  cg(solver_control);
 
       PETScWrappers::PreconditionBoomerAMG::AdditionalData data;
