@@ -1032,9 +1032,9 @@ namespace IonPropulsion{
       // first at this side of the interface,
 
       //face_data.fe_subface_values_cell.reinit(cell, face_no, subface_no);   // We are small, we have no subface
+      //face_data.fe_subface_values_cell.get_function_gradients(primal_solution, face_data.cell_grads);
       face_data.fe_face_values_cell.reinit(cell, face_no);
-      face_data.fe_subface_values_cell.get_function_gradients(
-        primal_solution, face_data.cell_grads);
+      face_data.fe_face_values_cell.get_function_gradients(primal_solution, face_data.cell_grads);
 
       // then at the other side,
       // face_data.fe_face_values_neighbor.reinit(neighbor_child, neighbor_neighbor);       // Other side needs subface_values now
@@ -1058,7 +1058,7 @@ namespace IonPropulsion{
       for (unsigned int p = 0; p < n_q_points; ++p)
         face_integral += eps_0 * eps_r *
           (face_data.jump_residual[p] * face_data.dual_weights[p] *
-           face_data.fe_face_values_neighbor.JxW(p));
+           face_data.fe_face_values_cell.JxW(p));     // face_data.fe_face_values_neighbor.JxW(p)); replaced with cell's fe_face_values
 
       face_integrals[face] = face_integral;
 
