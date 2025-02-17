@@ -432,6 +432,15 @@ namespace IonPropulsion{
       for (float &error_indicator : error_indicators)
         error_indicator = std::fabs(error_indicator);
 
+      // Output
+      DataOut<dim> data_out;
+      data_out.attach_dof_handler(DualSolver<dim>::dof_handler);
+      data_out.add_data_vector(error_indicators, "error_indicators", DataOut<dim, dim>::type_cell_data);
+      data_out.build_patches();
+      std::ofstream out(OUTPUT_PATH+"/"+"error_indicators-" + std::to_string(this->refinement_cycle) +".vtu");
+      data_out.write(out, DataOutBase::vtu);
+      // END Output
+
       // GRID REFINEMENT
 
       if (REFINEMENT_CRITERION == 3) {
