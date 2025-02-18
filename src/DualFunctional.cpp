@@ -89,7 +89,7 @@ namespace IonPropulsion{
       const QGauss<dim-1> face_quadrature(fe_face.degree + 1);
 
       // Finite elements
-      FEFaceValues<dim> fe_face_values(fe_face,
+      FEFaceValues<dim> fe_face_values(this->mapping, fe_face,
                                        face_quadrature,
                                        update_gradients |
                                        update_normal_vectors |
