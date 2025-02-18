@@ -37,11 +37,13 @@ namespace IonPropulsion{
     {
       std::cout << "--- Writing checkpoint... ---" << std::endl;
 
-      triangulation->save(OUTPUT_PATH+"/"+"tmp.checkpoint");
-      //std::ofstream                 checkpoint_file(OUTPUT_PATH+"/"+"checkpoint-mesh");
+//#if (DEAL_II_VERSION_MAJOR > 9) || (DEAL_II_VERSION_MAJOR == 9 && DEAL_II_VERSION_MINOR >= 6)
+      triangulation->save(OUTPUT_PATH+"/"+"checkpoint-mesh"+std::to_string(this->refinement_cycle));
+//#else
+      //std::ofstream                 checkpoint_file(OUTPUT_PATH+"/"+"checkpoint-mesh"+std::to_string(this->refinement_cycle));
       //boost::archive::text_oarchive archive(checkpoint_file);
       //triangulation->save(archive,1);
-
+//#endif
     }
 
     template <int dim>
