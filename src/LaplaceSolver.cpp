@@ -410,7 +410,7 @@ namespace IonPropulsion{
     template <int dim>
     void PrimalSolver<dim>::assemble_rhs(PETScWrappers::MPI::Vector &rhs, AffineConstraints<double> & constraints) const
     {
-      FEValues<dim> fe_values(*this->fe,
+      FEValues<dim> fe_values(this->mapping, *this->fe,
                               *this->quadrature,
                               update_values | update_gradients | update_quadrature_points |
                                 update_JxW_values);
