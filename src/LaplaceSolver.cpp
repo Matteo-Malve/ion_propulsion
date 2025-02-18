@@ -189,7 +189,7 @@ namespace IonPropulsion{
       // ------------------------------------------------------
       // Matrix assemble
       // ------------------------------------------------------
-      FEValues<dim> fe_values(*fe,
+      FEValues<dim> fe_values(mapping, *fe,
                               *quadrature,
                               update_values | update_gradients |
                               update_quadrature_points | update_JxW_values);
