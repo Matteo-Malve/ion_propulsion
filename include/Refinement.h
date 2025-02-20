@@ -32,12 +32,13 @@ namespace IonPropulsion{
             {
               written_indices.insert(vertex_index);
               unsigned int bdry_id = face->at_boundary() ? face->boundary_id() : 0;
+              const double potential = VectorTools::point_value(dof_handler, solution, vertex_point);
 
               csv_file << vertex_index << ",";
               std::streamsize old_precision = csv_file.precision();
               csv_file << std::scientific << std::setprecision(12)
                        << vertex_point[0] << "," << vertex_point[1] << "," << 0. << ","
-                       << solution[vertex_index]<< ",";
+                       << potential<< ",";
               csv_file.precision(old_precision);
               csv_file << bdry_id << "\n";
             }
