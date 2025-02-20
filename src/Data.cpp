@@ -811,7 +811,7 @@ namespace IonPropulsion {
 
           }
         }
-      } else if (MANIFOLD_IS_APPLIED==3) {
+      } else if (MANIFOLD_IS_APPLIED==2 || MANIFOLD_IS_APPLIED==3) {
         coarse_grid.reset_all_manifolds();
         coarse_grid.set_all_manifold_ids(0);
         coarse_grid.set_all_manifold_ids_on_boundary(1, emitterUp);
@@ -825,9 +825,12 @@ namespace IonPropulsion {
       coarse_grid.set_manifold(collectorUp, collectorUp_manifold);
       coarse_grid.set_manifold(collectorDown, collectorDown_manifold);
 
-      inner_manifold.initialize(coarse_grid);
-      coarse_grid.set_manifold (0, inner_manifold);
-      //coarse_grid.set_manifold (0, FlatManifold<dim>());
+      if (MANIFOLD_IS_APPLIED==3) {
+        inner_manifold.initialize(coarse_grid);
+        coarse_grid.set_manifold (0, inner_manifold);
+      }
+      if (MANIFOLD_IS_APPLIED==2)
+        coarse_grid.set_manifold (0, FlatManifold<dim>());
 
 
       /*for (unsigned int i = 0; i < 2; ++i) {
