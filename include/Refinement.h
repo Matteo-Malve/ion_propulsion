@@ -6,6 +6,48 @@
 namespace IonPropulsion{
   using namespace dealii;
   namespace LaplaceSolver{
+
+
+    template <int dim>
+    void write_csv(
+      const DoFHandler<dim>    &dof_handler,
+      const Vector<double>     &solution,
+      unsigned int refinement_cycle)
+    {
+      std::ofstream csv_file(OUTPUT_PATH + "/points-" + std::to_string(refinement_cycle) + ".csv");
+      csv_file << std::scientific << std::setprecision(12);
+      csv_file << "global_index,x,y,z,potential,boundary_type\n";
+
+      std::unordered_set<unsigned int> written_indices;
+
+      for (auto &cell : dof_handler.active_cell_iterators()){
+        for (const auto face_no : cell->face_indices()) {
+          const auto & face = cell->face(face_no);
+          for (unsigned int i = 0; i < GeometryInfo<dim-1>::vertices_per_cell; ++i)
+          {
+            const unsigned int vertex_index = face->vertex_index(i);
+            const auto vertex_point = face->vertex(i);
+
+            if (written_indices.find(vertex_index) == written_indices.end())
+            {
+              written_indices.insert(vertex_index);
+              unsigned int bdry_id = face->at_boundary() ? face->boundary_id() : 0;
+
+              csv_file << vertex_index << ",";
+              std::streamsize old_precision = csv_file.precision();
+              csv_file << std::scientific << std::setprecision(12)
+                       << vertex_point[0] << "," << vertex_point[1] << "," << 0. << ","
+                       << solution[vertex_index]<< ",";
+              csv_file.precision(old_precision);
+              csv_file << bdry_id << "\n";
+            }
+          }
+        }
+      }
+
+      csv_file.close();
+    }
+
     // ------------------------------------------------------
     // RefinementGlobal
     // ------------------------------------------------------

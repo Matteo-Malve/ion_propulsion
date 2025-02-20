@@ -745,6 +745,8 @@ namespace IonPropulsion{
       cout<<std::endl;
       PrimalSolver<dim>::convergence_table->write_text(std::cout);
       cout<<std::endl;
+
+      write_csv<dim>(PrimalSolver<dim>::dof_handler,PrimalSolver<dim>::solution, this->refinement_cycle);
     }
 
     template <int dim>
