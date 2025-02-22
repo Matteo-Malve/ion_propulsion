@@ -24,6 +24,7 @@ unsigned int MAPPING_DEGREE;
 bool MANUAL_LIFTING_ON;
 unsigned int REFINEMENT_CRITERION;
 unsigned int DUAL_FUNCTIONAL;
+unsigned int MAX_DEGREES_OF_FREEDOM;
 
 double EVALUATION_POINT_X;
 double EVALUATION_POINT_Y;
@@ -59,6 +60,8 @@ void useGlobalConstants() {
   MANUAL_LIFTING_ON = static_cast<bool>(GlobalConstants::getInstance().get("MANUAL_LIFTING_ON"));
   REFINEMENT_CRITERION = static_cast<unsigned int>(GlobalConstants::getInstance().get("REFINEMENT_CRITERION"));
   DUAL_FUNCTIONAL = static_cast<unsigned int>(GlobalConstants::getInstance().get("DUAL_FUNCTIONAL",1));
+  MAX_DEGREES_OF_FREEDOM = static_cast<unsigned int>(GlobalConstants::getInstance().get("MAX_DEGREES_OF_FREEDOM",5e5));
+
 
   if (LOAD_FROM_SETUP != 0 && LOAD_FROM_SETUP != 11) {
     EVALUATION_POINT_X = GlobalConstants::getInstance().get("EVALUATION_POINT_X");
@@ -188,6 +191,9 @@ void printParsedConstants() {
   if (REFINEMENT_CRITERION==2 || REFINEMENT_CRITERION==3) {
     std::cout << std::left << std::setw(30) << "DUAL_FUNCTIONAL" << std::setw(20) << functional_name << "\n";
   }
+  std::cout << std::left << std::setw(30) << "MAX_DEGREES_OF_FREEDOM (stopping criterion of the simulation)"
+            << std::setw(20) << MAX_DEGREES_OF_FREEDOM << "\n";
+
   std::cout << "------------------------------------------------------------\n";
   std::string eval_point_alltogether = "( " + std::to_string(EVALUATION_POINT_X) + " , " + std::to_string(EVALUATION_POINT_Y) + " )";
   std::cout << std::left << std::setw(30) << "EVALUATION_POINT"
