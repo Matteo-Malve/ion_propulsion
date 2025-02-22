@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 
     // Set the maximal number of degrees of freedom after which we want the
     // program to stop refining the mesh further:
-    descriptor.max_degrees_of_freedom = 2500000;
+    descriptor.max_degrees_of_freedom = MAX_DEGREES_OF_FREEDOM;
 
     // Finally pass the descriptor object to a function that runs the entire
     // solution with it:

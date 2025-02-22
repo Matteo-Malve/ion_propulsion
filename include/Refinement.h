@@ -20,6 +20,35 @@ namespace IonPropulsion{
 
       std::unordered_set<unsigned int> written_indices;
 
+      // Do first all faces at the boundary
+      for (auto &cell : dof_handler.active_cell_iterators()){
+        if (cell->at_boundary())
+          for (const auto face_no : cell->face_indices()) {
+            const auto & face = cell->face(face_no);
+            if (face->at_boundary())
+              for (unsigned int i = 0; i < GeometryInfo<dim-1>::vertices_per_cell; ++i){
+                const unsigned int vertex_index = face->vertex_index(i);
+                const auto vertex_point = face->vertex(i);
+
+                if (written_indices.find(vertex_index) == written_indices.end())
+                {
+                  written_indices.insert(vertex_index);
+                  unsigned int bdry_id = face->at_boundary() ? face->boundary_id() : 0;
+                  const double potential = VectorTools::point_value(dof_handler, solution, vertex_point);
+
+                  csv_file << vertex_index << ",";
+                  std::streamsize old_precision = csv_file.precision();
+                  csv_file << std::scientific << std::setprecision(12)
+                           << vertex_point[0] << "," << vertex_point[1] << "," << 0. << ","
+                           << potential<< ",";
+                  csv_file.precision(old_precision);
+                  csv_file << bdry_id << "\n";
+                }
+              }
+          }
+      }
+
+      // Then do all the other faces
       for (auto &cell : dof_handler.active_cell_iterators()){
         for (const auto face_no : cell->face_indices()) {
           const auto & face = cell->face(face_no);

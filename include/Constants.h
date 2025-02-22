@@ -51,6 +51,8 @@ extern unsigned int MAPPING_DEGREE;
 extern bool MANUAL_LIFTING_ON;
 extern unsigned int REFINEMENT_CRITERION;
 extern unsigned int DUAL_FUNCTIONAL;
+extern unsigned int MAX_DEGREES_OF_FREEDOM;
+
 
 extern double EVALUATION_POINT_X;
 extern double EVALUATION_POINT_Y;
