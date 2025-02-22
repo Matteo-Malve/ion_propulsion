@@ -226,12 +226,16 @@ def plot_classic_pair_real_application(file_name, output_file, reference_file_na
     concentric_data = pd.read_csv(concentric_file_name) 
   
   dofs = int(list(data['DoFs'])[-1])
-  reference_value = list(data['std FLUX err'])[-1]
+  reference_value = list(data['std FLUX value'])[-1]
   max_dofs = dofs/50
   data = data[data['DoFs']<max_dofs]
   data['std FLUX err'] = abs(data['std FLUX value']-reference_value)
   if reference_file_name is not None:
     reference_data = reference_data[reference_data['DoFs']<max_dofs]
+    reference_data['std FLUX err'] = abs(reference_data['std FLUX value']-reference_value)
+  if concentric_file_name is not None:
+    concentric_data = concentric_data[concentric_data['DoFs']<max_dofs]
+    concentric_data['std FLUX err'] = abs(concentric_data['std FLUX value']-reference_value)
 
   fig, axes = plt.subplots(1, 2, figsize=(13, 6), sharey=True)
 
