@@ -15,8 +15,10 @@ int main(int argc, char **argv)
     std::cout << "Output path: " << OUTPUT_PATH << std::endl;
 
     useGlobalConstants();
+    MPI_Barrier(MPI_COMM_WORLD);
     if (Utilities::MPI::this_mpi_process(MPI_COMM_WORLD)==0)
       printParsedConstants();
+    MPI_Barrier(MPI_COMM_WORLD);
 
     // Describe the problem we want to solve here by passing a descriptor
     // object to the function doing the rest of the work:
