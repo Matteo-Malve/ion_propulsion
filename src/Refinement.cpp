@@ -1015,7 +1015,6 @@ namespace IonPropulsion{
       const typename DoFHandler<dim>::cell_iterator neighbor =
         cell->neighbor(face_no);
       Assert(neighbor.state() == IteratorState::valid, ExcInternalError());
-      Assert(neighbor->has_children(), ExcInternalError());
       (void)neighbor;
 
       //const unsigned int neighbor_neighbor = cell->neighbor_of_neighbor(face_no);      // If the neighbor is coarser this function throws an exception
