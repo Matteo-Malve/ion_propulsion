@@ -33,15 +33,8 @@ namespace IonPropulsion{
       TimerOutput::Scope t(this->computing_timer, "refine");
       // REFINE EVERYWHERE
       if (REFINEMENT_CRITERION == 1) {
-        if (MANUAL_LIFTING_ON) {    // TODO
-          /*Vector<double> old_Rg_values = this->locally_relevantRg_vector;
-          SolutionTransfer<dim> solution_transfer(this->dof_handler);
-          solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_values);
-          this->triangulation->refine_global(1);
-          this->dof_handler.distribute_dofs(*(this->fe));
-          this->locally_relevantRg_vector.reinit(this->dof_handler.n_dofs());
-          solution_transfer.interpolate(old_Rg_values, this->locally_relevantRg_vector);
-          this->construct_Rg_vector();*/
+        if (MANUAL_LIFTING_ON) {
+          // TODO
         } else {
           this->triangulation->refine_global(1);
         }
@@ -70,22 +63,8 @@ namespace IonPropulsion{
                 }
         }
 
-        if (MANUAL_LIFTING_ON) {    //TODO
-          /*this->triangulation->prepare_coarsening_and_refinement();
-          SolutionTransfer<dim> solution_transfer(this->dof_handler);
-
-          Vector<double> old_Rg_values = this->locally_relevantRg_vector;
-          solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_values);
-
-          this->triangulation->execute_coarsening_and_refinement();
-
-          this->dof_handler.distribute_dofs(*this->fe);
-          this->locally_relevantRg_vector.reinit(this->dof_handler.n_dofs());
-
-          solution_transfer.interpolate(old_Rg_values, this->locally_relevantRg_vector);
-
-          this->construct_Rg_vector();*/
-
+        if (MANUAL_LIFTING_ON) {
+          //TODO
         } else {
           this->triangulation->execute_coarsening_and_refinement();
         }
@@ -344,7 +323,7 @@ namespace IonPropulsion{
       MPI_Barrier(this->mpi_communicator);
 
       // Output
-      DataOut<dim> data_out;
+     /* DataOut<dim> data_out;
       data_out.attach_dof_handler(DualSolver<dim>::dof_handler);
       data_out.add_data_vector(error_indicators, "error_indicators", DataOut<dim, dim>::type_cell_data);
 
@@ -365,6 +344,7 @@ namespace IonPropulsion{
       data_out.build_patches();
       const std::string pvtu_filename = data_out.write_vtu_with_pvtu_record(
         OUTPUT_PATH+"/", "cell_flags", this->refinement_cycle, this->mpi_communicator, 4);
+*/
       // END Output
 
       // GRID REFINEMENT
@@ -448,20 +428,15 @@ namespace IonPropulsion{
       data_out.attach_dof_handler(PrimalSolver<dim>::dof_handler);
       data_out.add_data_vector(PrimalSolver<dim>::locally_relevant_solution, "uh",DataOut<dim, dim>::type_dof_data);
 
-      if (MANUAL_LIFTING_ON) { //TODO
-        //data_out.add_data_vector(PrimalSolver<dim>::homogeneous_solution, "uh0",DataOut<dim, dim>::type_dof_data);
-        //data_out.add_data_vector(PrimalSolver<dim>::locally_relevantRg_vector, "Rg",DataOut<dim, dim>::type_dof_data);
-      }
-
       data_out.add_data_vector(completely_distributed_dual_solution_on_primal, "zh",DataOut<dim, dim>::type_dof_data);
 
-      Vector<double> boundary_ids(this->triangulation->n_active_cells());
+      /*Vector<double> boundary_ids(this->triangulation->n_active_cells());
       for (const auto &cell : this->triangulation->active_cell_iterators())
         for (unsigned int face = 0; face < GeometryInfo<dim>::faces_per_cell; ++face)
           if (cell->face(face)->at_boundary())
             if (cell->is_locally_owned())
               boundary_ids[cell->active_cell_index()] = cell->face(face)->boundary_id();
-      data_out.add_data_vector(boundary_ids, "boundary_ids",DataOut<dim, dim>::type_cell_data);
+      data_out.add_data_vector(boundary_ids, "boundary_ids",DataOut<dim, dim>::type_cell_data);*/
 
       Vector<float> subdomain(this->triangulation->n_active_cells());
       for (unsigned int i = 0; i < subdomain.size(); ++i)

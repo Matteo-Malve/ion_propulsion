@@ -122,8 +122,8 @@ namespace IonPropulsion{
         CSVLogger::getInstance().flushRow();
       }
       MPI_Barrier(mpi_communicator);
-      if (REFINEMENT_CRITERION==2)
-        solver->checkpoint();
+      //if (REFINEMENT_CRITERION==2)
+        //solver->checkpoint();
 
       // ------------------------------------------------------
       // Closure

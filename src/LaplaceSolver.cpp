@@ -378,17 +378,13 @@ namespace IonPropulsion{
       data_out.attach_dof_handler(this->dof_handler);
       data_out.add_data_vector(this->locally_relevant_solution, "uh",DataOut<dim, dim>::type_dof_data);
 
-      //if(MANUAL_LIFTING_ON) {   //TODO
-      //  data_out.add_data_vector(this->homogeneous_solution, "uh0",DataOut<dim, dim>::type_dof_data);
-      //  data_out.add_data_vector(this->Rg_vector, "Rg",DataOut<dim, dim>::type_dof_data);
-      //}
 
       Vector<float> subdomain(this->triangulation->n_active_cells());
       for (unsigned int i = 0; i < subdomain.size(); ++i)
         subdomain(i) = this->triangulation->locally_owned_subdomain();
       data_out.add_data_vector(subdomain, "subdomain");
 
-      Vector<double> rhs_function_values(this->dof_handler.n_dofs());
+      /*Vector<double> rhs_function_values(this->dof_handler.n_dofs());
       VectorTools::interpolate(this->dof_handler, *this->rhs_function, rhs_function_values);
       data_out.add_data_vector(rhs_function_values, "rhs_function",DataOut<dim, dim>::type_dof_data);
 
@@ -401,7 +397,7 @@ namespace IonPropulsion{
         for (unsigned int face = 0; face < GeometryInfo<dim>::faces_per_cell; ++face)
           if (cell->face(face)->at_boundary())
             boundary_ids[cell->active_cell_index()] = cell->face(face)->boundary_id();
-      data_out.add_data_vector(boundary_ids, "boundary_ids",DataOut<dim, dim>::type_cell_data);
+      data_out.add_data_vector(boundary_ids, "boundary_ids",DataOut<dim, dim>::type_cell_data);*/
 
       data_out.build_patches(this->mapping, 1,DataOut<dim,dim>::CurvedCellRegion::curved_inner_cells);
 

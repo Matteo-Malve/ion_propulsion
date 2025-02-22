@@ -60,7 +60,7 @@ void useGlobalConstants() {
   MANUAL_LIFTING_ON = false; //static_cast<bool>(GlobalConstants::getInstance().get("MANUAL_LIFTING_ON"));
   REFINEMENT_CRITERION = static_cast<unsigned int>(GlobalConstants::getInstance().get("REFINEMENT_CRITERION"));
   DUAL_FUNCTIONAL = static_cast<unsigned int>(GlobalConstants::getInstance().get("DUAL_FUNCTIONAL",1));
-  MAX_DEGREES_OF_FREEDOM = static_cast<unsigned int>(GlobalConstants::getInstance().get("MAX_DEGREES_OF_FREEDOM",5e5));
+  MAX_DEGREES_OF_FREEDOM = static_cast<unsigned int>(GlobalConstants::getInstance().get("MAX_DEGREES_OF_FREEDOM",1e5));
 
 
   if (LOAD_FROM_SETUP != 0 && LOAD_FROM_SETUP != 11) {
