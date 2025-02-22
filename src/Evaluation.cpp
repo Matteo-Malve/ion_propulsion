@@ -155,9 +155,12 @@ namespace IonPropulsion{
 			double global_flux = 0.0;
 			MPI_Reduce(&flux, &global_flux, 1, MPI_DOUBLE, MPI_SUM, 0, this->mpi_communicator);
 
-			// Update table with exact error
-			double exact_error = std::fabs(global_flux-EXACT_FLUX);
-			return std::make_pair("std FLUX err",exact_error);
+			if (LOAD_FROM_SETUP != 0 && LOAD_FROM_SETUP != 11) {
+				double exact_error = std::fabs(global_flux-EXACT_FLUX);
+				return std::make_pair("std FLUX err",exact_error);
+			} else {
+				return std::make_pair("std FLUX value",global_flux);
+			}
 		}
 
 		// ------------------------------------------------------
