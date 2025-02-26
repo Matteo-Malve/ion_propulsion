@@ -81,6 +81,7 @@ namespace IonPropulsion{
 
       virtual void postprocess(
         const Evaluation::EvaluationBase<dim> &postprocessor) const override;
+      virtual void interpolate_boundary_values(std::map<types::global_dof_index, double> &) = 0;
 
       virtual unsigned int n_dofs() const override;
 
@@ -191,6 +192,7 @@ namespace IonPropulsion{
       virtual void assemble_rhs(PETScWrappers::MPI::Vector &rhs
                                       , AffineConstraints<double> &) const override;
       virtual void construct_Rg_vector() override;
+      void interpolate_boundary_values(std::map<types::global_dof_index, double> &) override;
 
     private:
       void retrieve_Rg() override {
@@ -233,6 +235,7 @@ namespace IonPropulsion{
     private:
       virtual void construct_Rg_vector() override {};
       void retrieve_Rg() override {};
+      void interpolate_boundary_values(std::map<types::global_dof_index, double> &) override;
 
     };
 
