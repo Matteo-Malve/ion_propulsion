@@ -25,20 +25,19 @@ Vc: 0      # (*)          # Electric potential [V] at the collector: Boundary ID
 
 # Framework configuration
 MAPPING_DEGREE: 2
-MANUAL_LIFTING_ON: 0       # 0: OFF, 1: ON,
-REFINEMENT_CRITERION: 2    # 1: global_refinement, 2: dual_weighted_error_estimator
+MANUAL_LIFTING_ON: 1       # 0: OFF, 1: ON,
+REFINEMENT_CRITERION: 4    # 1: global_refinement, 2: dual_weighted_error_estimator
 DUAL_FUNCTIONAL: 2         # 1: point_evaluation,  2: flux_evaluation
-MAX_DEGREES_OF_FREEDOM: 1.e6
 
 # Point coordinates
 EVALUATION_POINT_X: none
 EVALUATION_POINT_Y: none
 
-# Reference values
+# Reference valuesclear
 EXACT_POINT_VALUE: none
 EXACT_FLUX: none
 
-MANIFOLD_IS_APPLIED: 2      # 0: no, 1: yes, 2: only on boundary
+MANIFOLD_IS_APPLIED: 3      # 0: no, 1: yes, 2: only on boundary
 
 # NOTES:
 # (*): Will be overridden by the choice of a predefined Setup

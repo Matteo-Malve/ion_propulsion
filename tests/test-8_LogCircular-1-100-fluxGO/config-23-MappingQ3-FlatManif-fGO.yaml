@@ -2,43 +2,38 @@
 eps_0: 1.0    # 8.854           # Electric permittivity of free space [F/m]
 eps_r: 1.0    # 1.0006          # Relative permittivity
 
+# Data
+Ve: null   # (*)             # Electric potential [V] at the emitter
+Vc: null      # (*)             # Electric potential [V] at the collector
+RHS_EXPRESSION: null
+#UEX_EXPRESSION: x
 
 # Set-up configurations
-PATH_TO_MESH: ../mesh/myWWdelaunay3.msh
-LOAD_FROM_SETUP: 11                  # Setups: mesh, analytical solution, forcing term
+#NUM_PRELIMINARY_GLOBAL_REF: null       # Number of preliminary global refinements
+PATH_TO_MESH: ../mesh/LogCircular_1_100-B.msh
+LOAD_FROM_SETUP: 5                  # Setups: mesh, analytical solution, forcing term
 # Options: 0: NONE (**)
 #          1: CurvedRidges (from step-14)
 #          2: Exercise_2_3 (from step-14)
 #          3: Rectangle_1_99 (**) (modified step-14 with 1:99 ratio)
 #          4: LogCircular_1_10
 #          5: LogCircular_1_100
-#          7: angle of step-14 with f and BCs conforming to a chosen uex
-#          8: angle of Rectangle_1_99 with f and BCs conforming to a chosen uex
-#          9: cicular step-14
-#          11: Wire Wire
-
-
-# Boundary data
-Ve: 20000   # (*)             # Electric potential [V] at the emitter: Boundary ID 1
-Vc: 0      # (*)          # Electric potential [V] at the collector: Boundary ID 2,3
-
 
 # Framework configuration
-MAPPING_DEGREE: 2
-MANUAL_LIFTING_ON: 0       # 0: OFF, 1: ON,
+MAPPING_DEGREE: 3
+MANUAL_LIFTING_ON: 1       # 0: OFF, 1: ON,
 REFINEMENT_CRITERION: 2    # 1: global_refinement, 2: dual_weighted_error_estimator
 DUAL_FUNCTIONAL: 2         # 1: point_evaluation,  2: flux_evaluation
-MAX_DEGREES_OF_FREEDOM: 1.e6
 
 # Point coordinates
-EVALUATION_POINT_X: none
-EVALUATION_POINT_Y: none
+EVALUATION_POINT_X: 0.019375
+EVALUATION_POINT_Y: 0.
 
 # Reference values
-EXACT_POINT_VALUE: none
-EXACT_FLUX: none
+EXACT_POINT_VALUE: 3148.182801
+EXACT_FLUX: 2.728752707684e+04
 
-MANIFOLD_IS_APPLIED: 2      # 0: no, 1: yes, 2: only on boundary
+MANIFOLD_IS_APPLIED: 2      # 0: no, 1: yes, 2: on bdry Flat Manif otw, 3: on bdry TransfiniteManif otw
 
 # NOTES:
 # (*): Will be overridden by the choice of a predefined Setup
