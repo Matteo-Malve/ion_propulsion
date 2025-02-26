@@ -32,7 +32,6 @@ extern double eps_r;
 
 extern double Ve;
 extern double Vc;
-extern std::string RHS_EXPRESSION;
 //extern std::string UEX_EXPRESSION;
 
 

@@ -5,7 +5,6 @@ eps_r: 1.0    # 1.0006          # Relative permittivity
 # Data
 Ve: null   # (*)             # Electric potential [V] at the emitter
 Vc: null      # (*)             # Electric potential [V] at the collector
-RHS_EXPRESSION: null
 
 # Set-up configurations
 PATH_TO_MESH: ../mesh/LogCircular_1_100-B.msh

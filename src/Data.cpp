@@ -135,6 +135,9 @@ namespace IonPropulsion {
 
     //-------------------------------------------------------------------------------------------------------------------------------------------------
 
+    // ------------------------------------------------------
+    // SetupNone
+    // ------------------------------------------------------
 
     template <int dim>
     void SetupNone<dim>::create_coarse_grid(parallel::distributed::Triangulation<dim> &coarse_grid)
@@ -145,22 +148,7 @@ namespace IonPropulsion {
       grid_in.attach_triangulation(coarse_grid);
       grid_in.read_msh(input_file);
 
-      const types::manifold_id emitter = 1;
-      const Point<2> center(X,0.0);
-      SphericalManifold<2> emitter_manifold(center);
-
-      const types::manifold_id upper_collector = 2;
-      CollectorGeometry<2,+1> upper_collector_manifold;
-
-      const types::manifold_id bottom_collector = 3;
-      CollectorGeometry<2,-1> bottom_collector_manifold;
-
-      coarse_grid.set_all_manifold_ids_on_boundary(1, emitter);
-      coarse_grid.set_manifold(emitter, emitter_manifold);
-      coarse_grid.set_all_manifold_ids_on_boundary(2, upper_collector);
-      coarse_grid.set_manifold(upper_collector, upper_collector_manifold);
-      coarse_grid.set_all_manifold_ids_on_boundary(3, bottom_collector);
-      coarse_grid.set_manifold(bottom_collector, bottom_collector_manifold);
+      // If needed, define your manifold description HERE
 
     }
 

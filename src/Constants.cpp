@@ -13,7 +13,6 @@ double eps_0;
 
 double Ve;
 double Vc;
-std::string RHS_EXPRESSION;
 
 //unsigned int NUM_PRELIMINARY_GLOBAL_REF;
 std::string PATH_TO_MESH;
@@ -50,7 +49,6 @@ void useGlobalConstants() {
   if (LOAD_FROM_SETUP==0 || LOAD_FROM_SETUP==11) {
     Ve = GlobalConstants::getInstance().get("Ve");
     Vc = GlobalConstants::getInstance().get("Vc");
-    //RHS_EXPRESSION = GlobalConstants::getInstance().getString("RHS_EXPRESSION");
   }
 
   PATH_TO_MESH = GlobalConstants::getInstance().getString("PATH_TO_MESH");
@@ -175,10 +173,6 @@ void printParsedConstants() {
               << std::setw(20) << Ve << "\n";
     std::cout << std::left << std::setw(30) << "Vc"
               << std::setw(20) << Vc << "\n";
-    std::cout << std::left << std::setw(30) << "RHS_EXPRESSION"
-              << std::setw(20) << RHS_EXPRESSION << "\n";
-    //std::cout << std::left << std::setw(30) << "UEX_EXPRESSION"
-    //          << std::setw(20) << UEX_EXPRESSION << "\n";
     }
 
   std::cout << "------------------------------------------------------------\n";

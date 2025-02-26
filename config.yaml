@@ -2,45 +2,53 @@
 eps_0: 1.0    # 8.854           # Electric permittivity of free space [F/m]
 eps_r: 1.0    # 1.0006          # Relative permittivity
 
-# Data
-Ve: null   # (*)             # Electric potential [V] at the emitter
-Vc: null      # (*)             # Electric potential [V] at the collector
-RHS_EXPRESSION: null
 
 # Set-up configurations
-PATH_TO_MESH: ../mesh/LogCircular_1_100-B.msh
-NUM_CONCENTRIC_REF: 0
-LOAD_FROM_SETUP: 5                  # Setups: mesh, analytical solution, forcing term
-# Options: 0: NONE (**)
-#          1: CurvedRidges (from step-14)
-#          2: Exercise_2_3 (from step-14)
-#          3: Rectangle_1_99 (**) (modified step-14 with 1:99 ratio)
-#          4: LogCircular_1_10
-#          5: LogCircular_1_100
+PATH_TO_MESH: ../mesh/myWWdelaunay3.msh
+LOAD_FROM_SETUP: 11
+# Options: 0:  NONE                  (**)
+#          2:  deal.ii's step-14
+#          5:  LogCircular_1_100     (**)
+#          10: LogCircular_1_2       (**)
+#          11: Wire Wire             (**)
+
+
+# Boundary data (***)
+Ve: 20000   # (***)          # Electric potential [V] at the emitters: Boundary IDs 1.2
+Vc: 0       # (***)          # Electric potential [V] at the collectors: Boundary IDs 3,4
+
 
 # Framework configuration
-MANUAL_LIFTING_ON: 0       # 0: OFF, 1: ON,
-REFINEMENT_CRITERION: 1    # 1: global_refinement, 2: dual_weighted_error_estimator
-DUAL_FUNCTIONAL: 2         # 1: point_evaluation,  2: flux_evaluation
+MAPPING_DEGREE: 2
+MANUAL_LIFTING_ON: 1       
+# Options: 0: OFF 
+#          1: ON
+REFINEMENT_CRITERION: 2    
+# Options: 1: Global refinements
+#          2: Dual-weighted goal-oriented error estimator
+#          3: Global refinements but perform dual weighted estimation
+DUAL_FUNCTIONAL: 2         
+# Options: 1: Value in a point (set below) [only in serial code]
+#          2: Minus flux around the emitter
+MAX_DEGREES_OF_FREEDOM: 1.e6
 
 # Point coordinates
-EVALUATION_POINT_X: 0.019375
-EVALUATION_POINT_Y: 0.
+EVALUATION_POINT_X: none
+EVALUATION_POINT_Y: none
 
 # Reference values
-EXACT_POINT_VALUE: 3148.182801
-EXACT_FLUX: 2.728752707684e+04
+EXACT_POINT_VALUE: none
+EXACT_FLUX: none
 
-# Mesh refinement options:
-REFINEMENT_STRATEGY: 1      # 1. fixed_fraction(default), 2. fixed_number, 3. optimize
-TOP_FRACTION: 0.80          # default: 0.8
-BOTTOM_FRACTION: 0.01       # default: 0.02
-OPTIMIZE_ORDER: null        # default: 2
-
-MANIFOLD_IS_APPLIED: 3      # 0: no, 1: yes, 2: on bdry Flat Manif otw, 3: on bdry TransfiniteManif otw
-
+MANIFOLD_IS_APPLIED: 2      
+# Options: 0: no manifold description imposed
+#          ------- not for custom use -----------------
+#          1: everywhere
+#          2: only on boundary
+#          3: only on boundary with TransfiniteManifold
 
 # NOTES:
-# (*): Will be overridden by the choice of a predefined Setup
 # (**): PATH_TO_MESH must be specified.
 #       If there isn't (**), PATH_TO_MESH is predetermined by setup
+# (***): Only for SETUP 11. 
+#        Will be otherwise overridden by the choice of a predefined setup's boundary function.

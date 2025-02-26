@@ -61,9 +61,9 @@ If you want to use a new mesh, with new boundary condition, or a new manifold de
 
 You will need to change very little in code, namely only `data.h` and `data.cpp` in the include and src directories.
 
-In `data.h`, take setup-0 and change it to your liking, every setup works indeed by overloading a DataSetup class.
+In `data.h`, take *SetupNone* and change it to your liking, every setup works indeed by overloading a DataSetup class.
 Define your rhs function, your exact solution if you need convergence results and a function describing your boundary conditions.
 
-In `data.cpp` change setup-0's create_coarse_grid() function and create/import your coarse mesh. You can also define a manifold description to your liking.
+In `data.cpp` change *SetupNone*'s create_coarse_grid() function and create/import your coarse mesh. You can also define a manifold description to your liking.
 
-Finally, select setup 0 in the config file and you're ready to go!
+Finally, select LOAD_FROM_SETUP: 0 in the config file and you're ready to go!
