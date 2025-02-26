@@ -89,6 +89,8 @@ namespace IonPropulsion{
       virtual void assemble_rhs(Vector<double> &rhs) const = 0;
 
       virtual void construct_Rg_vector() = 0;
+      virtual void interpolate_boundary_values(std::map<types::global_dof_index, double> &) = 0;
+
 
       virtual void retrieve_Rg() = 0;
 
@@ -130,7 +132,6 @@ namespace IonPropulsion{
       };
 
 
-      virtual void interpolate_boundary_conditions() = 0;
       void assemble_linear_system(LinearSystem &linear_system);
 
       void local_assemble_matrix(
@@ -168,8 +169,9 @@ namespace IonPropulsion{
       double                                        conservative_flux;
       Vector<double>                                Au;
 
-      void interpolate_boundary_conditions() override;
       virtual void assemble_rhs(Vector<double> &rhs) const override;
+      void interpolate_boundary_values(std::map<types::global_dof_index, double> &) override;
+
 
       virtual void construct_Rg_vector() override;
 
@@ -215,7 +217,7 @@ namespace IonPropulsion{
 
     private:
       virtual void construct_Rg_vector() override {};
-      void interpolate_boundary_conditions() override;
+      void interpolate_boundary_values(std::map<types::global_dof_index, double> &) override;
       void retrieve_Rg() override {};
 
       void compute_second_order_flux(typename Solver<dim>::LinearSystem & ) override {};
