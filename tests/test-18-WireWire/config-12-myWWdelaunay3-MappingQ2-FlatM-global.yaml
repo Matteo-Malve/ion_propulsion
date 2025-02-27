@@ -16,6 +16,7 @@ LOAD_FROM_SETUP: 11                  # Setups: mesh, analytical solution, forcin
 #          8: angle of Rectangle_1_99 with f and BCs conforming to a chosen uex
 #          9: cicular step-14
 #          11: Wire Wire
+MAX_DEGREES_OF_FREEDOM: 4e5
 
 
 # Boundary data

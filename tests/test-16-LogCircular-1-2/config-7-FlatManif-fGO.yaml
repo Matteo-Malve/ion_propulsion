@@ -19,6 +19,7 @@ LOAD_FROM_SETUP: 10                  # Setups: mesh, analytical solution, forcin
 #          4: LogCircular_1_10
 #          5: LogCircular_1_100
 #          10: LogCircular_1_2
+MAX_DEGREES_OF_FREEDOM: 1.9e5
 
 
 # Framework configuration

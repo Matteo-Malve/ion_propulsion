@@ -18,6 +18,7 @@ LOAD_FROM_SETUP: 5                  # Setups: mesh, analytical solution, forcing
 #          3: Rectangle_1_99 (**) (modified step-14 with 1:99 ratio)
 #          4: LogCircular_1_10
 #          5: LogCircular_1_100
+MAX_DEGREES_OF_FREEDOM: 6e5
 
 # Framework configuration
 MAPPING_DEGREE: 2

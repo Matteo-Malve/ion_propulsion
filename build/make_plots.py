@@ -136,7 +136,7 @@ def linea_gialla_accanto(file_name1,file_name2,output_file,name1,name2,exact_val
 
 
   # Creazione della figura con due subplot
-  fig, axes = plt.subplots(1, 2, figsize=(15, 6), sharey=True)
+  fig, axes = plt.subplots(1, 2, figsize=(13, 6), sharey=True)
 
   axes[0].loglog(data1['DoFs'], data1['std FLUX err'], "r-+", linewidth=0.5, label='Exact Error')
   axes[0].loglog(data1['DoFs'], abs(data1['std FLUX err'] - data1["est err"]), "y-+", linewidth=0.5, label=r'$|e_{\mathrm{ex}} - e_{\mathrm{est}}|$')
@@ -242,9 +242,9 @@ def plot_classic_pair_real_application(file_name, output_file, reference_file_na
   axes[0].loglog(data['DoFs'], data['std FLUX err']/reference_value,"r-+", linewidth=1.0, label='Exact Error')
   axes[0].loglog(data['DoFs'], data['est err']/reference_value,"g-+", linewidth=1.0, label='Estimated Error')
   if reference_file_name is not None:
-    axes[0].loglog(reference_data['DoFs'], reference_data['std FLUX err']/reference_value,"b:+", linewidth=0.5, label='GlobRef exact error (Reference)')
+    axes[0].loglog(reference_data['DoFs'], reference_data['std FLUX err']/reference_value,"b-+", linewidth=0.5, label='GlobRef exact error (Reference)')
   if concentric_file_name is not None:
-    axes[0].loglog(concentric_data['DoFs'], concentric_data['std FLUX err']/reference_value,"b:+", linewidth=0.5, label='Exact error refining only around emitters')
+    axes[0].loglog(concentric_data['DoFs'], concentric_data['std FLUX err']/reference_value,"c-+", linewidth=0.5, label='Exact error refining only around emitters')
   axes[0].set_xlabel('Degrees of Freedom (DoFs)', fontsize=12)
   axes[0].set_ylabel('Relative error', fontsize=12)
   axes[0].set_title('Exact vs Estimated error for the FLUX at the emitter', fontsize=14)
@@ -277,7 +277,8 @@ def main():
   required_files = {
       # From test-1
       #"../tests/test-1_original-step14/results/config-1/convergence_results.csv": {
-      #    "command": "mpirun -np {n} ./ion-propulsion ../tests/test-1_original-step14/config-1-GlobRef.yaml"
+      #    "command": "mpirun -np {n} ./ion-propulsion ../tests/test-1_original-step14/config-1-GlobRef.yaml",
+      #"threshold": 3e4
       #},
       #"../tests/test-1_original-step14/results/config-2/convergence_results.csv": {
       #    "command": "mpirun -np {n} ./ion-propulsion ../tests/test-1_original-step14/config-2-GO.yaml"
@@ -286,54 +287,68 @@ def main():
 
       # From test-16
       "../tests/test-16-LogCircular-1-2/results/config-5/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-16-LogCircular-1-2/config-5-basis-fGO.yaml"
+          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-16-LogCircular-1-2/config-5-basis-fGO.yaml",
+          "threshold": 1.9e5
       },
       "../tests/test-16-LogCircular-1-2/results/config-4/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-16-LogCircular-1-2/config-4-basis-global.yaml"
+          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-16-LogCircular-1-2/config-4-basis-global.yaml",
+          "threshold": 1.9e5
       },
       "../tests/test-16-LogCircular-1-2/results/config-6/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-16-LogCircular-1-2/config-6-FlatManif-global.yaml"
+          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-16-LogCircular-1-2/config-6-FlatManif-global.yaml",
+          "threshold": 1.9e5
       },
       "../tests/test-16-LogCircular-1-2/results/config-7/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-16-LogCircular-1-2/config-7-FlatManif-fGO.yaml"
+          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-16-LogCircular-1-2/config-7-FlatManif-fGO.yaml",
+          "threshold": 1.9e5
       },
 
       # From test-8
       "../tests/test-8_LogCircular-1-100-fluxGO/results/config-11/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-11-FlatManif-fGO.yaml"
+          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-11-FlatManif-fGO.yaml",
+          "threshold": 4e5
       },
       "../tests/test-8_LogCircular-1-100-fluxGO/results/config-10/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-10-FlatManif-glob.yaml"
+          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-10-FlatManif-glob.yaml",
+          "threshold": 4e5
       },
       "../tests/test-8_LogCircular-1-100-fluxGO/results/config-12/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-12-FlatManif-only_concentric.yaml"
+          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-12-FlatManif-only_concentric.yaml",
+          "threshold": 3e5
       },
       "../tests/test-8_LogCircular-1-100-fluxGO/results/config-19/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-19-MappingQ2-FlatManif-global.yaml"
+          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-19-MappingQ2-FlatManif-global.yaml",
+          "threshold": 3e5
       },
       "../tests/test-8_LogCircular-1-100-fluxGO/results/config-20/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-20-MappingQ2-FlatManif-fGO.yaml"
+          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-20-MappingQ2-FlatManif-fGO.yaml",
+          "threshold": 3e5
       },
       "../tests/test-8_LogCircular-1-100-fluxGO/results/config-21/convergence_results.csv": {
-          "command": "mpirun -np {n} ../tests/test-8_LogCircular-1-100-fluxGO/config-21-MappingQ2-FlatManif-only_concentric.yaml"
+          "command": "mpirun -np {n} ../tests/test-8_LogCircular-1-100-fluxGO/config-21-MappingQ2-FlatManif-only_concentric.yaml",
+          "threshold": 3e5
       },
       "../tests/test-8_LogCircular-1-100-fluxGO/results/config-20b/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-20b-MappingQ2-FlatManif-Kelly.yaml"
+          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-20b-MappingQ2-FlatManif-Kelly.yaml",
+          "threshold": 6e5
       },
       "../tests/test-8_LogCircular-1-100-fluxGO/results/config-20c/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-20c-MappingQ2-FlatManif-KellyWeight.yaml"
-      },
-      "../tests/test-18-WireWire/results/config-12/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-18-WireWire/config-12-myWWdelaunay3-MappingQ2-FlatM-global.yaml"
+          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-20c-MappingQ2-FlatManif-KellyWeight.yaml",
+          "threshold": 6e5
       },
 
       # From test-18
+      "../tests/test-18-WireWire/results/config-12/convergence_results.csv": {
+          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-18-WireWire/config-12-myWWdelaunay3-MappingQ2-FlatM-global.yaml",
+          "threshold": 4e5
+      },
       "../tests/test-18-WireWire/results/config-13/convergence_results.csv": {
           "command": "mpirun -np {n} ./ion-propulsion ../tests/test-18-WireWire/config-13-myWWdelaunay3-MappingQ2-FlatM-fGO.yaml",
-          "threshold": 1e6
+          "threshold": 5e6
       },
       "../tests/test-18-WireWire/results/config-14/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-18-WireWire/config-14-myWWdelaunay3-MappingQ2-FlatM-concentric.yaml"
+          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-18-WireWire/config-14-myWWdelaunay3-MappingQ2-FlatM-concentric.yaml",
+           "threshold": 2e5
       },
       
   }
@@ -362,19 +377,19 @@ def main():
 
   # Figure 6: Flux, Annulus 1:2
   plot_classic_pair_flux("../tests/test-16-LogCircular-1-2/results/config-5/convergence_results.csv",
-                        "Figure_6.png",
+                        "Figure_6.pdf",
                         "../tests/test-16-LogCircular-1-2/results/config-4/convergence_results.csv",
                         exact_value=1.812944056731e+05)
 
   # Figure 7: Flux, Annulus 1:2, after introduction manifold
   plot_classic_pair_flux("../tests/test-16-LogCircular-1-2/results/config-7/convergence_results.csv",
-                        "Figure_7.png",
+                        "Figure_7.pdf",
                         "../tests/test-16-LogCircular-1-2/results/config-6/convergence_results.csv",
                         exact_value=1.812944056731e+05)
 
   # Figure 8: Flux, Annulus 1:100
   plot_classic_pair_flux("../tests/test-8_LogCircular-1-100-fluxGO/results/config-11/convergence_results.csv",
-                        "Figure_8.png",
+                        "Figure_8.pdf",
                         "../tests/test-8_LogCircular-1-100-fluxGO/results/config-10/convergence_results.csv",
                         exact_value=2.728752707684e+04)
 
@@ -385,7 +400,7 @@ def main():
             glob_file_name2 = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-19/convergence_results.csv",
             fGO_file_name2 = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-20/convergence_results.csv", 
             concentric_file_name2 = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-21/convergence_results.csv",
-            output_file = "Figure_9.png", 
+            output_file = "Figure_9.pdf", 
             name1 = 'MappingQ1', 
             name2 = 'MappingQ2', 
             title = 'Fixed: Flat Manifold', 
@@ -394,7 +409,7 @@ def main():
   # Figure 10: Comparison MappingQ1 vs MappingQ2 [Precision's plot]
   linea_gialla_accanto(file_name1 = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-11/convergence_results.csv",
                       file_name2 = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-20/convergence_results.csv",
-                      output_file = "Figure_10.png", 
+                      output_file = "Figure_10.pdf", 
                       name1 = "MappingQ1",
                       name2 = "MappingQ2",
                       exact_value1 = 2.728752707684e+04,
@@ -406,7 +421,7 @@ def main():
                       concentric_file_name = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-21/convergence_results.csv",
                       kelly_file_name = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-20b/convergence_results.csv", 
                       weighted_kelly_file_name = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-20c/convergence_results.csv",
-                      output_file = "Figure_11.png", 
+                      output_file = "Figure_11.pdf", 
                       exact_value = 2.728752707684e+04)
 
   # Figure 12: Comparison different refinement algorithms [FLUX error]
@@ -415,14 +430,14 @@ def main():
                 concentric_file_name = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-21/convergence_results.csv",
                 kelly_file_name = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-20b/convergence_results.csv", 
                 weighted_kelly_file_name = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-20c/convergence_results.csv",
-                output_file = "Figure_12.png", 
+                output_file = "Figure_12.pdf", 
                 exact_value = 2.728752707684e+04)
 
   # Figure 15: Real ion thruster mesh
   plot_classic_pair_real_application(file_name = "../tests/test-18-WireWire/results/config-13/convergence_results.csv",
                                     reference_file_name = "../tests/test-18-WireWire/results/config-12/convergence_results.csv",
                                     concentric_file_name = "../tests/test-18-WireWire/results/config-14/convergence_results.csv",
-                                    output_file = "Figure_15.png")
+                                    output_file = "Figure_15.pdf")
   
 
 if __name__ == "__main__":
