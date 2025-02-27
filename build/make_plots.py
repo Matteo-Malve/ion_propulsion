@@ -276,80 +276,84 @@ def main():
 
   required_files = {
       # From test-1
-      #"../tests/test-1_original-step14/results/config-1/convergence_results.csv": {
-      #    "command": "mpirun -np {n} ./ion-propulsion ../tests/test-1_original-step14/config-1-GlobRef.yaml",
-      #"threshold": 3e4
-      #},
-      #"../tests/test-1_original-step14/results/config-2/convergence_results.csv": {
-      #    "command": "mpirun -np {n} ./ion-propulsion ../tests/test-1_original-step14/config-2-GO.yaml"
-      #},
-      # NOTE: The reference case is not available in the current branch. Use SERIAL code for that.
+      "../tests/test-1_original-step14/results/config-1/convergence_results.csv": {
+          "command": "./ion-propulsion ../tests/test-1_original-step14/config-1-GlobRef.yaml",
+          "threshold": 3e4
+      },
+      "../tests/test-1_original-step14/results/config-2/convergence_results.csv": {
+          "command": "./ion-propulsion ../tests/test-1_original-step14/config-2-GO.yaml",
+          "threshold": 3e4
+      },
+      # NOTE: The reference case is ONLY available in the current branch, i.e. the serial code. (You are in the right place)
 
       # From test-16
       "../tests/test-16-LogCircular-1-2/results/config-5/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-16-LogCircular-1-2/config-5-basis-fGO.yaml",
+          "command": "./ion-propulsion ../tests/test-16-LogCircular-1-2/config-5-basis-fGO.yaml",
           "threshold": 1.9e5
       },
       "../tests/test-16-LogCircular-1-2/results/config-4/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-16-LogCircular-1-2/config-4-basis-global.yaml",
+          "command": "./ion-propulsion ../tests/test-16-LogCircular-1-2/config-4-basis-global.yaml",
           "threshold": 1.9e5
       },
       "../tests/test-16-LogCircular-1-2/results/config-6/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-16-LogCircular-1-2/config-6-FlatManif-global.yaml",
+          "command": "./ion-propulsion ../tests/test-16-LogCircular-1-2/config-6-FlatManif-global.yaml",
           "threshold": 1.9e5
       },
       "../tests/test-16-LogCircular-1-2/results/config-7/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-16-LogCircular-1-2/config-7-FlatManif-fGO.yaml",
+          "command": "./ion-propulsion ../tests/test-16-LogCircular-1-2/config-7-FlatManif-fGO.yaml",
           "threshold": 1.9e5
       },
 
       # From test-8
       "../tests/test-8_LogCircular-1-100-fluxGO/results/config-11/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-11-FlatManif-fGO.yaml",
+          "command": "./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-11-FlatManif-fGO.yaml",
           "threshold": 4e5
       },
       "../tests/test-8_LogCircular-1-100-fluxGO/results/config-10/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-10-FlatManif-glob.yaml",
+          "command": "./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-10-FlatManif-glob.yaml",
           "threshold": 4e5
       },
       "../tests/test-8_LogCircular-1-100-fluxGO/results/config-12/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-12-FlatManif-only_concentric.yaml",
+          "command": "./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-12-FlatManif-only_concentric.yaml",
           "threshold": 3e5
       },
       "../tests/test-8_LogCircular-1-100-fluxGO/results/config-19/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-19-MappingQ2-FlatManif-global.yaml",
+          "command": "./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-19-MappingQ2-FlatManif-global.yaml",
           "threshold": 3e5
       },
       "../tests/test-8_LogCircular-1-100-fluxGO/results/config-20/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-20-MappingQ2-FlatManif-fGO.yaml",
+          "command": "./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-20-MappingQ2-FlatManif-fGO.yaml",
           "threshold": 3e5
       },
       "../tests/test-8_LogCircular-1-100-fluxGO/results/config-21/convergence_results.csv": {
-          "command": "mpirun -np {n} ../tests/test-8_LogCircular-1-100-fluxGO/config-21-MappingQ2-FlatManif-only_concentric.yaml",
+          "command": "./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-21-MappingQ2-FlatManif-only_concentric.yaml",
           "threshold": 3e5
       },
       "../tests/test-8_LogCircular-1-100-fluxGO/results/config-20b/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-20b-MappingQ2-FlatManif-Kelly.yaml",
+          "command": "./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-20b-MappingQ2-FlatManif-Kelly.yaml",
           "threshold": 6e5
       },
       "../tests/test-8_LogCircular-1-100-fluxGO/results/config-20c/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-20c-MappingQ2-FlatManif-KellyWeight.yaml",
+          "command": "./ion-propulsion ../tests/test-8_LogCircular-1-100-fluxGO/config-20c-MappingQ2-FlatManif-KellyWeight.yaml",
           "threshold": 6e5
       },
 
       # From test-18
       "../tests/test-18-WireWire/results/config-12/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-18-WireWire/config-12-myWWdelaunay3-MappingQ2-FlatM-global.yaml",
-          "threshold": 4e5
+          "command": "./ion-propulsion ../tests/test-18-WireWire/config-12-myWWdelaunay3-MappingQ2-FlatM-global.yaml",
+          "threshold": 2e4
       },
       "../tests/test-18-WireWire/results/config-13/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-18-WireWire/config-13-myWWdelaunay3-MappingQ2-FlatM-fGO.yaml",
-          "threshold": 5e6
+          "command": "./ion-propulsion ../tests/test-18-WireWire/config-13-myWWdelaunay3-MappingQ2-FlatM-fGO.yaml",
+          "threshold": 1e6
       },
       "../tests/test-18-WireWire/results/config-14/convergence_results.csv": {
-          "command": "mpirun -np {n} ./ion-propulsion ../tests/test-18-WireWire/config-14-myWWdelaunay3-MappingQ2-FlatM-concentric.yaml",
-           "threshold": 2e5
+          "command": "./ion-propulsion ../tests/test-18-WireWire/config-14-myWWdelaunay3-MappingQ2-FlatM-concentric.yaml",
+           "threshold": 2e4
       },
+      # NOTE: Limited to test-18: to obtain the SAME image of the manuscript, use the parallel DISTRIBUTED code instead.
+      #       Since a precise enough estimate needs to be obtained to become the reference value, the computational cost of this simulation is high.
+      #       The max number of DoFs has been REDUCED here.
       
   }
 
@@ -360,7 +364,7 @@ def main():
           print("  -> File exists and condition is satisfied.")
       else:
           # File missing or condition not met: trigger the command.
-          command = config["command"].format(n=args.num_procs)
+          command = config["command"]
           print(f"  -> Running: {command}")
           try:
               subprocess.run(command, shell=True, check=True)
@@ -368,12 +372,11 @@ def main():
               print(f"Error while executing command for {file_path}: {err}")
   
   # Figure 4: Reference case (step-14)
-  # make_step_14_plots("../tests/test-1_original-step14/results/config-2/convergence_results.csv", 
-  #                  "Figure_4.png",
-  #                  "../tests/test-1_original-step14/results/config-1/convergence_results.csv", 
-  #                  exact_value=0.0334473)
-
-  # NOTE: The reference case is not available in the current branch. Use SERIAL code for that.
+  make_step_14_plots("../tests/test-1_original-step14/results/config-2/convergence_results.csv", 
+                    "Figure_4.pdf",
+                    "../tests/test-1_original-step14/results/config-1/convergence_results.csv", 
+                    exact_value=0.0334473)
+  # NOTE: The reference case is ONLY available in the current branch, i.e. the serial code. (You are in the right place)
 
   # Figure 6: Flux, Annulus 1:2
   plot_classic_pair_flux("../tests/test-16-LogCircular-1-2/results/config-5/convergence_results.csv",
@@ -438,7 +441,9 @@ def main():
                                     reference_file_name = "../tests/test-18-WireWire/results/config-12/convergence_results.csv",
                                     concentric_file_name = "../tests/test-18-WireWire/results/config-14/convergence_results.csv",
                                     output_file = "Figure_15.pdf")
-  
+  # NOTE: Limited to Figure 15: to obtain the SAME image of the manuscript, use the parallel DISTRIBUTED code instead.
+  #       Since a precise enough estimate needs to be obtained to become the reference value, the computational cost of this simulation is high.
+  #       The max number of DoFs has been REDUCED here.
 
 if __name__ == "__main__":
     main()
