@@ -9,6 +9,12 @@ That code can be found in branch "NAPDE_project"
 
 ---
 
+## Getting Started
+
+### Dependencies
+- deal.II 9.6.0 or later release
+- muParser
+
 ### Instructions to build the Makefiles
 
 Move to the "build" directory of the project folder
@@ -67,3 +73,9 @@ Define your rhs function, your exact solution if you need convergence results an
 In `data.cpp` change *SetupNone*'s create_coarse_grid() function and create/import your coarse mesh. You can also define a manifold description to your liking.
 
 Finally, select LOAD_FROM_SETUP: 0 in the config file and you're ready to go!
+
+
+## Acknowledgments
+Here are the main code snippets and publications that inspired the work:
+- [deal.II's step-14](https://www.dealii.org/current/doxygen/deal.II/step_14.html)
+- Wolfgang Bangerth and Rolf Rannacher, *Adaptive Finite Element Methods for Differential Equations*, Birkhäuser Verlag, Basel, 2003.
