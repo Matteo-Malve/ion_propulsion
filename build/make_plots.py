@@ -393,51 +393,51 @@ def main():
                         "../tests/test-8_LogCircular-1-100-fluxGO/results/config-10/convergence_results.csv",
                         exact_value=2.728752707684e+04)
 
-  # Figure 9: Comparison MappingQ1 vs MappingQ2 [Errros' plot]
+  # Figure 10: Comparison MappingQ1 vs MappingQ2 [Errros' plot]
   plot_a_sei(glob_file_name1 = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-10/convergence_results.csv",
             fGO_file_name1 = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-11/convergence_results.csv",
             concentric_file_name1 = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-12/convergence_results.csv", 
             glob_file_name2 = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-19/convergence_results.csv",
             fGO_file_name2 = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-20/convergence_results.csv", 
             concentric_file_name2 = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-21/convergence_results.csv",
-            output_file = "Figure_9.pdf", 
+            output_file = "Figure_10.pdf", 
             name1 = 'MappingQ1', 
             name2 = 'MappingQ2', 
-            title = 'Fixed: Flat Manifold', 
+            title = 'First vs Second degree polynomial mapping', 
             exact_value = 2.728752707684e+04)
 
-  # Figure 10: Comparison MappingQ1 vs MappingQ2 [Precision's plot]
+  # Figure 11: Comparison MappingQ1 vs MappingQ2 [Precision's plot]
   linea_gialla_accanto(file_name1 = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-11/convergence_results.csv",
                       file_name2 = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-20/convergence_results.csv",
-                      output_file = "Figure_10.pdf", 
+                      output_file = "Figure_11.pdf", 
                       name1 = "MappingQ1",
                       name2 = "MappingQ2",
                       exact_value1 = 2.728752707684e+04,
                       exact_value2 = 2.728752707684e+04)
 
-  # Figure 11: Comparison different refinement algorithms [L2 and H1 errors]
+  # Figure 12: Comparison different refinement algorithms [L2 and H1 errors]
   plot_a_cinque_L2_H1(glob_file_name = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-19/convergence_results.csv",
                       fGO_file_name = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-20/convergence_results.csv",
                       concentric_file_name = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-21/convergence_results.csv",
                       kelly_file_name = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-20b/convergence_results.csv", 
                       weighted_kelly_file_name = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-20c/convergence_results.csv",
-                      output_file = "Figure_11.pdf", 
+                      output_file = "Figure_12.pdf", 
                       exact_value = 2.728752707684e+04)
 
-  # Figure 12: Comparison different refinement algorithms [FLUX error]
+  # Figure 13: Comparison different refinement algorithms [FLUX error]
   plot_a_cinque(glob_file_name = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-19/convergence_results.csv",
                 fGO_file_name = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-20/convergence_results.csv",
                 concentric_file_name = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-21/convergence_results.csv",
                 kelly_file_name = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-20b/convergence_results.csv", 
                 weighted_kelly_file_name = "../tests/test-8_LogCircular-1-100-fluxGO/results/config-20c/convergence_results.csv",
-                output_file = "Figure_12.pdf", 
+                output_file = "Figure_13.pdf", 
                 exact_value = 2.728752707684e+04)
 
-  # Figure 15: Real ion thruster mesh
+  # Figure 16: Real ion thruster mesh
   plot_classic_pair_real_application(file_name = "../tests/test-18-WireWire/results/config-13/convergence_results.csv",
                                     reference_file_name = "../tests/test-18-WireWire/results/config-12/convergence_results.csv",
                                     concentric_file_name = "../tests/test-18-WireWire/results/config-14/convergence_results.csv",
-                                    output_file = "Figure_15.pdf")
+                                    output_file = "Figure_16.pdf")
   
 
 if __name__ == "__main__":
