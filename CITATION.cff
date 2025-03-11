@@ -1,0 +1,6 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: Malvestiti
+    given-names: Matteo
+title: "Software for Goal-oriented adaptive mesh refinements for corona discharge simulations"
