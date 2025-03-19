@@ -70,7 +70,6 @@ namespace IonPropulsion{
       };
 
       void checkpoint();
-      virtual void restart() = 0;
 
     protected:
       const SmartPointer<parallel::distributed::Triangulation<dim>> triangulation;
@@ -112,29 +111,19 @@ namespace IonPropulsion{
 
       void update_convergence_table() override;
 
-      void restart() override;
-
     protected:
       const SmartPointer<const FiniteElement<dim>>  fe;
       const SmartPointer<const Quadrature<dim>>     quadrature;
       const SmartPointer<const Quadrature<dim - 1>> face_quadrature;
       DoFHandler<dim>                               dof_handler;
       PETScWrappers::MPI::Vector                    locally_relevant_solution;
-      //PETScWrappers::MPI::Vector                    homogeneous_solution;
-      //PETScWrappers::MPI::Vector                    locally_relevant_Rg_vector;
       PETScWrappers::MPI::Vector                    completely_distributed_solution;
       const SmartPointer<const Function<dim>>       boundary_values;
-      //double                                        conservative_flux;
       MappingQ<dim>                                 mapping;
       IndexSet                                      locally_owned_dofs;
       IndexSet                                      locally_relevant_dofs;
 
       virtual void assemble_rhs(PETScWrappers::MPI::Vector &rhs, AffineConstraints<double> &) const = 0;
-
-      //virtual void construct_Rg_vector() = 0;
-
-      //virtual void retrieve_Rg() = 0;
-
 
       struct LinearSystem
       {
@@ -216,13 +205,7 @@ namespace IonPropulsion{
 
       virtual void assemble_rhs(PETScWrappers::MPI::Vector &rhs
                                       , AffineConstraints<double> &) const override;
-      //virtual void construct_Rg_vector() override;
       void interpolate_boundary_values(std::map<types::global_dof_index, double> &) override;
-
-    private:
-      /*void retrieve_Rg() override {
-        this->locally_relevant_solution += this->locally_relevant_Rg_vector;
-      }*/
     };
 
     // ------------------------------------------------------
@@ -252,14 +235,8 @@ namespace IonPropulsion{
                                       , AffineConstraints<double> &) const override;
       static const Functions::ZeroFunction<dim> boundary_values;
 
-      /*void assemble_conservative_flux_rhs(
-        Vector<double> &rhs
-        ,SparseMatrix<double> & Umatrix
-        );*/
 
     private:
-      virtual void construct_Rg_vector() override {};
-      void retrieve_Rg() override {};
       void interpolate_boundary_values(std::map<types::global_dof_index, double> &) override;
 
     };

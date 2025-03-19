@@ -56,13 +56,8 @@ namespace IonPropulsion{
     {
       TimerOutput::Scope t(this->computing_timer, "refine");
       // REFINE EVERYWHERE
-      if (REFINEMENT_CRITERION == 1) {
-        if (MANUAL_LIFTING_ON) {
-          // TODO
-        } else {
-          this->triangulation->refine_global(1);
-        }
-      }
+      if (REFINEMENT_CRITERION == 1)
+        this->triangulation->refine_global(1);
 
       // ONLY REFINE AROUND EMITTER
       else if (REFINEMENT_CRITERION == 4) {
@@ -87,13 +82,8 @@ namespace IonPropulsion{
                 }
         }
 
-        if (MANUAL_LIFTING_ON) {
-          //TODO
-        } else {
-          this->triangulation->execute_coarsening_and_refinement();
-        }
+        this->triangulation->execute_coarsening_and_refinement();
       }
-
     }
 
     template <int dim>
@@ -374,19 +364,7 @@ namespace IonPropulsion{
       // GRID REFINEMENT
 
       if (REFINEMENT_CRITERION == 3) {
-        if (MANUAL_LIFTING_ON) {
-          /*Vector<double> old_Rg_values = PrimalSolver<dim>::locally_relevant_Rg_vector;
-          SolutionTransfer<dim> solution_transfer(PrimalSolver<dim>::dof_handler);
-          solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_values);
-          this->triangulation->refine_global(1);
-          PrimalSolver<dim>::dof_handler.distribute_dofs(*(PrimalSolver<dim>::fe));
-          PrimalSolver<dim>::locally_relevant_Rg_vector.reinit(PrimalSolver<dim>::dof_handler.n_dofs());
-          solution_transfer.interpolate(old_Rg_values, PrimalSolver<dim>::locally_relevant_Rg_vector);
-          PrimalSolver<dim>::construct_Rg_vector();
-          DualSolver<dim>::locally_relevantRg_vector.reinit(DualSolver<dim>::dof_handler.n_dofs());*/
-        } else {
-          this->triangulation->refine_global(1);
-        }
+        this->triangulation->refine_global(1);
         return;
       }
 
@@ -409,28 +387,9 @@ namespace IonPropulsion{
       else
         DEAL_II_NOT_IMPLEMENTED();
 
-      if (MANUAL_LIFTING_ON) {    // TODO
-        /*this->triangulation->prepare_coarsening_and_refinement();
-        SolutionTransfer<dim> solution_transfer(PrimalSolver<dim>::dof_handler);
+      this->triangulation->prepare_coarsening_and_refinement();
+      this->triangulation->execute_coarsening_and_refinement();
 
-        Vector<double> old_Rg_values = PrimalSolver<dim>::locally_relevantRg_vector;
-        solution_transfer.prepare_for_coarsening_and_refinement(old_Rg_values);
-
-        output_cell_flags_to_vtk(*this->triangulation, this->refinement_cycle, this->mpi_communicator);
-        this->triangulation->execute_coarsening_and_refinement();
-
-        PrimalSolver<dim>::dof_handler.distribute_dofs(*PrimalSolver<dim>::fe);
-        PrimalSolver<dim>::locally_relevantRg_vector.reinit(PrimalSolver<dim>::dof_handler.n_dofs());
-
-        solution_transfer.interpolate(old_Rg_values, PrimalSolver<dim>::locally_relevantRg_vector);
-
-        PrimalSolver<dim>::construct_Rg_vector();
-
-        DualSolver<dim>::locally_relevantRg_vector.reinit(DualSolver<dim>::dof_handler.n_dofs());*/
-      } else {
-        this->triangulation->prepare_coarsening_and_refinement();
-        this->triangulation->execute_coarsening_and_refinement();
-      }
 
 
     }

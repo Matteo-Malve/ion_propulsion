@@ -83,8 +83,6 @@ namespace IonPropulsion{
       void update_convergence_table() override;
       void print_convergence_table() const override;
 
-      void restart() override{};
-
     private:
 
       void solve_primal_problem();

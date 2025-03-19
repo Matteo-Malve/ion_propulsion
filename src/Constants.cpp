@@ -45,7 +45,6 @@ unsigned int NUM_CONCENTRIC_REF;
 unsigned int LOAD_FROM_SETUP;
 
 unsigned int MAPPING_DEGREE;
-bool MANUAL_LIFTING_ON;
 unsigned int REFINEMENT_CRITERION;
 unsigned int DUAL_FUNCTIONAL;
 unsigned int MAX_DEGREES_OF_FREEDOM;
@@ -80,7 +79,6 @@ void useGlobalConstants() {
   NUM_CONCENTRIC_REF = static_cast<unsigned int>(GlobalConstants::getInstance().get("NUM_CONCENTRIC_REF",0.0));
 
   MAPPING_DEGREE = static_cast<unsigned int>(GlobalConstants::getInstance().get("MAPPING_DEGREE",1));
-  MANUAL_LIFTING_ON = false; //static_cast<bool>(GlobalConstants::getInstance().get("MANUAL_LIFTING_ON"));
   REFINEMENT_CRITERION = static_cast<unsigned int>(GlobalConstants::getInstance().get("REFINEMENT_CRITERION"));
   DUAL_FUNCTIONAL = static_cast<unsigned int>(GlobalConstants::getInstance().get("DUAL_FUNCTIONAL",1));
   MAX_DEGREES_OF_FREEDOM = static_cast<unsigned int>(GlobalConstants::getInstance().get("MAX_DEGREES_OF_FREEDOM",1e5));
@@ -189,8 +187,6 @@ void printParsedConstants() {
   std::cout << "------------------------------------------------------------\n";
   std::cout << std::left << std::setw(30) << "MAPPING_DEGREE"
             << std::setw(20) << MAPPING_DEGREE << "\n";
-  std::cout << std::left << std::setw(30) << "MANUAL_LIFTING_ON"
-            << std::setw(20) << (MANUAL_LIFTING_ON ? "true" : "false") << "\n";
   std::cout << std::left << std::setw(30) << "REFINEMENT_CRITERION"
             << std::setw(20) << refinement_criterion << "\n";
   if (REFINEMENT_CRITERION==2 || REFINEMENT_CRITERION==3) {

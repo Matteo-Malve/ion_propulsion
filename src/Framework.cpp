@@ -38,7 +38,7 @@ namespace IonPropulsion{
   {}
 
   template <int dim>
-  void Framework<dim>::run(const ProblemDescription &descriptor, const bool do_restart)
+  void Framework<dim>::run(const ProblemDescription &descriptor)
   {
     MPI_Comm mpi_communicator(MPI_COMM_WORLD);
     //const unsigned int n_mpi_processes(Utilities::MPI::n_mpi_processes(mpi_communicator));
@@ -93,9 +93,6 @@ namespace IonPropulsion{
         default:
           AssertThrow(false, ExcInternalError());
       }
-
-    if (do_restart == true)
-      solver->restart();
 
     for (unsigned int step = 0; true; ++step)
       {

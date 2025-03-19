@@ -66,7 +66,6 @@ extern unsigned int NUM_CONCENTRIC_REF;
 extern unsigned int LOAD_FROM_SETUP;
 
 extern unsigned int MAPPING_DEGREE;
-extern bool MANUAL_LIFTING_ON;
 extern unsigned int REFINEMENT_CRITERION;
 extern unsigned int DUAL_FUNCTIONAL;
 extern unsigned int MAX_DEGREES_OF_FREEDOM;

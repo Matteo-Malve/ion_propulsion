@@ -69,7 +69,7 @@ namespace IonPropulsion{
       ProblemDescription();
     };
 
-    static void run(const ProblemDescription &descriptor, const bool do_restart);
+    static void run(const ProblemDescription &descriptor);
   };
 
 }
