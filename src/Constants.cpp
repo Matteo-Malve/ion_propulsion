@@ -71,7 +71,7 @@ void useGlobalConstants() {
   eps_r = GlobalConstants::getInstance().get("eps_r");
   eps_0 = GlobalConstants::getInstance().get("eps_0");
 
-  if (LOAD_FROM_SETUP==0 || LOAD_FROM_SETUP==11) {
+  if (LOAD_FROM_SETUP==0 || LOAD_FROM_SETUP==4) {
     Ve = GlobalConstants::getInstance().get("Ve");
     Vc = GlobalConstants::getInstance().get("Vc");
   }
@@ -86,7 +86,7 @@ void useGlobalConstants() {
   MAX_DEGREES_OF_FREEDOM = static_cast<unsigned int>(GlobalConstants::getInstance().get("MAX_DEGREES_OF_FREEDOM",1e5));
 
 
-  if (LOAD_FROM_SETUP != 0 && LOAD_FROM_SETUP != 11) {
+  if (LOAD_FROM_SETUP != 0 && LOAD_FROM_SETUP != 4) {
     EVALUATION_POINT_X = GlobalConstants::getInstance().get("EVALUATION_POINT_X");
     EVALUATION_POINT_Y = GlobalConstants::getInstance().get("EVALUATION_POINT_Y");
 
@@ -115,26 +115,12 @@ void printParsedConstants() {
   if(LOAD_FROM_SETUP == 0)
     setup_name="none";
   else if(LOAD_FROM_SETUP == 1)
-    setup_name="CurvedRidges";
-  else if(LOAD_FROM_SETUP == 2)
     setup_name="DealiiStep14";
-  else if (LOAD_FROM_SETUP == 3)
-    setup_name="Rectangle_1_99";
-  else if (LOAD_FROM_SETUP == 4)
-    setup_name="LogCircular_1_10";
-  else if (LOAD_FROM_SETUP == 5)
-    setup_name="LogCircular_1_100";
-  else if (LOAD_FROM_SETUP == 6)
-    setup_name="Rectangle_1_99_manifold";
-  else if (LOAD_FROM_SETUP == 7)
-    setup_name="angle_step14_forced";
-  else if (LOAD_FROM_SETUP == 8)
-    setup_name="angle_Rectangle_1_100_forced";
-  else if (LOAD_FROM_SETUP == 9)
-    setup_name="CircularStep14";
-  else if (LOAD_FROM_SETUP == 10)
+  else if (LOAD_FROM_SETUP == 2)
     setup_name="LogCircular_1_2";
-  else if (LOAD_FROM_SETUP == 11)
+  else if (LOAD_FROM_SETUP == 3)
+    setup_name="LogCircular_1_100";
+  else if (LOAD_FROM_SETUP == 4)
     setup_name="WireWire";
   else
     DEAL_II_NOT_IMPLEMENTED();
@@ -192,7 +178,7 @@ void printParsedConstants() {
   std::cout << std::left << std::setw(30) << "NUM_CONCENTRIC_REF"
             << std::setw(20) << NUM_CONCENTRIC_REF << "\n";
 
-  if (LOAD_FROM_SETUP==0 ||LOAD_FROM_SETUP==11){
+  if (LOAD_FROM_SETUP==0 ||LOAD_FROM_SETUP==4){
     std::cout << "------------------------------------------------------------\n";
     std::cout << std::left << std::setw(30) << "Ve"
               << std::setw(20) << Ve << "\n";
@@ -245,25 +231,3 @@ void printParsedConstants() {
   }
   std::cout << "============================================================\n\n";
 }
-/*
-double eps_r = 1.0;     // 8.854
-double eps_0 = 1.0; // 1.0006
-
-//double EXACT_POINT_VALUE = 0.0334473; // step14 classic (0.75, 0.75)
-//double EXACT_POINT_VALUE = 1.742630e-05;       // 1:99 (0.0039, 0.0039)
-//double EXACT_POINT_VALUE = 9030.9;        // LogCircular_1_10, (0.001,0.001)
-//double EXACT_POINT_VALUE = 6466.13;      // LogCircular_1_10, (0.0019,0)
-double EXACT_POINT_VALUE = 3148.182801 ;       // LogCircular_1_100, (0.019375,0.)
-
-//double EXACT_FLUX = -3.9252746598790566e-05;  // Rectangle_1_99 by extrapolation
-//double EXACT_FLUX = -2.193245422464e+00;   // CircularZeroDirichlet exact
-double EXACT_FLUX = 54575.1;             // LogCircular 1:10 exact
-double EXACT_FLUX = 27287.5;             // LogCircular 1:100 exact
-//double EXACT_FLUX = 13962.6;               // Circular
-
-unsigned int NUM_PRELIMINARY_GLOBAL_REF = 0;
-unsigned int NUM_PRELIMINARY_REF = 0;
-
-bool MANUAL_LIFTING_ON = 1;    // 1: ON, 0: OFF
-
-*/

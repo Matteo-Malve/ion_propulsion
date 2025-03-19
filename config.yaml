@@ -5,14 +5,13 @@ eps_r: 1.0    # 1.0006          # Relative permittivity
 
 # Set-up configurations
 PATH_TO_MESH: ../mesh/myWWdelaunay3.msh
-LOAD_FROM_SETUP: 11
+LOAD_FROM_SETUP: 4
 # Options: 0:  NONE                  (**)
-#          2:  deal.ii's step-14
-#          5:  LogCircular_1_100     (**)
-#          10: LogCircular_1_2       (**)
-#          11: Wire Wire             (**)
-#          ------- not for custom use -------------------------------
-#          1, 3, 4, 6, 7, 8, 9: Specific test cases to be ignored
+#          1:  deal.ii's step-14
+#          2:  LogCircular_1_2       (**)
+#          3:  LogCircular_1_100     (**)
+#          4:  Wire Wire             (**)
+
 
 
 # Boundary data (***)

@@ -45,8 +45,6 @@ int main(int argc, char **argv)
       printParsedConstants();
     MPI_Barrier(MPI_COMM_WORLD);
 
-    // Describe the problem we want to solve here by passing a descriptor
-    // object to the function doing the rest of the work:
     const unsigned int                 dim = 2;
     Framework<dim>::ProblemDescription descriptor;
 
@@ -66,26 +64,12 @@ int main(int argc, char **argv)
     if(LOAD_FROM_SETUP == 0)
       descriptor.data = std::make_unique<Data::SetUp<Data::SetupNone<dim>, dim>>();
     else if(LOAD_FROM_SETUP == 1)
-      descriptor.data = std::make_unique<Data::SetUp<Data::CurvedRidges<dim>, dim>>();
-    else if(LOAD_FROM_SETUP == 2)
       descriptor.data = std::make_unique<Data::SetUp<Data::DealiiStep14<dim>, dim>>();
-    else if (LOAD_FROM_SETUP == 3)
-      descriptor.data = std::make_unique<Data::SetUp<Data::Rectangle_1_99<dim>, dim>>();
-    else if (LOAD_FROM_SETUP == 4)
-      descriptor.data = std::make_unique<Data::SetUp<Data::LogCircular_1_10<dim>, dim>>();
-    else if (LOAD_FROM_SETUP == 5)
-      descriptor.data = std::make_unique<Data::SetUp<Data::LogCircular_1_100<dim>, dim>>();
-    else if (LOAD_FROM_SETUP == 6)
-      descriptor.data = std::make_unique<Data::SetUp<Data::Rectangle_1_99_manifold<dim>, dim>>();
-    else if (LOAD_FROM_SETUP == 7)
-      descriptor.data = std::make_unique<Data::SetUp<Data::angle_step14_forced<dim>, dim>>();
-    else if (LOAD_FROM_SETUP == 8)
-      descriptor.data = std::make_unique<Data::SetUp<Data::angle_Rectangle_1_100_forced<dim>, dim>>();
-    else if (LOAD_FROM_SETUP == 9)
-      descriptor.data = std::make_unique<Data::SetUp<Data::CircularStep14<dim>, dim>>();
-    else if (LOAD_FROM_SETUP == 10)
+    else if (LOAD_FROM_SETUP == 2)
       descriptor.data = std::make_unique<Data::SetUp<Data::LogCircular_1_2<dim>, dim>>();
-    else if (LOAD_FROM_SETUP == 11)
+    else if (LOAD_FROM_SETUP == 3)
+      descriptor.data = std::make_unique<Data::SetUp<Data::LogCircular_1_100<dim>, dim>>();
+    else if (LOAD_FROM_SETUP == 4)
       descriptor.data = std::make_unique<Data::SetUp<Data::WireWire<dim>, dim>>();
     else
       DEAL_II_NOT_IMPLEMENTED();
@@ -96,7 +80,7 @@ int main(int argc, char **argv)
 
     if (LOAD_FROM_SETUP==0)
       emitter_boundary_ids_set_ptr = std::make_unique<const std::set<unsigned int>>(std::set<unsigned int>{1});
-    else  if (LOAD_FROM_SETUP==11)
+    else  if (LOAD_FROM_SETUP==4)
       emitter_boundary_ids_set_ptr = std::make_unique<const std::set<unsigned int>>(std::set<unsigned int>{1,2});
     else
       emitter_boundary_ids_set_ptr = std::make_unique<const std::set<unsigned int>>(std::set<unsigned int>{1});
@@ -119,7 +103,7 @@ int main(int argc, char **argv)
     //Evaluation::GridOutput<dim>           postprocessor2("grid");
 
     descriptor.evaluator_list.push_back(&postprocessor1);
-    if (LOAD_FROM_SETUP != 0 && LOAD_FROM_SETUP != 11) {
+    if (LOAD_FROM_SETUP != 0 && LOAD_FROM_SETUP != 4) {
       descriptor.evaluator_list.push_back(&postprocessor2);
       descriptor.evaluator_list.push_back(&postprocessor3);
     }

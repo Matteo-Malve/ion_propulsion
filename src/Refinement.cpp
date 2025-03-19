@@ -71,7 +71,7 @@ namespace IonPropulsion{
 
         if (LOAD_FROM_SETUP==0)
           emitter_boundary_ids_set_ptr = std::make_unique<const std::set<unsigned int>>(std::set<unsigned int>{1});
-        else  if (LOAD_FROM_SETUP==11)
+        else  if (LOAD_FROM_SETUP==4)
           emitter_boundary_ids_set_ptr = std::make_unique<const std::set<unsigned int>>(std::set<unsigned int>{1,2});
         else
           emitter_boundary_ids_set_ptr = std::make_unique<const std::set<unsigned int>>(std::set<unsigned int>{1});
