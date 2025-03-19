@@ -121,19 +121,19 @@ namespace IonPropulsion{
       DoFHandler<dim>                               dof_handler;
       PETScWrappers::MPI::Vector                    locally_relevant_solution;
       //PETScWrappers::MPI::Vector                    homogeneous_solution;
-      PETScWrappers::MPI::Vector                    locally_relevant_Rg_vector;   // TODO
+      //PETScWrappers::MPI::Vector                    locally_relevant_Rg_vector;
       PETScWrappers::MPI::Vector                    completely_distributed_solution;
       const SmartPointer<const Function<dim>>       boundary_values;
-      double                                        conservative_flux;
-      MappingQ<dim>      mapping;
+      //double                                        conservative_flux;
+      MappingQ<dim>                                 mapping;
       IndexSet                                      locally_owned_dofs;
       IndexSet                                      locally_relevant_dofs;
 
       virtual void assemble_rhs(PETScWrappers::MPI::Vector &rhs, AffineConstraints<double> &) const = 0;
 
-      virtual void construct_Rg_vector() = 0;
+      //virtual void construct_Rg_vector() = 0;
 
-      virtual void retrieve_Rg() = 0;
+      //virtual void retrieve_Rg() = 0;
 
 
       struct LinearSystem
@@ -152,7 +152,7 @@ namespace IonPropulsion{
         //SparsityPattern           sparsity_pattern;
         PETScWrappers::MPI::SparseMatrix    matrix;
         PETScWrappers::MPI::Vector          rhs;
-        PETScWrappers::MPI::SparseMatrix    Umatrix;
+        //PETScWrappers::MPI::SparseMatrix    Umatrix;
       };
 
       std::unique_ptr<LinearSystem>                 linear_system_ptr;
@@ -216,13 +216,13 @@ namespace IonPropulsion{
 
       virtual void assemble_rhs(PETScWrappers::MPI::Vector &rhs
                                       , AffineConstraints<double> &) const override;
-      virtual void construct_Rg_vector() override;
+      //virtual void construct_Rg_vector() override;
       void interpolate_boundary_values(std::map<types::global_dof_index, double> &) override;
 
     private:
-      void retrieve_Rg() override {
+      /*void retrieve_Rg() override {
         this->locally_relevant_solution += this->locally_relevant_Rg_vector;
-      }
+      }*/
     };
 
     // ------------------------------------------------------

@@ -104,10 +104,6 @@ namespace IonPropulsion{
                                             PETScWrappers::MPI::Vector &       rhs
                                             , AffineConstraints<double> & hanging_node_constraints) const
     {
-
-      // Set up:
-      //rhs.reinit(dof_handler.n_dofs());  // Done already by the calling function in solver
-
       auto & fe_face = dof_handler.get_fe();
 
       // Quadrature

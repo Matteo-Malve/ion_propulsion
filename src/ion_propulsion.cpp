@@ -68,7 +68,7 @@ int main(int argc, char **argv)
     else if(LOAD_FROM_SETUP == 1)
       descriptor.data = std::make_unique<Data::SetUp<Data::CurvedRidges<dim>, dim>>();
     else if(LOAD_FROM_SETUP == 2)
-      descriptor.data = std::make_unique<Data::SetUp<Data::Exercise_2_3<dim>, dim>>();
+      descriptor.data = std::make_unique<Data::SetUp<Data::DealiiStep14<dim>, dim>>();
     else if (LOAD_FROM_SETUP == 3)
       descriptor.data = std::make_unique<Data::SetUp<Data::Rectangle_1_99<dim>, dim>>();
     else if (LOAD_FROM_SETUP == 4)
@@ -91,14 +91,6 @@ int main(int argc, char **argv)
       DEAL_II_NOT_IMPLEMENTED();
 
     const Point<dim> evaluation_point(EVALUATION_POINT_X,EVALUATION_POINT_Y);
-
-    /*
-    //const Point<dim> evaluation_point(0.0019, 0.);    // LogCircular 1:10
-    const Point<dim> evaluation_point(0.019375, 0.);    // LogCircular 1:100
-    //const Point<dim> evaluation_point(0.0039, 0.0039);      // ??
-    //const Point<dim> evaluation_point(0.0006, 0.0006);      // Rectangular_1_99_DeFalco PointEvaluation is sharp. Requires vertex //TODO: Extrapolation of value
-    //const Point<dim> evaluation_point(0.75, 0.75);    // original-step14
-    */
 
     std::unique_ptr<const std::set<unsigned int>> emitter_boundary_ids_set_ptr;
 

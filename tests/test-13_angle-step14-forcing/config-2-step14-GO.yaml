@@ -12,7 +12,7 @@ PATH_TO_MESH: ../mesh/AngleSquare_step14.msh
 LOAD_FROM_SETUP: 7                  # Setups: mesh, analytical solution, forcing term
 # Options: 0: NONE (**)
 #          1: CurvedRidges (from step-14)
-#          2: Exercise_2_3 (from step-14)
+#          2: DealiiStep14 (from step-14)
 #          3: Rectangle_1_99 (**) (modified step-14 with 1:99 ratio)
 #          4: LogCircular_1_10
 #          5: LogCircular_1_100

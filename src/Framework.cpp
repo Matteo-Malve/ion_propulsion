@@ -56,7 +56,7 @@ namespace IonPropulsion{
     // then a set of finite elements and appropriate quadrature formula:
     const FE_Q<dim>       primal_fe(descriptor.primal_fe_degree);
     const FE_Q<dim>       dual_fe(descriptor.dual_fe_degree);
-    const QGauss<dim>     quadrature(descriptor.dual_fe_degree + 1);  // TODO usa trapezi su primale
+    const QGauss<dim>     quadrature(descriptor.dual_fe_degree + 1);
     const QGauss<dim - 1> face_quadrature(descriptor.dual_fe_degree + 1);
 
     // Next, select one of the classes implementing different refinement

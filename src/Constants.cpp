@@ -117,7 +117,7 @@ void printParsedConstants() {
   else if(LOAD_FROM_SETUP == 1)
     setup_name="CurvedRidges";
   else if(LOAD_FROM_SETUP == 2)
-    setup_name="Exercise_2_3";
+    setup_name="DealiiStep14";
   else if (LOAD_FROM_SETUP == 3)
     setup_name="Rectangle_1_99";
   else if (LOAD_FROM_SETUP == 4)

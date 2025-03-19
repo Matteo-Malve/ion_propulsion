@@ -56,45 +56,6 @@ namespace IonPropulsion{
       refinement_cycle = cycle;
     }
 
-    template <int dim>
-    void Base<dim>::checkpoint()
-    {
-      std::cout << "--- Writing checkpoint... ---" << std::endl;
-
-//#if (DEAL_II_VERSION_MAJOR > 9) || (DEAL_II_VERSION_MAJOR == 9 && DEAL_II_VERSION_MINOR >= 6)
-      triangulation->save(OUTPUT_PATH+"/"+"checkpoint-mesh"+std::to_string(this->refinement_cycle));
-//#else
-      //std::ofstream                 checkpoint_file(OUTPUT_PATH+"/"+"checkpoint-mesh"+std::to_string(this->refinement_cycle));
-      //boost::archive::text_oarchive archive(checkpoint_file);
-      //triangulation->save(archive,1);
-//#endif
-    }
-
-    template <int dim>
-    void Solver<dim>::restart()
-      {
-        {
-          std::ifstream checkpoint_file(OUTPUT_PATH+"/"+"checkpoint_ion_propulsion");
-          AssertThrow(checkpoint_file,
-                      ExcMessage(
-                        "Could not read from the <checkpoint_ion_propulsion> file."));
-
-          boost::archive::text_iarchive archive(checkpoint_file);
-          archive >> *this;
-        }
-
-      this->triangulation->load(OUTPUT_PATH+"/"+"checkpoint");
-      //particle_handler.deserialize();
-
-      dof_handler.reinit(*this->triangulation);
-
-      GridOut grid_out;
-      GridOutFlags::Msh msh_flags(true, true);
-      grid_out.set_flags(msh_flags);
-      grid_out.write_msh(*this->triangulation, OUTPUT_PATH+"/re-imported_mesh.msh");
-    }
-
-
     // ------------------------------------------------------
     // Solver
     // ------------------------------------------------------
@@ -154,11 +115,11 @@ namespace IonPropulsion{
                                                 this->mpi_communicator);
 
 
-        if(MANUAL_LIFTING_ON)     //TODO
+        /*if(MANUAL_LIFTING_ON)     //TODO
           if (this->refinement_cycle == 0) {
             locally_relevant_Rg_vector.reinit(this->locally_owned_dofs, this->locally_relevant_dofs, this->mpi_communicator);
             construct_Rg_vector();
-          }
+          }*/
 
 
         linear_system_ptr = std::make_unique<LinearSystem>(
@@ -179,8 +140,8 @@ namespace IonPropulsion{
         TimerOutput::Scope t(this->computing_timer, "solve");
         linear_system_ptr->solve(locally_relevant_solution, this->completely_distributed_solution);
 
-        if(MANUAL_LIFTING_ON)   //TODO
-          retrieve_Rg();
+        //if(MANUAL_LIFTING_ON)   //TODO
+        //  retrieve_Rg();
       }
 
     }
@@ -320,7 +281,7 @@ namespace IonPropulsion{
       SolverControl            solver_control(5000, 1e-12);
       PETScWrappers::SolverCG  cg(solver_control);
 
-      PETScWrappers::PreconditionBoomerAMG::AdditionalData data;
+      PETScWrappers::PreconditionBoomerAMG::AdditionalData data;    // TODO: BlockJacobi
       data.symmetric_operator = true;
       PETScWrappers::PreconditionBoomerAMG preconditioner;
       preconditioner.initialize(matrix, data);
@@ -330,8 +291,6 @@ namespace IonPropulsion{
                 rhs,
                 preconditioner);
 
-      /*PETScWrappers::SparseDirectMUMPS solverMUMPS(solver_control);
-      solverMUMPS.solve(matrix, completely_distributed_solution, rhs);*/
 
       hanging_node_constraints.distribute(completely_distributed_solution);
 
@@ -444,7 +403,7 @@ namespace IonPropulsion{
       }
     }
 
-    template <int dim>
+    /*template <int dim>
     void PrimalSolver<dim>::construct_Rg_vector() {
       AffineConstraints<double> hanging_node_constraints;
       hanging_node_constraints.clear();
@@ -473,7 +432,7 @@ namespace IonPropulsion{
       side_task.join();
       hanging_node_constraints.close();
       hanging_node_constraints.distribute(this->locally_relevant_Rg_vector);
-    }
+    }*/
 
     template <int dim>
     void PrimalSolver<dim>::interpolate_boundary_values(std::map<types::global_dof_index, double> & boundary_value_map) {

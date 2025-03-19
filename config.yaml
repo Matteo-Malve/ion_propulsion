@@ -44,7 +44,7 @@ EVALUATION_POINT_Y: none
 EXACT_POINT_VALUE: none
 EXACT_FLUX: none
 
-MANIFOLD_IS_APPLIED: 2      
+MANIFOLD_IS_APPLIED: 0
 # Options: 0: no manifold description imposed
 #          ------- not for custom use -----------------
 #          1: everywhere
