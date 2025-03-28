@@ -7,16 +7,20 @@ rc = 3.175e-3;
 
 //Set a spacing///////
 d=60e-3;
+msize_out = 1e-2;
+msize_circ = msize_out * 1.1;
+//msize_special = msize_out * 2;
+msize_special = msize_out*0.9;
 
 //SET A GAP
 gap=50e-3;
 
 //////DOMAIN/////////
 
-Point(11) = {-Lx,    -Ly/2,  0};
-Point(12) = {-Lx,     Ly/2,  0};
-Point(41) = {Lx+gap,  Ly/2,  0};
-Point(43) = {Lx+gap, -Ly/2,  0};
+Point(11) = {-Lx,    -Ly/2,  0, msize_out};
+Point(12) = {-Lx,     Ly/2,  0, msize_out};
+Point(41) = {0.133175,  Ly/2,  0, msize_out};
+Point(43) = {0.133175, -Ly/2,  0, msize_out};
 
 
 ////EMITTERS//////
@@ -35,10 +39,10 @@ Circle(22) = {23, 21, 24};
 Circle(23) = {24, 21, 25};
 Circle(24) = {25, 21, 22};
 
-Point(122) = {k*re,  h,    0};
-Point(123) = {0,   k*re+h, 0};
-Point(124) = {-k*re, h,    0};
-Point(125) = {0,   h-k*re, 0};
+Point(122) = {k*re,  h,    0, msize_circ};
+Point(123) = {0,   k*re+h, 0, msize_circ};
+Point(124) = {-k*re, h,    0, msize_circ};
+Point(125) = {0,   h-k*re, 0, msize_circ};
 Circle(121) = {122, 21, 123};
 Circle(122) = {123, 21, 124};
 Circle(123) = {124, 21, 125};
@@ -55,10 +59,10 @@ Circle(32) = {33, 31, 34};
 Circle(33) = {34, 31, 35};
 Circle(34) = {35, 31, 32};
 
-Point(132) = {k*re,  -h,     0};
-Point(133) = {0,   -h+k*re,  0};
-Point(134) = {-k*re, -h,     0};
-Point(135) = {0,  -(k*re+h), 0};
+Point(132) = {k*re,  -h,     0, msize_circ};
+Point(133) = {0,   -h+k*re,  0, msize_circ};
+Point(134) = {-k*re, -h,     0, msize_circ};
+Point(135) = {0,  -(k*re+h), 0, msize_circ};
 Circle(131) = {132, 31, 133};
 Circle(132) = {133, 31, 134};
 Circle(133) = {134, 31, 135};
@@ -77,10 +81,10 @@ Circle(6) = {8, 6, 9};
 Circle(7) = {9, 6, 10};
 Circle(8) = {10, 6, 7};
 
-Point(107) = {gap+rc+k*re,h,    0};
-Point(108) = {gap+rc,  k*re+h, 0};
-Point(109) = {gap+rc-k*re,     h,    0};
-Point(110) = {gap+rc, h-k*re, 0};
+Point(107) = {gap+rc+k*re,h,    0, msize_circ};
+Point(108) = {gap+rc,  k*re+h, 0, msize_circ};
+Point(109) = {gap+rc-k*re,     h,    0, msize_circ};
+Point(110) = {gap+rc, h-k*re, 0, msize_circ};
 Circle(105) = {107, 6, 108};
 Circle(106) = {108, 6, 109};
 Circle(107) = {109, 6, 110};
@@ -97,10 +101,10 @@ Circle(11) = {53, 50, 52};
 Circle(12) = {52, 50, 51};
 Circle(13) = {51, 50, 54};
 
-Point(151) = {gap+rc+k*re,-h,     0};
-Point(152) = {gap+rc, -h+k*re, 0};
-Point(153) = {gap+rc-k*re,     -h,     0};
-Point(154) = {gap+rc, -(k*re+h), 0};
+Point(151) = {gap+rc+k*re,-h,     0, msize_circ};
+Point(152) = {gap+rc, -h+k*re, 0, msize_circ};
+Point(153) = {gap+rc-k*re,     -h,     0, msize_circ};
+Point(154) = {gap+rc, -(k*re+h), 0, msize_circ};
 Circle(110) = {154, 50, 153};
 Circle(111) = {153, 50, 152};
 Circle(112) = {152, 50, 151};
@@ -122,24 +126,24 @@ Line(146) = {152, 54};
 Line(147) = {51, 151};
 Line(148) = {52, 154};
 Line(149) = {53, 153};
-Point(155) = {-0.1, -0, 0, 1.0};
-Point(156) = {-0.08, -0.03, 0, 1.0};
-Point(157) = {-0.08, 0, 0, 1.0};
-Point(158) = {-0.08, 0.03, 0, 1.0};
-Point(159) = {0.13, -0.03, 0, 1.0};
-Point(160) = {0.13, 0.03, 0, 1.0};
-Point(161) = {0.13, 0., 0, 1.0};
-Point(162) = {0, -0.06, 0, 1.0};
-Point(163) = {0.0265875, -0.06, 0, 1.0};
-Point(164) = {0.0265875, 0.06, 0, 1.0};
-Point(165) = {0.0265875, -0.03, 0, 1.0};
-Point(166) = {0.0265875, 0.03, 0, 1.0};
-Point(167) = {0.0265875, 0, 0, 1.0};
-Point(168) = {0, 0, 0, 1.0};
-Point(169) = {0.053175, 0, 0, 1.0};
-Point(170) = {0.053175, -0.06, 0, 1.0};
-Point(171) = {0.053175, 0.06, 0, 1.0};
-Point(172) = {0, 0.06, 0, 1.0};
+Point(155) = {-0.1, -0, 0, msize_out};
+Point(156) = {-0.08, -0.03, 0, msize_special};
+Point(157) = {-0.08, 0, 0, msize_special};
+Point(158) = {-0.08, 0.03, 0, msize_special};
+Point(159) = {0.133175, -0.03, 0, msize_special};
+Point(160) = {0.133175, 0.03, 0, msize_special};
+Point(161) = {0.133175, 0., 0, msize_special};
+Point(162) = {0, -0.06, 0, msize_out};
+Point(163) = {0.0265875, -0.06, 0, msize_out};
+Point(164) = {0.0265875, 0.06, 0, msize_out};
+Point(165) = {0.0265875, -0.03, 0, msize_out};
+Point(166) = {0.0265875, 0.03, 0, msize_out};
+Point(167) = {0.0265875, 0, 0, msize_out};
+Point(168) = {0, 0, 0, msize_out};
+Point(169) = {0.053175, 0, 0, msize_out};
+Point(170) = {0.053175, -0.06, 0, msize_out};
+Point(171) = {0.053175, 0.06, 0, msize_out};
+Point(172) = {0, 0.06, 0, msize_out};
 
 Line(150) = {158, 124};
 Line(151) = {123, 172};
@@ -257,35 +261,31 @@ Physical Curve("EmitterDown", 2) = {32, 31, 33, 34};
 Physical Curve("CollectorUp", 3) = {6, 7, 8, 5};
 Physical Curve("CollectorDown", 4) = {10, 11, 12, 13};
 
-Transfinite Curve {175, 176, 177, 178, 183, 184, 185, 186} = 2 Using Progression 1;
-Transfinite Curve {190, 150, 187, 182, 179, 173, 160} = 4 Using Progression 1;
-Transfinite Curve {150, 174, 157, 161} = 3 Using Progression 1;
-Transfinite Curve {164, 168, 169, 154} = 5 Using Progression 1;
-Transfinite Curve {151, 152, 153, 155, 158, 170, 171, 159, 163, 165, 166, 162} = 3 Using Progression 1;
+Transfinite Curve {135, 136, 137, 138, 139, 140, 141, 142} = 5 Using Progression 2.9;
 Transfinite Curve {122, 121, 124, 123, 21, 24, 23, 22, 131, 134, 133, 132, 31, 34, 33, 32} = 3 Using Progression 1;
 Transfinite Curve {105, 108, 107, 106, 5, 8, 7, 6, 112, 113, 110, 111, 13, 12, 11, 10} = 3 Using Progression 1;
-Transfinite Curve {135, 136, 137, 138, 139, 140, 141, 142} = 5 Using Progression 2.9;
-Transfinite Curve {143, 156, 145, 144, 146, 147, 148, 149} = 3 Using Progression 1;
-Transfinite Curve {189, 188, 172, 167, 180, 181} = 3 Using Progression 1;
+Transfinite Curve {143, 156, 145, 144, 146, 147, 148, 149} = 2 Using Progression 1;
 
-Transfinite Surface {20};
-Transfinite Surface {19};
-Transfinite Surface {18};
 Transfinite Surface {17};
+Transfinite Surface {20};
+Transfinite Surface {18};
+Transfinite Surface {19};
 Transfinite Surface {21};
 Transfinite Surface {24};
-Transfinite Surface {23};
 Transfinite Surface {22};
+Transfinite Surface {23};
 Transfinite Surface {29};
 Transfinite Surface {32};
 Transfinite Surface {31};
 Transfinite Surface {30};
-Transfinite Surface {28};
-Transfinite Surface {27};
-Transfinite Surface {26};
 Transfinite Surface {25};
+Transfinite Surface {28};
+Transfinite Surface {26};
+Transfinite Surface {27};
 
-Mesh.Algorithm=1;
+
+
+Mesh.Algorithm=8;
 Mesh.RecombineAll=1;
 
 Mesh 2;
